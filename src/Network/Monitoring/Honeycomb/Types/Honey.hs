@@ -19,9 +19,6 @@ data Honey = Honey
     , sendQueue     :: !(TBQueue HoneyQueueMessage)
     }
 
-mkHoney :: HoneyOptions -> HoneyObject -> TBQueue HoneyQueueMessage -> Honey
-mkHoney = Honey
-
 honeyOptionsL :: Lens' Honey HoneyOptions
 honeyOptionsL = lens honeyOptions (\x y -> x { honeyOptions = y })
 
@@ -30,6 +27,9 @@ defaultFieldsL = lens defaultFields (\x y -> x { defaultFields = y })
 
 sendQueueL :: Lens' Honey (TBQueue HoneyQueueMessage)
 sendQueueL = lens sendQueue (\x y -> x { sendQueue = y })
+
+mkHoney :: HoneyOptions -> HoneyObject -> TBQueue HoneyQueueMessage -> Honey
+mkHoney = Honey
 
 class HasHoney env where
     honeyL :: Lens' env Honey

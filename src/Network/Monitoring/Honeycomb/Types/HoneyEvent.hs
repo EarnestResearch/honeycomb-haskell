@@ -18,6 +18,15 @@ data HoneyEvent = HoneyEvent
     , eventFields    :: !(TVar HoneyObject) 
     }
 
+eventTimestampL :: Lens' HoneyEvent UTCTime
+eventTimestampL = lens eventTimestamp (\x y -> x { eventTimestamp = y })
+
+eventOptionsL :: Lens' HoneyEvent HoneyOptions
+eventOptionsL = lens eventOptions (\x y -> x { eventOptions = y})
+
+eventFieldsL :: Lens' HoneyEvent (TVar HoneyObject)
+eventFieldsL = lens eventFields (\x y -> x { eventFields = y })
+
 mkHoneyEvent :: MonadIO m => HoneyOptions -> HoneyObject -> m HoneyEvent
 mkHoneyEvent honeyOptions defaultFields = do
     eventTimestamp <- getCurrentTime
@@ -31,15 +40,6 @@ mkHoneyEvent' eventTimestamp eventOptions defaultFields = do
         , eventOptions
         , eventFields
         }
-
-eventTimestampL :: Lens' HoneyEvent UTCTime
-eventTimestampL = lens eventTimestamp (\x y -> x { eventTimestamp = y })
-
-eventOptionsL :: Lens' HoneyEvent HoneyOptions
-eventOptionsL = lens eventOptions (\x y -> x { eventOptions = y})
-
-eventFieldsL :: Lens' HoneyEvent (TVar HoneyObject)
-eventFieldsL = lens eventFields (\x y -> x { eventFields = y })
 
 instance Show HoneyEvent where
     show e = "HoneyEvent " ++

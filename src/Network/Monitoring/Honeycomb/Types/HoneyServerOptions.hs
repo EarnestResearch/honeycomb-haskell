@@ -6,7 +6,6 @@ module Network.Monitoring.Honeycomb.Types.HoneyServerOptions
     , maxConcurrentBatchesL
     , pendingWorkCapacityL
     , defaultHoneyServerOptions
-    , honeyServerOptionsL
     ) where
 
 import Numeric.Natural (Natural)
@@ -35,12 +34,6 @@ maxConcurrentBatchesL = lens maxConcurrentBatches (\x y -> x { maxConcurrentBatc
 
 pendingWorkCapacityL :: Lens' HoneyServerOptions Natural
 pendingWorkCapacityL = lens pendingWorkCapacity (\x y -> x { pendingWorkCapacity = y })
-
-class HasHoneyServerOptions env where
-    honeyServerOptionsL :: Lens' env HoneyServerOptions
-
-instance HasHoneyServerOptions HoneyServerOptions where
-    honeyServerOptionsL = id
 
 defaultMaxBatchSize :: Natural
 defaultMaxBatchSize = 50

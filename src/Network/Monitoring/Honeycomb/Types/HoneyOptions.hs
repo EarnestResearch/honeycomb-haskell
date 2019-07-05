@@ -23,15 +23,6 @@ data HoneyOptions = HoneyOptions
     , blockOnSend :: Bool
     } deriving (Show)
 
-defaultHoneyOptions :: HoneyOptions
-defaultHoneyOptions = HoneyOptions
-    { apiKey = Nothing
-    , dataset = Nothing
-    , sampleRate = 1
-    , apiHost = fromJust $ URI.parseURI "https://api.honeycomb.io/"
-    , blockOnSend = False
-    }
-
 apiKeyL :: Lens' HoneyOptions (Maybe ApiKey)
 apiKeyL = lens apiKey (\x y -> x { apiKey = y})
 
@@ -46,3 +37,12 @@ apiHostL = lens apiHost (\x y -> x { apiHost = y})
 
 blockOnSendL :: Lens' HoneyOptions Bool
 blockOnSendL = lens blockOnSend (\x y -> x { blockOnSend = y})
+
+defaultHoneyOptions :: HoneyOptions
+defaultHoneyOptions = HoneyOptions
+    { apiKey = Nothing
+    , dataset = Nothing
+    , sampleRate = 1
+    , apiHost = fromJust $ URI.parseURI "https://api.honeycomb.io/"
+    , blockOnSend = False
+    }
