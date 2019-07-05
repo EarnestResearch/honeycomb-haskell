@@ -1,0 +1,133 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.31.1.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: 733bd791eae63d729eb1f8780d85853b2db854651ef74f455d10cbb7689d36ca
+
+name:           honeycomb
+version:        0.1.0.0
+description:    Please see the README on Github at <https://github.com/githubuser/honeycomb#readme>
+homepage:       https://github.com/githubuser/honeycomb#readme
+bug-reports:    https://github.com/githubuser/honeycomb/issues
+author:         Author name here
+maintainer:     example@example.com
+copyright:      2019 Author name here
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+    ChangeLog.md
+
+source-repository head
+  type: git
+  location: https://github.com/githubuser/honeycomb
+
+library
+  exposed-modules:
+      Network.Monitoring.Honeycomb
+      Network.Monitoring.Honeycomb.Trace
+      Network.Monitoring.Honeycomb.Trace.Types
+      Network.Monitoring.Honeycomb.Trace.Types.Propagation
+      Network.Monitoring.Honeycomb.Trace.Types.PropagationData
+      Network.Monitoring.Honeycomb.Trace.Types.SpanContext
+      Network.Monitoring.Honeycomb.Trace.Types.SpanId
+      Network.Monitoring.Honeycomb.Trace.Types.SpanName
+      Network.Monitoring.Honeycomb.Trace.Types.SpanReference
+      Network.Monitoring.Honeycomb.Trace.Types.TraceId
+      Network.Monitoring.Honeycomb.Trace.Types.Tracer
+      Network.Monitoring.Honeycomb.Transport
+      Network.Monitoring.Honeycomb.Types
+      Network.Monitoring.Honeycomb.Types.ApiKey
+      Network.Monitoring.Honeycomb.Types.Dataset
+      Network.Monitoring.Honeycomb.Types.FrozenHoneyEvent
+      Network.Monitoring.Honeycomb.Types.Honey
+      Network.Monitoring.Honeycomb.Types.HoneyEvent
+      Network.Monitoring.Honeycomb.Types.HoneyException
+      Network.Monitoring.Honeycomb.Types.HoneyObject
+      Network.Monitoring.Honeycomb.Types.HoneyOptions
+      Network.Monitoring.Honeycomb.Types.HoneyQueueMessage
+      Network.Monitoring.Honeycomb.Types.HoneyResponse
+      Network.Monitoring.Honeycomb.Types.HoneyServerOptions
+      Network.Monitoring.Honeycomb.Types.HoneyValue
+  other-modules:
+      Paths_honeycomb
+  hs-source-dirs:
+      src
+  default-extensions: AutoDeriveTypeable BangPatterns BinaryLiterals ConstraintKinds DataKinds DefaultSignatures DeriveDataTypeable DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable DoAndIfThenElse EmptyDataDecls ExistentialQuantification FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MonadFailDesugaring MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude OverloadedStrings PartialTypeSignatures PatternGuards PolyKinds RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeFamilies TypeSynonymInstances ViewPatterns
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wpartial-fields -Wredundant-constraints
+  build-depends:
+      aeson
+    , base >=4.11 && <10
+    , case-insensitive
+    , http-client
+    , http-client-tls
+    , http-types
+    , microlens
+    , microlens-mtl
+    , network-uri
+    , random
+    , rio >=0.1.8.0
+    , scientific
+    , uuid
+  default-language: Haskell2010
+
+executable honeycomb-example-exe
+  main-is: Main.hs
+  other-modules:
+      Import
+      Run
+      Types
+      Util
+      Paths_honeycomb
+  hs-source-dirs:
+      example
+  default-extensions: AutoDeriveTypeable BangPatterns BinaryLiterals ConstraintKinds DataKinds DefaultSignatures DeriveDataTypeable DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable DoAndIfThenElse EmptyDataDecls ExistentialQuantification FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MonadFailDesugaring MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude OverloadedStrings PartialTypeSignatures PatternGuards PolyKinds RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeFamilies TypeSynonymInstances ViewPatterns
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      aeson
+    , base >=4.11 && <10
+    , case-insensitive
+    , honeycomb
+    , http-client
+    , http-client-tls
+    , http-types
+    , microlens
+    , microlens-mtl
+    , network-uri
+    , optparse-simple
+    , random
+    , rio >=0.1.8.0
+    , scientific
+    , uuid
+  default-language: Haskell2010
+
+test-suite honeycomb-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      UtilSpec
+      Paths_honeycomb
+  hs-source-dirs:
+      test
+  default-extensions: AutoDeriveTypeable BangPatterns BinaryLiterals ConstraintKinds DataKinds DefaultSignatures DeriveDataTypeable DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable DoAndIfThenElse EmptyDataDecls ExistentialQuantification FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MonadFailDesugaring MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude OverloadedStrings PartialTypeSignatures PatternGuards PolyKinds RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeFamilies TypeSynonymInstances ViewPatterns
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      aeson
+    , base >=4.11 && <10
+    , case-insensitive
+    , honeycomb
+    , hspec
+    , http-client
+    , http-client-tls
+    , http-types
+    , microlens
+    , microlens-mtl
+    , network-uri
+    , random
+    , rio >=0.1.8.0
+    , scientific
+    , uuid
+  default-language: Haskell2010
