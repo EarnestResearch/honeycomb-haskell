@@ -1,9 +1,18 @@
 {-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 module Network.Monitoring.Honeycomb.Trace
-    ( withNewRootSpan
+    (
+    -- * Library initialization
+    --
+    -- $libraryInitialization
+
+    -- * Creating spans
+
+      withNewRootSpan
     , withNewSpan
     , withNewSpanFromHeaders
+    
+    -- * Adding fields
     , addTraceField
     , addTraceFieldSTM
     , addTraceFields
@@ -22,6 +31,34 @@ import RIO.Time
 
 import qualified Network.Monitoring.Honeycomb as HC
 import qualified RIO.HashMap as HM
+
+-- $libraryInitialization
+--
+-- The tracing library is set up by creating a @Tracer@ value,
+-- placing it in a @MonadReader@ environment, and defining the
+-- @HasTracer@ typeclass for the environment.
+--
+-- It also expects the base Honeycomb library to be configured
+-- and available. For example:
+--
+-- > do
+-- >     let ho = defaultHoneyOptions
+-- >           & apiKeyL ?~ "12345678"
+-- >           & datasetL ?~ "test-dataset"
+-- >         appTracer = mkTracer "test_service"
+-- >     withHoney defaultHoneyServerOptions ho mempty $ \appHoney ->
+-- >         let app = App
+-- >               { -- include other app context/settings
+-- >               , appHoney
+-- >               , appTracer
+-- >               }
+-- >         in runRIO app run
+--
+-- > instance HasHoney App where
+-- >     honeyL = lens appHoney (\x y -> x { appHoney = y })
+-- >
+-- > instance HasTracer App where
+-- >     tracerL = lens appTracer (\x y -> x { appTracer = y })
 
 finishTrace
     :: ( MonadUnliftIO m

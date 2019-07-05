@@ -63,6 +63,10 @@ import qualified RIO.List as List
 -- >               , appHoney
 -- >               }
 -- >         in runRIO app run
+--
+-- > instance HasHoney App where
+-- >     honeyL = lens appHoney (\x y -> x { appHoney = y })
+
 
 -- | Creates a new Honeycomb event with no extra fields added.
 newEvent
