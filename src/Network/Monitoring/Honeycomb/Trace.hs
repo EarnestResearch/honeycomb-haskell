@@ -105,28 +105,40 @@ localTrace
 localTrace context f inner =
     finishTrace f inner & locally (tracerL . spanContextL) (const $ Just context)
 
+{- | Starts a new root span.
+
+This runs the supplied program in a new root span (i.e. no parent span). If an existing
+span exists, it will be ignored.
+-}
 withNewRootSpan
     :: ( MonadUnliftIO m
        , MonadReader env m
        , HC.HasHoney env
        , HasTracer env)
-    => SpanName
-    -> (Either SomeException a -> HC.HoneyObject)
-    -> m a
+    => SpanName                                    -- ^ The name of the span
+    -> (Either SomeException a -> HC.HoneyObject)  -- ^ Additional fields to add based on result of program
+    -> m a                                         -- ^ Program to run in the new span
     -> m a
 withNewRootSpan spanName f inner = do
     newContext <- createRootSpanContext spanName
     localTrace newContext f inner
 
+{- | Starts a new child span.
+
+This runs the supplied program in a new child span.
+If an existing span exists, that will be marked as
+the new span's parent. If there is no existing span, this
+will begin a root span (with no parent).
+-}
 withNewSpan
     :: ( MonadUnliftIO m
        , MonadReader env m
        , HC.HasHoney env
        , HasTracer env
        )
-    => SpanName
-    -> (Either SomeException a -> HC.HoneyObject)
-    -> m a
+    => SpanName                                    -- ^ The name of the span
+    -> (Either SomeException a -> HC.HoneyObject)  -- ^ Additional fields to add based on result of program
+    -> m a                                         -- ^ Program to run in the new span
     -> m a
 withNewSpan spanName f inner = do
     oldEnv <- ask
@@ -134,16 +146,22 @@ withNewSpan spanName f inner = do
     newContext <- createRootOrChildSpanContext oldRef spanName
     localTrace newContext f inner
 
+{- | Starts a new child span with parent details extracted from headers.
+
+This runs the supplied program in a new child span. The details of
+the parent span are taken from the supplied request headers. If the
+span details cannot be extracted, this will begin a new root span.
+-}
 withNewSpanFromHeaders
     :: ( MonadUnliftIO m
        , MonadReader env m
        , HC.HasHoney env
        , HasTracer env
        )
-    => SpanName
-    -> RequestHeaders
-    -> (Either SomeException a -> HC.HoneyObject)
-    -> m a
+    => SpanName                                    -- ^ The name of the span
+    -> RequestHeaders                              -- ^ Supplied request headers
+    -> (Either SomeException a -> HC.HoneyObject)  -- ^ Additional fields to add based on result of program
+    -> m a                                         -- ^ Program to run in the new span
     -> m a
 withNewSpanFromHeaders spanName headers f inner = do
     oldEnv <- ask
