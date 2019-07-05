@@ -1,5 +1,3 @@
-{-# LANGUAGE NamedFieldPuns    #-}
-{-# LANGUAGE NoImplicitPrelude #-}
 module Network.Monitoring.Honeycomb.Trace
     (
     -- * Library initialization
