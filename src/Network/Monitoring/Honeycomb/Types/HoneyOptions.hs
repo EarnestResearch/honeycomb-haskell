@@ -6,8 +6,6 @@ module Network.Monitoring.Honeycomb.Types.HoneyOptions
     , apiHostL
     , blockOnSendL
     , defaultHoneyOptions
-    , HasHoneyOptions
-    , honeyOptionsL
     ) where
 
 import Network.Monitoring.Honeycomb.Types.ApiKey
@@ -25,12 +23,6 @@ data HoneyOptions = HoneyOptions
     , blockOnSend :: Bool
     } deriving (Show)
 
-class HasHoneyOptions env where
-    honeyOptionsL :: Lens' env HoneyOptions
-
-instance HasHoneyOptions HoneyOptions where
-    honeyOptionsL = id
-
 defaultHoneyOptions :: HoneyOptions
 defaultHoneyOptions = HoneyOptions
     { apiKey = Nothing
@@ -40,32 +32,17 @@ defaultHoneyOptions = HoneyOptions
     , blockOnSend = False
     }
 
-apiKeyL' :: Lens' HoneyOptions (Maybe ApiKey)
-apiKeyL' = lens apiKey (\x y -> x { apiKey = y})
+apiKeyL :: Lens' HoneyOptions (Maybe ApiKey)
+apiKeyL = lens apiKey (\x y -> x { apiKey = y})
 
-apiKeyL :: HasHoneyOptions env => Lens' env (Maybe ApiKey)
-apiKeyL = honeyOptionsL . apiKeyL'
+datasetL :: Lens' HoneyOptions (Maybe Dataset)
+datasetL = lens dataset (\x y -> x { dataset = y})
 
-datasetL' :: Lens' HoneyOptions (Maybe Dataset)
-datasetL' = lens dataset (\x y -> x { dataset = y})
+sampleRateL :: Lens' HoneyOptions Natural
+sampleRateL = lens sampleRate (\x y -> x { sampleRate = y})
 
-datasetL :: HasHoneyOptions env => Lens' env (Maybe Dataset)
-datasetL = honeyOptionsL . datasetL'
+apiHostL :: Lens' HoneyOptions URI.URI
+apiHostL = lens apiHost (\x y -> x { apiHost = y})
 
-sampleRateL' :: Lens' HoneyOptions Natural
-sampleRateL' = lens sampleRate (\x y -> x { sampleRate = y})
-
-sampleRateL :: HasHoneyOptions env => Lens' env Natural
-sampleRateL = honeyOptionsL . sampleRateL'
-
-apiHostL' :: Lens' HoneyOptions URI.URI
-apiHostL' = lens apiHost (\x y -> x { apiHost = y})
-
-apiHostL :: HasHoneyOptions env => Lens' env URI.URI
-apiHostL = honeyOptionsL . apiHostL'
-
-blockOnSendL' :: Lens' HoneyOptions Bool
-blockOnSendL' = lens blockOnSend (\x y -> x { blockOnSend = y})
-
-blockOnSendL :: HasHoneyOptions env => Lens' env Bool
-blockOnSendL = honeyOptionsL . blockOnSendL'
+blockOnSendL :: Lens' HoneyOptions Bool
+blockOnSendL = lens blockOnSend (\x y -> x { blockOnSend = y})

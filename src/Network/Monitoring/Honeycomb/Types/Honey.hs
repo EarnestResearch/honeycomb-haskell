@@ -1,6 +1,7 @@
 module Network.Monitoring.Honeycomb.Types.Honey
     ( Honey
     , mkHoney
+    , honeyOptionsL
     , defaultFieldsL
     , sendQueueL
     , HasHoney
@@ -21,6 +22,9 @@ data Honey = Honey
 mkHoney :: HoneyOptions -> HoneyObject -> TBQueue HoneyQueueMessage -> Honey
 mkHoney = Honey
 
+honeyOptionsL :: Lens' Honey HoneyOptions
+honeyOptionsL = lens honeyOptions (\x y -> x { honeyOptions = y })
+
 defaultFieldsL :: Lens' Honey HoneyObject
 defaultFieldsL = lens defaultFields (\x y -> x { defaultFields = y })
 
@@ -32,6 +36,3 @@ class HasHoney env where
 
 instance HasHoney Honey where
     honeyL = id
-
-instance HasHoneyOptions Honey where
-    honeyOptionsL = lens honeyOptions (\x y -> x { honeyOptions = y})
