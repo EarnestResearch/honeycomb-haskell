@@ -24,7 +24,11 @@ import qualified Network.Monitoring.Honeycomb as HC
 import qualified RIO.HashMap as HM
 
 finishTrace
-    :: (MonadUnliftIO m, MonadReader env m, HC.HasHoney env, HasTracer env)
+    :: ( MonadUnliftIO m
+       , MonadReader env m
+       , HC.HasHoney env
+       , HasTracer env
+       )
     => (Either SomeException a -> HC.HoneyObject)
     -> m a
     -> m a
@@ -51,23 +55,59 @@ locally :: MonadReader s m => ASetter s s a b -> (a -> b) -> m r -> m r
 locally l f = local (over l f)
 {-# INLINE locally #-}
     
-localTrace :: (MonadUnliftIO m, MonadReader env m, HC.HasHoney env, HasTracer env) => SpanContext -> (Either SomeException a -> HC.HoneyObject) -> m a -> m a 
+localTrace
+    :: ( MonadUnliftIO m
+       , MonadReader env m
+       , HC.HasHoney env
+       , HasTracer env
+       )
+    => SpanContext
+    -> (Either SomeException a -> HC.HoneyObject)
+    -> m a
+    -> m a 
 localTrace context f inner =
     finishTrace f inner & locally spanContextL (const $ Just context)
 
-withNewRootSpan :: (MonadUnliftIO m, MonadReader env m, HC.HasHoney env, HasTracer env) => SpanName -> (Either SomeException a -> HC.HoneyObject) -> m a -> m a
+withNewRootSpan
+    :: ( MonadUnliftIO m
+       , MonadReader env m
+       , HC.HasHoney env
+       , HasTracer env)
+    => SpanName
+    -> (Either SomeException a -> HC.HoneyObject)
+    -> m a
+    -> m a
 withNewRootSpan spanName f inner = do
     newContext <- createRootSpanContext spanName
     localTrace newContext f inner
 
-withNewSpan :: (MonadUnliftIO m, MonadReader env m, HC.HasHoney env, HasTracer env) => SpanName -> (Either SomeException a -> HC.HoneyObject) -> m a -> m a
+withNewSpan
+    :: ( MonadUnliftIO m
+       , MonadReader env m
+       , HC.HasHoney env
+       , HasTracer env
+       )
+    => SpanName
+    -> (Either SomeException a -> HC.HoneyObject)
+    -> m a
+    -> m a
 withNewSpan spanName f inner = do
     oldEnv <- ask
     let oldRef = oldEnv ^? spanContextL . _Just . to getSpanReference
     newContext <- createRootOrChildSpanContext oldRef spanName
     localTrace newContext f inner
 
-withNewSpanFromHeaders :: (MonadUnliftIO m, MonadReader env m, HC.HasHoney env, HasTracer env) => SpanName -> RequestHeaders -> (Either SomeException a -> HC.HoneyObject) -> m a -> m a
+withNewSpanFromHeaders
+    :: ( MonadUnliftIO m
+       , MonadReader env m
+       , HC.HasHoney env
+       , HasTracer env
+       )
+    => SpanName
+    -> RequestHeaders
+    -> (Either SomeException a -> HC.HoneyObject)
+    -> m a
+    -> m a
 withNewSpanFromHeaders spanName headers f inner = do
     oldEnv <- ask
     let toPropagationData = oldEnv ^. tracerL . propagationL . toPropagationDataL
@@ -119,11 +159,25 @@ addTraceFields
 addTraceFields fields =
     addTraceFieldsSTM fields >>= atomically
 
-createRootOrChildSpanContext :: (MonadIO m, MonadReader env m, HC.HasHoney env) => Maybe SpanReference -> SpanName -> m SpanContext
+createRootOrChildSpanContext
+    :: ( MonadIO m
+       , MonadReader env m
+       , HC.HasHoney env
+       )
+    => Maybe SpanReference
+    -> SpanName
+    -> m SpanContext
 createRootOrChildSpanContext (Just ref) spanName = createChildSpanContext spanName ref
 createRootOrChildSpanContext Nothing spanName = createRootSpanContext spanName
 
-createChildSpanContext :: (MonadIO m, MonadReader env m, HC.HasHoney env) => SpanName -> SpanReference -> m SpanContext
+createChildSpanContext
+    :: ( MonadIO m
+       , MonadReader env m
+       , HC.HasHoney env
+       )
+    => SpanName
+    -> SpanReference
+    -> m SpanContext
 createChildSpanContext spanName parentSpanRef = do
     spanEvent <- HC.newEvent
     spanId <- mkSpanId
@@ -134,7 +188,13 @@ createChildSpanContext spanName parentSpanRef = do
         , spanEvent
         }
 
-createRootSpanContext :: (MonadIO m, MonadReader env m, HC.HasHoney env) => SpanName -> m SpanContext
+createRootSpanContext
+    :: ( MonadIO m
+       , MonadReader env m
+       , HC.HasHoney env
+       )
+    => SpanName
+    -> m SpanContext
 createRootSpanContext spanName = do
     spanEvent <- HC.newEvent
     threadId <- mkTraceId
