@@ -37,7 +37,7 @@ finishTrace f inner = do
         event = spanEvent ctx
         start = event ^. HC.eventTimestampL
         duration = HC.toHoneyValue $ diffUTCTime end start
-        extraFields = (HM.fromList $ catMaybes
+        extraFields = HM.fromList (catMaybes
           [ Just ("duration_ms", HC.toHoneyValue duration)
           , Just ("service_name", HC.toHoneyValue $ tracer ^. serviceNameL)
           , Just ("trace.trace_id", HC.toHoneyValue $ getTraceId ctx)
