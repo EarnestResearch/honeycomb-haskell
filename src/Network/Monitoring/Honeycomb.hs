@@ -133,8 +133,8 @@ occurs before the event is sent.
 addFieldsSTM
     :: ( ToHoneyObject o
        )
-    => o
-    -> HoneyEvent
+    => o           -- ^ The fields to be added
+    -> HoneyEvent  -- ^ The event to which the fields will be added
     -> STM ()
 addFieldsSTM fields evt =
     modifyTVar' (evt ^. eventFieldsL) (toHoneyObject fields `HM.union`)
