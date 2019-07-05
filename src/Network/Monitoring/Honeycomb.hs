@@ -27,6 +27,8 @@ module Network.Monitoring.Honeycomb
     , flush
 
     -- ** Adding fields
+    --
+    -- $addingFields
     , addField
     , addFieldSTM
     , addFields
@@ -55,9 +57,9 @@ import qualified RIO.List as List
 -- >     let ho = defaultHoneyOptions
 -- >           & apiKeyL ?~ "12345678"
 -- >           & datasetL ?~ "test-dataset"
--- >     withHoney ho $ \appHoney ->
+-- >     withHoney defaultHoneyServerOptions ho mempty $ \appHoney ->
 -- >         let app = App
--- >               { -- incude other app context/settings
+-- >               { -- include other app context/settings
 -- >               , appHoney
 -- >               }
 -- >         in runRIO app run
@@ -73,39 +75,61 @@ newEvent = do
     honey <- view honeyL
     mkHoneyEvent (honey ^. honeyOptionsL) (honey ^. defaultFieldsL)
  
--- | Adds a field to the event (in the STM monad).
+-- $addingFields
 --
---   This allows fields to be added to an event between its creation and
---   sending. Because it uses mutable variables, fields can be added
---   from different threads, and will be visible as long as the mutation
---   occurs before the event is sent.
+-- The @HoneyEvent@ allows fields to be added at any point between
+-- when the event was created, and when the event is sent.
+--
+-- In order to support field addition across threads, the list of
+-- events is stored in a mutable variable. A user of the library
+-- may add fields from any thread.
+--
+-- When the event is queued for sending, a snapshot of the fields is
+-- taken at that point. Further changes to the mutable variable from
+-- that (or any other thread) will not be reflected in the event.
+
+{- | Adds a field to the event (in the STM monad).
+
+This allows fields to be added to an event between its creation and
+sending. Because it uses mutable variables, fields can be added
+from different threads, and will be visible as long as the mutation
+occurs before the event is sent.
+-}
 addFieldSTM
     :: ( ToHoneyValue v
        )
-    => Text
-    -> v
-    -> HoneyEvent
+    => Text        -- ^ The name of the field
+    -> v           -- ^ The value of the field
+    -> HoneyEvent  -- ^ The event to which the field will be added
     -> STM ()
 addFieldSTM k v evt =
     modifyTVar' (evt ^. eventFieldsL) $ HM.insert k (toHoneyValue v)
 
--- | Adds a field to the event.
---
---   This allows fields to be added to an event between its creation and
---   sending. Because it uses mutable variables, fields can be added
---   from different threads, and will be visible as long as the mutation
---   occurs before the event is sent.
+{- | Adds a field to the event.
+
+This allows fields to be added to an event between its creation and
+sending. Because it uses mutable variables, fields can be added
+from different threads, and will be visible as long as the mutation
+occurs before the event is sent.
+-}
 addField
     :: ( MonadIO m
        , ToHoneyValue v
        )
-    => Text
-    -> v
-    -> HoneyEvent
+    => Text        -- ^ The name of the field
+    -> v           -- ^ The value of the field
+    -> HoneyEvent  -- ^ The event to which the field will be added
     -> m ()
 addField k v =
     atomically . addFieldSTM k v
 
+{- | Adds multiplee fields to the event (in the STM monad).
+
+This allows fields to be added to an event between its creation and
+sending. Because it uses mutable variables, fields can be added
+from different threads, and will be visible as long as the mutation
+occurs before the event is sent.
+-}
 addFieldsSTM
     :: ( ToHoneyObject o
        )
@@ -115,30 +139,51 @@ addFieldsSTM
 addFieldsSTM fields evt =
     modifyTVar' (evt ^. eventFieldsL) (toHoneyObject fields `HM.union`)
 
+{- | Adds multiple fields to the event.
+
+This allows fields to be added to an event between its creation and
+sending. Because it uses mutable variables, fields can be added
+from different threads, and will be visible as long as the mutation
+occurs before the event is sent.
+-}
 addFields
     :: ( MonadIO m
        , ToHoneyObject o
        )
-    => o
-    -> HoneyEvent
+    => o           -- ^ The fields to be added
+    -> HoneyEvent  -- ^ The event to which the fields will be added
     -> m ()
 addFields fields =
     atomically . addFieldsSTM fields
 
-{- | Sends the event to Honeycomb service.
+{- | Queues the event for sending to the Honeycomb service.
 
-This takes a snapshot of the current fields, and sends the information
-to the Honeycomb service.
+This takes a snapshot of the current fields, and queues the event for
+sending. Once the event is queued, the request returns.
+
+The request will not block unless the event queue is full, and the
+library has been configured to block instead of dropping events.
 -}
 send
     :: ( MonadIO m
        , MonadReader env m
        , HasHoney env
        )
-    => HoneyEvent
+    => HoneyEvent  -- ^ The event to be sent
     -> m ()
 send = send' (HM.empty :: HoneyObject)
 
+{- | Queues the event for sending to the Honeycomb service.
+
+This takes a snapshot of the current fields, and queues the event for
+sending. Once the event is queued, the request returns.
+
+The request will not block unless the event queue is full, and the
+library has been configured to block instead of dropping events.
+
+This variant also takes a set of additional fields to be added before
+sending. 
+-}
 send'
     :: forall m env o .
        ( MonadIO m
@@ -146,8 +191,8 @@ send'
        , ToHoneyObject o
        , HasHoney env
        )
-    => o
-    -> HoneyEvent
+    => o           -- ^ An additional set of fields to add before sending
+    -> HoneyEvent  -- ^ The event to be sent
     -> m ()
 send' extraFields event =
     newFrozenEvent (toHoneyObject extraFields) event >>= sendFrozen
@@ -175,9 +220,15 @@ send' extraFields event =
         else
             pure ()
 
--- | Waits until all currently sent events have been dequeued and processed.
---
---
+{- | Waits until all currently sent events have been dequeued and processed.
+
+This may be useful in a system which suspends processing when idle; the user
+may want to guarantee that all queued events have been sent.
+
+This only guarantees that events queued before this call will be sent. A
+user may add more events afterwards, and this does not guarantee that those
+events have been sent.
+-}
 flush
     :: ( MonadUnliftIO m
        , MonadReader env m
@@ -191,27 +242,35 @@ flush timeout_us = do
     _ <- atomically $ writeTBQueue (honey ^. sendQueueL) $ FlushQueue mvar
     void $ timeout timeout_us $ takeMVar mvar
 
+{- | Creates a new Honey library instance.
+
+A background thread is started up, which will dequeue events that
+need to be sent. On shutdown, the event queue is shut down, and
+the background thread stops once all messages are processed. 
+-}
 newHoney
     :: ( MonadUnliftIO n
        , MonadIO m
        )
-    => HoneyServerOptions
-    -> HoneyOptions
-    -> HoneyObject
+    => HoneyServerOptions  -- ^ Options for how event handling is performed
+    -> HoneyOptions        -- ^ Options for client library behaviour
+    -> HoneyObject         -- ^ Default fields added to all events
     -> n (Honey, m ())
 newHoney honeyServerOptions honeyOptions defaultFields = do
     (sendQueue, shutdown) <- newTransport honeyServerOptions
     pure (mkHoney honeyOptions defaultFields sendQueue, shutdown)
 
--- | Creates a Honey environment, and if given a program that uses this,
---   will run the program with an environment, correctly shutting everything
---   down afterwards.
+{- |
+Creates a Honey environment, and if given a program that uses this,
+will run the program with an environment, correctly shutting everything
+down afterwards.
+-}
 withHoney
     :: MonadUnliftIO m
-    => HoneyServerOptions
-    -> HoneyOptions
-    -> HoneyObject
-    -> (Honey -> m a)
+    => HoneyServerOptions  -- ^ Options for how event handling is performed
+    -> HoneyOptions        -- ^ Options for client library behaviour
+    -> HoneyObject         -- ^ Default fields added to all events
+    -> (Honey -> m a)      -- ^ The program to run
     -> m a
 withHoney honeyServerOptions honeyOptions honeyFields inner = withRunInIO $ \run ->
     bracket (newHoney honeyServerOptions honeyOptions honeyFields)
