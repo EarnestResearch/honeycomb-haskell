@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 733bd791eae63d729eb1f8780d85853b2db854651ef74f455d10cbb7689d36ca
+-- hash: 9877359586e7c71023e10cd43653ce9b344134b95f7026d7045251b3ed544441
 
 name:           honeycomb
 version:        0.1.0.0
@@ -80,7 +80,6 @@ executable honeycomb-example-exe
       Import
       Run
       Types
-      Util
       Paths_honeycomb
   hs-source-dirs:
       example
@@ -108,6 +107,7 @@ test-suite honeycomb-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      Util
       UtilSpec
       Paths_honeycomb
   hs-source-dirs:
