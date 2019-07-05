@@ -1,7 +1,5 @@
 module Network.Monitoring.Honeycomb.Trace.Types.SpanContext
     ( SpanContext (..)
-    , HasSpanContext
-    , spanContextL
     , spanReferenceL
     , parentSpanIdL
     , spanNameL
@@ -34,12 +32,6 @@ spanNameL = lens spanName (\x y -> x { spanName = y })
 
 spanEventL :: Lens' SpanContext HoneyEvent
 spanEventL = lens spanEvent (\x y -> x { spanEvent = y })
-
-class HasSpanContext env where
-    spanContextL :: Lens' env (Maybe SpanContext)
-
-instance HasSpanContext (Maybe SpanContext) where
-    spanContextL = id
 
 instance HasTraceId SpanContext where
     getTraceId = getTraceId . spanReference

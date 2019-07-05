@@ -103,7 +103,7 @@ localTrace
     -> m a
     -> m a 
 localTrace context f inner =
-    finishTrace f inner & locally spanContextL (const $ Just context)
+    finishTrace f inner & locally (tracerL . spanContextL) (const $ Just context)
 
 withNewRootSpan
     :: ( MonadUnliftIO m
@@ -130,7 +130,7 @@ withNewSpan
     -> m a
 withNewSpan spanName f inner = do
     oldEnv <- ask
-    let oldRef = oldEnv ^? spanContextL . _Just . spanReferenceL
+    let oldRef = oldEnv ^? tracerL . spanContextL . _Just . spanReferenceL
     newContext <- createRootOrChildSpanContext oldRef spanName
     localTrace newContext f inner
 
@@ -161,7 +161,7 @@ addTraceFieldSTM
     -> v
     -> m (STM ())
 addTraceFieldSTM k v =
-    maybe (pure ()) (HC.addFieldSTM k v) <$> preview (spanContextL . _Just . spanEventL)
+    maybe (pure ()) (HC.addFieldSTM k v) <$> preview (tracerL . spanContextL . _Just . spanEventL)
 
 addTraceField
     :: ( MonadIO m
@@ -183,7 +183,7 @@ addTraceFieldsSTM
     => o
     -> m (STM ())
 addTraceFieldsSTM fields =
-    maybe (pure ()) (HC.addFieldsSTM fields) <$> preview (spanContextL . _Just . spanEventL)
+    maybe (pure ()) (HC.addFieldsSTM fields) <$> preview (tracerL . spanContextL . _Just . spanEventL)
 
 addTraceFields
     :: ( MonadIO m

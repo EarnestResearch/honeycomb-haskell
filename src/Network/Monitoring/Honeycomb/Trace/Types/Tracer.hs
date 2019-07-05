@@ -4,6 +4,7 @@ module Network.Monitoring.Honeycomb.Trace.Types.Tracer
     , serviceNameL
     , tracerL
     , propagationL
+    , spanContextL
     , mkTracer
     )
  where
@@ -18,6 +19,15 @@ data Tracer = Tracer
   , spanContext  :: !(Maybe SpanContext)
   }
 
+serviceNameL :: Lens' Tracer Text
+serviceNameL = lens serviceName (\x y -> x { serviceName = y })
+
+propagationL :: Lens' Tracer Propagation
+propagationL = lens propagation (\x y -> x { propagation = y })
+
+spanContextL :: Lens' Tracer (Maybe SpanContext)
+spanContextL = lens spanContext (\x y -> x { spanContext = y })
+
 mkTracer :: Text -> Tracer
 mkTracer serviceName = Tracer
     { serviceName
@@ -25,17 +35,9 @@ mkTracer serviceName = Tracer
     , spanContext = Nothing
     }
 
-serviceNameL :: Lens' Tracer Text
-serviceNameL = lens serviceName (\x y -> x { serviceName = y })
-
-propagationL :: Lens' Tracer Propagation
-propagationL = lens propagation (\x y -> x { propagation = y })
-
-class HasSpanContext env => HasTracer env where
+class HasTracer env where
     tracerL :: Lens' env Tracer
 
 instance HasTracer Tracer where
     tracerL = id
     
-instance HasSpanContext Tracer where
-    spanContextL = lens spanContext (\x y -> x { spanContext = y })
