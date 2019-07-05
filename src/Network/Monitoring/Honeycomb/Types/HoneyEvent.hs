@@ -5,8 +5,6 @@ module Network.Monitoring.Honeycomb.Types.HoneyEvent
     , eventTimestampL
     , eventFieldsL
     , eventOptionsL
-    , HasHoneyEvent
-    , getHoneyEvent
     ) where
 
 import Network.Monitoring.Honeycomb.Types.HoneyObject
@@ -49,9 +47,3 @@ instance Show HoneyEvent where
         ", eventOptions = " ++ show (eventOptions e) ++
         ", eventFields = <TVar HoneyFields>" ++
         "}"
-
-class HasHoneyEvent a where
-    getHoneyEvent :: a -> Maybe HoneyEvent
-
-instance HasHoneyEvent HoneyEvent where
-    getHoneyEvent = Just

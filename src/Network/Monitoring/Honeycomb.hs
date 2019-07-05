@@ -36,7 +36,6 @@ module Network.Monitoring.Honeycomb
     )
 where
 
-import Lens.Micro (_Just, (^?))
 import Network.Monitoring.Honeycomb.Transport
 import Network.Monitoring.Honeycomb.Types
 import Network.Monitoring.Honeycomb.Types.FrozenHoneyEvent
@@ -82,17 +81,13 @@ newEvent = do
 --   occurs before the event is sent.
 addFieldSTM
     :: ( ToHoneyValue v
-       , HasHoneyEvent e
        )
     => Text
     -> v
-    -> e
+    -> HoneyEvent
     -> STM ()
 addFieldSTM k v evt =
-    maybe (pure ()) modify (evt ^?  to getHoneyEvent . _Just . eventFieldsL)
-  where
-    modify :: TVar HoneyObject -> STM ()
-    modify e = modifyTVar' e $ HM.insert k $ toHoneyValue v
+    modifyTVar' (evt ^. eventFieldsL) $ HM.insert k (toHoneyValue v)
 
 -- | Adds a field to the event.
 --
@@ -103,35 +98,29 @@ addFieldSTM k v evt =
 addField
     :: ( MonadIO m
        , ToHoneyValue v
-       , HasHoneyEvent e
        )
     => Text
     -> v
-    -> e
+    -> HoneyEvent
     -> m ()
 addField k v =
     atomically . addFieldSTM k v
 
 addFieldsSTM
     :: ( ToHoneyObject o
-       , HasHoneyEvent e
        )
     => o
-    -> e
+    -> HoneyEvent
     -> STM ()
 addFieldsSTM fields evt =
-    maybe (pure ()) modify (evt ^? to getHoneyEvent . _Just . eventFieldsL)
-  where
-    modify :: TVar HoneyObject -> STM ()
-    modify e = modifyTVar' e (toHoneyObject fields `HM.union`)
+    modifyTVar' (evt ^. eventFieldsL) (toHoneyObject fields `HM.union`)
 
 addFields
     :: ( MonadIO m
        , ToHoneyObject o
-       , HasHoneyEvent e
        )
     => o
-    -> e
+    -> HoneyEvent
     -> m ()
 addFields fields =
     atomically . addFieldsSTM fields

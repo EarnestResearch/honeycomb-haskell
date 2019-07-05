@@ -10,7 +10,6 @@ module Network.Monitoring.Honeycomb.Trace.Types.Tracer
 
 import Network.Monitoring.Honeycomb.Trace.Types.SpanContext
 import Network.Monitoring.Honeycomb.Trace.Types.Propagation
-import Network.Monitoring.Honeycomb.Types.HoneyEvent
 import RIO
 
 data Tracer = Tracer
@@ -37,9 +36,6 @@ class HasSpanContext env => HasTracer env where
 
 instance HasTracer Tracer where
     tracerL = id
-
-instance HasHoneyEvent Tracer where
-    getHoneyEvent t = spanContext t >>= getHoneyEvent
     
 instance HasSpanContext Tracer where
     spanContextL = lens spanContext (\x y -> x { spanContext = y })
