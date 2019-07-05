@@ -1,8 +1,6 @@
 module Network.Monitoring.Honeycomb.Trace.Types.SpanReference
     ( SpanReference
-    , HasSpanReference
     , mkSpanReference
-    , getSpanReference
     )
 where
 
@@ -17,12 +15,6 @@ data SpanReference = SpanReference
 
 mkSpanReference :: TraceId -> SpanId -> SpanReference
 mkSpanReference = SpanReference
-
-class HasSpanReference a where
-    getSpanReference :: a -> SpanReference
-
-instance HasSpanReference SpanReference where
-    getSpanReference = id
 
 instance HasTraceId SpanReference where
     getTraceId = refTraceId

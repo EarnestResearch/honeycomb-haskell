@@ -93,7 +93,7 @@ withNewSpan
     -> m a
 withNewSpan spanName f inner = do
     oldEnv <- ask
-    let oldRef = oldEnv ^? spanContextL . _Just . to getSpanReference
+    let oldRef = oldEnv ^? spanContextL . _Just . spanReferenceL
     newContext <- createRootOrChildSpanContext oldRef spanName
     localTrace newContext f inner
 

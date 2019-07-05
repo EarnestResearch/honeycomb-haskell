@@ -35,9 +35,6 @@ spanNameL = lens spanName (\x y -> x { spanName = y })
 spanEventL :: Lens' SpanContext HoneyEvent
 spanEventL = lens spanEvent (\x y -> x { spanEvent = y })
 
-instance HasSpanReference SpanContext where
-    getSpanReference = spanReference
-
 class HasSpanContext env where
     spanContextL :: Lens' env (Maybe SpanContext)
 
