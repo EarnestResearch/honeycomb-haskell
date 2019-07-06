@@ -4,11 +4,11 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 9877359586e7c71023e10cd43653ce9b344134b95f7026d7045251b3ed544441
+-- hash: 3d69cb4f301860a3acc6bf29dddd203de66f26354862cdc3d3e1d5ae8ee1f4ca
 
 name:           honeycomb
 version:        0.1.0.0
-description:    Please see the README on Github at <https://github.com/githubuser/honeycomb#readme>
+description:    Please see the README on Github at <https://github.com/EarnestResearch/libhoney-hs#readme>
 homepage:       https://github.com/githubuser/honeycomb#readme
 bug-reports:    https://github.com/githubuser/honeycomb/issues
 author:         Author name here
@@ -61,7 +61,6 @@ library
   build-depends:
       aeson
     , base >=4.11 && <10
-    , case-insensitive
     , http-client
     , http-client-tls
     , http-types
@@ -88,7 +87,6 @@ executable honeycomb-example-exe
   build-depends:
       aeson
     , base >=4.11 && <10
-    , case-insensitive
     , honeycomb
     , http-client
     , http-client-tls
@@ -117,7 +115,6 @@ test-suite honeycomb-test
   build-depends:
       aeson
     , base >=4.11 && <10
-    , case-insensitive
     , honeycomb
     , hspec
     , http-client
