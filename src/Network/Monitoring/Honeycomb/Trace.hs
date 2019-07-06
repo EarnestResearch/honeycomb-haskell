@@ -199,7 +199,7 @@ addTraceFieldsSTM
     => o
     -> m (STM ())
 addTraceFieldsSTM fields =
-    maybe (pure ()) (HC.addFieldsSTM fields) <$> preview (tracerL . spanContextL . _Just . spanEventL)
+    maybe (pure ()) (HC.addSTM fields) <$> preview (tracerL . spanContextL . _Just . spanEventL)
 
 addTraceFields
     :: ( MonadIO m

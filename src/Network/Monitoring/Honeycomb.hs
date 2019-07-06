@@ -31,8 +31,8 @@ module Network.Monitoring.Honeycomb
     -- $addingFields
     , addField
     , addFieldSTM
-    , addFields
-    , addFieldsSTM
+    , add
+    , addSTM
 
     , module Network.Monitoring.Honeycomb.Types
     )
@@ -134,13 +134,13 @@ sending. Because it uses mutable variables, fields can be added
 from different threads, and will be visible as long as the mutation
 occurs before the event is sent.
 -}
-addFieldsSTM
+addSTM
     :: ( ToHoneyObject o
        )
     => o           -- ^ The fields to be added
     -> HoneyEvent  -- ^ The event to which the fields will be added
     -> STM ()
-addFieldsSTM fields evt =
+addSTM fields evt =
     modifyTVar' (evt ^. eventFieldsL) (toHoneyObject fields `HM.union`)
 
 {- | Adds multiple fields to the event.
@@ -150,15 +150,15 @@ sending. Because it uses mutable variables, fields can be added
 from different threads, and will be visible as long as the mutation
 occurs before the event is sent.
 -}
-addFields
+add
     :: ( MonadIO m
        , ToHoneyObject o
        )
     => o           -- ^ The fields to be added
     -> HoneyEvent  -- ^ The event to which the fields will be added
     -> m ()
-addFields fields =
-    atomically . addFieldsSTM fields
+add fields =
+    atomically . addSTM fields
 
 {- | Queues the event for sending to the Honeycomb service.
 
