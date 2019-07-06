@@ -33,6 +33,7 @@ newTransport honeyServerOptions = do
     sendQueue <- atomically $ newTBQueue $ honeyServerOptions ^. pendingWorkCapacityL
     httpManager <- liftIO $ newManager tlsManagerSettings
     readThreadId <- async $ readQueue httpManager sendQueue
+    link readThreadId  -- [todo] think about whether this is a good idea
     let shutdown = atomically (writeTBQueue sendQueue CloseQueue) >> wait readThreadId
     pure (sendQueue, shutdown)
 
