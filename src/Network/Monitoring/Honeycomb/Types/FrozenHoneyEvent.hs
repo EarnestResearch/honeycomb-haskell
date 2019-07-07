@@ -10,6 +10,7 @@ module Network.Monitoring.Honeycomb.Types.FrozenHoneyEvent
     , frozenEventShouldSampleL
     ) where
 
+import Data.Aeson ((.=))
 import Network.Monitoring.Honeycomb.Types.ApiKey
 import Network.Monitoring.Honeycomb.Types.Dataset
 import Network.Monitoring.Honeycomb.Types.HoneyException
@@ -20,6 +21,7 @@ import RIO
 import RIO.Time
 import System.Random (randomRIO)
 
+import qualified Data.Aeson as JSON
 import qualified Network.URI as URI
 import qualified RIO.HashMap as HM
 
@@ -73,3 +75,9 @@ newFrozenEvent extraFields event = do
         , frozenEventSampleRate
         , frozenEventShouldSample
         }
+
+instance JSON.ToJSON FrozenHoneyEvent where
+    toJSON event = JSON.object
+        [ "time" .= (event ^. frozenEventTimestampL)
+        , "data" .= (event ^. frozenEventFieldsL)
+        ]

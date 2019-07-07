@@ -9,6 +9,7 @@ module Network.Monitoring.Honeycomb.Types
   , module Network.Monitoring.Honeycomb.Types.HoneyResponse
   , module Network.Monitoring.Honeycomb.Types.HoneyServerOptions
   , module Network.Monitoring.Honeycomb.Types.HoneyValue
+  , module Network.Monitoring.Honeycomb.Types.TransportState
   )
 where
 
@@ -22,3 +23,4 @@ import Network.Monitoring.Honeycomb.Types.HoneyOptions
 import Network.Monitoring.Honeycomb.Types.HoneyResponse
 import Network.Monitoring.Honeycomb.Types.HoneyServerOptions
 import Network.Monitoring.Honeycomb.Types.HoneyValue
+import Network.Monitoring.Honeycomb.Types.TransportState

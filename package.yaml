@@ -30,6 +30,7 @@ dependencies:
 - microlens-mtl
 - network-uri
 - random
+- stm
 - uuid
 - scientific
 

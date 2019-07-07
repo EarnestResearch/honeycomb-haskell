@@ -40,7 +40,6 @@ where
 import Network.Monitoring.Honeycomb.Transport
 import Network.Monitoring.Honeycomb.Types
 import Network.Monitoring.Honeycomb.Types.FrozenHoneyEvent
-import Network.Monitoring.Honeycomb.Types.HoneyQueueMessage
 import RIO
 
 import qualified RIO.HashMap as HM
@@ -172,19 +171,19 @@ send' extraFields event =
         else
             pure ()
         ctx <- view honeyL
-        let sendQ = ctx ^. sendQueueL
+        let sendQ = ctx ^. honeyTransportStateL . transportSendQueueL
             opts = ctx ^. honeyOptionsL
             shouldBlock = opts ^. blockOnSendL
             shouldSample = evt ^. frozenEventShouldSampleL
         if shouldSample then atomically $
             if shouldBlock then
-                writeTBQueue sendQ $ QueueMessage evt
+                writeTBQueue sendQ evt
             else do
                 full <- isFullTBQueue sendQ
                 if full then
                     pure ()  -- [todo] add reporting of queue overflow
                 else
-                    writeTBQueue sendQ $ QueueMessage evt
+                    writeTBQueue sendQ evt
         else
             pure ()
 
@@ -205,10 +204,10 @@ flush
     => Int  -- ^ Length of time to wait before giving up (in microseconds)
     -> m ()
 flush timeout_us = do
-    honey <- view honeyL
-    mvar <- newEmptyMVar
-    _ <- atomically $ writeTBQueue (honey ^. sendQueueL) $ FlushQueue mvar
-    void $ timeout timeout_us $ takeMVar mvar
+    flushQueue <- view $ honeyL . honeyTransportStateL . transportFlushQueueL
+    mvar <- newEmptyTMVarIO
+    atomically $ putTMVar flushQueue mvar
+    void $ timeout timeout_us $ atomically $ takeTMVar mvar
 
 {- | Creates a new Honey library instance.
 
@@ -224,8 +223,8 @@ newHoney
     -> HoneyOptions        -- ^ Options for client library behaviour
     -> n (Honey, m ())
 newHoney honeyServerOptions honeyOptions = do
-    (sendQueue, shutdown) <- newTransport honeyServerOptions
-    pure (mkHoney honeyOptions sendQueue, shutdown)
+    (transportState, shutdown) <- newTransport honeyServerOptions
+    pure (mkHoney honeyOptions transportState, shutdown)
 
 {- |
 Creates a Honey environment, and if given a program that uses this,

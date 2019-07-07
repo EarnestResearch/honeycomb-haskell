@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 3d69cb4f301860a3acc6bf29dddd203de66f26354862cdc3d3e1d5ae8ee1f4ca
+-- hash: e464a4d6c59b71a8838150b9c63605029558f248a54712c3d0e7d57e816d3ffe
 
 name:           honeycomb
 version:        0.1.0.0
@@ -28,6 +28,7 @@ source-repository head
 library
   exposed-modules:
       Network.Monitoring.Honeycomb
+      Network.Monitoring.Honeycomb.Events
       Network.Monitoring.Honeycomb.Trace
       Network.Monitoring.Honeycomb.Trace.Types
       Network.Monitoring.Honeycomb.Trace.Types.Propagation
@@ -48,10 +49,11 @@ library
       Network.Monitoring.Honeycomb.Types.HoneyException
       Network.Monitoring.Honeycomb.Types.HoneyObject
       Network.Monitoring.Honeycomb.Types.HoneyOptions
-      Network.Monitoring.Honeycomb.Types.HoneyQueueMessage
       Network.Monitoring.Honeycomb.Types.HoneyResponse
       Network.Monitoring.Honeycomb.Types.HoneyServerOptions
       Network.Monitoring.Honeycomb.Types.HoneyValue
+      Network.Monitoring.Honeycomb.Types.SendEventsResponse
+      Network.Monitoring.Honeycomb.Types.TransportState
   other-modules:
       Paths_honeycomb
   hs-source-dirs:
@@ -70,6 +72,7 @@ library
     , random
     , rio >=0.1.8.0
     , scientific
+    , stm
     , uuid
   default-language: Haskell2010
 
@@ -98,6 +101,7 @@ executable honeycomb-example-exe
     , random
     , rio >=0.1.8.0
     , scientific
+    , stm
     , uuid
   default-language: Haskell2010
 
@@ -126,5 +130,6 @@ test-suite honeycomb-test
     , random
     , rio >=0.1.8.0
     , scientific
+    , stm
     , uuid
   default-language: Haskell2010

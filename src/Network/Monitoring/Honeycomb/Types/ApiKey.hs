@@ -4,4 +4,4 @@ module Network.Monitoring.Honeycomb.Types.ApiKey
 
 import RIO
 
-newtype ApiKey = ApiKey Text deriving (IsString, Show)
+newtype ApiKey = ApiKey Text deriving (Eq, IsString, Ord, Show)

@@ -3,24 +3,29 @@ module Network.Monitoring.Honeycomb.Transport
     , withTransport
     ) where
 
+import Control.Concurrent.STM.TBQueue (flushTBQueue, lengthTBQueue)
 import Data.Coerce (coerce)
 import Network.HTTP.Client
 import Network.HTTP.Client.TLS (tlsManagerSettings)
 import Network.HTTP.Types.Status (statusCode)
+import Network.Monitoring.Honeycomb.Events (sendEvents)
 import Network.Monitoring.Honeycomb.Types
 import Network.Monitoring.Honeycomb.Types.FrozenHoneyEvent
-import Network.Monitoring.Honeycomb.Types.HoneyQueueMessage
-import Network.URI (URI, uriPath)
+import Network.URI (URI, uriPath, uriToString)
 import RIO
+import RIO.Deque
 import RIO.Time
 import System.IO (print)
 
-import qualified Data.Aeson as Aeson
+import qualified Data.Aeson as JSON
 import qualified Data.Aeson.Text
 import qualified RIO.HashMap as HM
+import qualified RIO.Map as Map
 import qualified RIO.Text as Text
 import qualified RIO.Text.Lazy as TL
 import qualified RIO.ByteString.Lazy as LBS
+
+type SendKey = (URI, Dataset, ApiKey)
 
 newTransport
     :: forall n m .
@@ -28,70 +33,76 @@ newTransport
        , MonadIO m
        )
     => HoneyServerOptions
-    -> n (TBQueue HoneyQueueMessage, m ())
+    -> n (TransportState, m ())
 newTransport honeyServerOptions = do
-    sendQueue <- atomically $ newTBQueue $ honeyServerOptions ^. pendingWorkCapacityL
+    transportState <- mkTransportState $ honeyServerOptions ^. pendingWorkCapacityL
+    closeQueue <- newTVarIO False
     httpManager <- liftIO $ newManager tlsManagerSettings
-    readThreadId <- async $ readQueue httpManager sendQueue
+    readThreadId <- async $ readQueue httpManager transportState closeQueue
     link readThreadId  -- [todo] think about whether this is a good idea
-    let shutdown = atomically (writeTBQueue sendQueue CloseQueue) >> wait readThreadId
-    pure (sendQueue, shutdown)
+    let shutdown = atomically (writeTVar closeQueue True) >> wait readThreadId
+    pure (transportState, shutdown)
 
 withTransport
     :: MonadUnliftIO m
     => HoneyServerOptions
-    -> (TBQueue HoneyQueueMessage -> m a)
+    -> (TransportState -> m a)
     -> m a
 withTransport honeyServerOptions inner = withRunInIO $ \run ->
     bracket (newTransport honeyServerOptions)
         snd
         (run . inner . fst)
-  
-requestFromEvent :: MonadIO m => FrozenHoneyEvent -> m Request
-requestFromEvent evt = do
-    initialReq <- liftIO $ createRequest (evt ^. frozenEventApiHostL) (evt ^. frozenEventDatasetL)
-    let evtTime = formatTime defaultTimeLocale "%Y-%m-%dT%H:%M:%S%QZ" (evt ^. frozenEventTimestampL)
-    pure initialReq {
-          method = "POST"
-        , requestHeaders =
-            [ ("Content-Type",           "application/json")
-            , ("User-Agent",             "libhoney-er-haskell/0.1.0.0")
-            , ("X-Honeycomb-Team",       encodeUtf8 . coerce $ evt ^. frozenEventApiKeyL)
-            , ("X-Honeycomb-Event-Time", encodeUtf8 $ Text.pack evtTime)
-            , ("X-Honeycomb-Samplerate", encodeUtf8 . tshow $ evt ^. frozenEventSampleRateL)
-            ] <> requestHeaders initialReq
-        , requestBody = RequestBodyLBS $ Aeson.encode $ evt ^. frozenEventFieldsL
-        }
-
-sendEventFromQueue
-    :: MonadIO m
-    => Manager
-    -> FrozenHoneyEvent
-    -> m (Response LBS.ByteString, NominalDiffTime)
-sendEventFromQueue manager evt = do
-    req <- requestFromEvent evt
-    start <- getCurrentTime
-    response <- liftIO $ httpLbs req manager
-    end <- getCurrentTime
-    let duration = diffUTCTime end start
-    pure (response, duration)
     
-createRequest :: URI -> Dataset -> IO Request
-createRequest baseUri (Dataset ds) =
-    requestFromURI $ baseUri { uriPath = uriPath baseUri <> "1/events/" <> Text.unpack ds }
 
-sendEvt :: MonadIO m => Manager -> FrozenHoneyEvent -> m ()
-sendEvt httpManager evt = do
-    (response, latency) <- sendEventFromQueue httpManager evt
-    let status = responseStatus response
-        obj = (Aeson.decode $ responseBody response) :: Maybe Aeson.Object
-        honeyResponse = HoneyResponse (statusCode status) latency $ TL.toStrict . Data.Aeson.Text.encodeToLazyText <$> (HM.lookup "error" =<< obj)
-    liftIO $ print honeyResponse
+readQueue :: forall m . MonadUnliftIO m => Manager -> TransportState -> TVar Bool -> m ()
+readQueue manager transportState closeQ = do
+    (shouldStop, events) <- readFromQueueOrWait
+    if shouldStop then
+        splitEvents manager events
+    else
+        splitEvents manager events >> readQueue manager transportState closeQ
+  where
+    readFromQueueOrWaitSTM :: TVar Bool -> STM (Bool, [FrozenHoneyEvent])
+    readFromQueueOrWaitSTM timeout = do
+        let q = transportState ^. transportSendQueueL
+            flushQ = transportState ^. transportFlushQueueL
+        shouldClose <- readTVar closeQ
+        flushRequest <- tryReadTMVar flushQ
+        currentQueueSize <- lengthTBQueue q
+        hasTimedOut <- readTVar timeout
+        
+        case flushRequest of
+            Just flushVar ->
+                (False,) <$> (putTMVar flushVar () >> flushTBQueue q)  -- acknowledge all flush requests
+            Nothing ->
+                if shouldClose
+                    || currentQueueSize >= 100
+                    || (hasTimedOut && currentQueueSize > 0)
+                then
+                    (shouldClose,) <$> flushTBQueue q
+                else
+                    retrySTM
 
-readQueue :: MonadUnliftIO m => Manager -> TBQueue HoneyQueueMessage -> m ()
-readQueue httpManager q = do
-    curVal <- atomically $ readTBQueue q
-    case curVal of
-        QueueMessage evt -> tryAny (sendEvt httpManager evt) >> readQueue httpManager q
-        CloseQueue       -> pure ()
-        FlushQueue mvar  -> putMVar mvar () >> readQueue httpManager q
+    readFromQueueOrWait :: m (Bool, [FrozenHoneyEvent])
+    readFromQueueOrWait = do
+        delay <- registerDelay $ 1000 * 50  -- timeout = 50ms
+        atomically $ readFromQueueOrWaitSTM delay
+
+sendGroup :: MonadUnliftIO m => Manager -> SendKey -> [FrozenHoneyEvent] -> m ()
+sendGroup manager (uri, dataset, apiKey) events = tryAny (void $ sendEvents manager uri dataset apiKey events) >>= fromEither
+
+sendGroups :: MonadUnliftIO m => Manager -> Map SendKey [FrozenHoneyEvent] -> m ()
+sendGroups manager groups = sequence_ $ Map.mapWithKey (sendGroup manager) groups
+
+splitEvents :: MonadUnliftIO m => Manager -> [FrozenHoneyEvent] -> m ()
+splitEvents manager events =
+    sendGroups manager $ Map.fromListWith (++) (fmap toEntry events)
+  where
+    toEntry :: FrozenHoneyEvent -> (SendKey, [FrozenHoneyEvent])
+    toEntry evt =
+        ( ( evt ^. frozenEventApiHostL
+          , evt ^. frozenEventDatasetL
+          , evt ^. frozenEventApiKeyL
+          )
+        , [evt] 
+        )

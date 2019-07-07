@@ -4,4 +4,4 @@ module Network.Monitoring.Honeycomb.Types.Dataset
 
 import RIO
 
-newtype Dataset = Dataset Text deriving (IsString, Show)
+newtype Dataset = Dataset Text deriving (Eq, IsString, Ord, Show)

@@ -2,27 +2,27 @@ module Network.Monitoring.Honeycomb.Types.Honey
     ( Honey
     , mkHoney
     , honeyOptionsL
-    , sendQueueL
+    , honeyTransportStateL
     , HasHoney
     , honeyL
     ) where
 
 import Network.Monitoring.Honeycomb.Types.HoneyOptions
-import Network.Monitoring.Honeycomb.Types.HoneyQueueMessage
+import Network.Monitoring.Honeycomb.Types.TransportState
 import RIO
 
 data Honey = Honey
-    { honeyOptions  :: !HoneyOptions
-    , sendQueue     :: !(TBQueue HoneyQueueMessage)
+    { honeyOptions        :: !HoneyOptions
+    , honeyTransportState :: !TransportState
     }
 
 honeyOptionsL :: Lens' Honey HoneyOptions
 honeyOptionsL = lens honeyOptions (\x y -> x { honeyOptions = y })
 
-sendQueueL :: Lens' Honey (TBQueue HoneyQueueMessage)
-sendQueueL = lens sendQueue (\x y -> x { sendQueue = y })
+honeyTransportStateL :: Lens' Honey TransportState
+honeyTransportStateL = lens honeyTransportState (\x y -> x { honeyTransportState = y })
 
-mkHoney :: HoneyOptions -> TBQueue HoneyQueueMessage -> Honey
+mkHoney :: HoneyOptions -> TransportState -> Honey
 mkHoney = Honey
 
 class HasHoney env where
