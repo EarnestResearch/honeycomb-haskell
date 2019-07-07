@@ -5,12 +5,13 @@ module Network.Monitoring.Honeycomb.Types.HoneyOptions
     , sampleRateL
     , apiHostL
     , defaultFieldsL
-    , blockOnSendL
     , defaultHoneyOptions
+    , mergeOptionsWithBuilder
     ) where
 
 import Network.Monitoring.Honeycomb.Types.ApiKey
 import Network.Monitoring.Honeycomb.Types.Dataset
+import Network.Monitoring.Honeycomb.Types.HoneyEventBuilder
 import Network.Monitoring.Honeycomb.Types.HoneyObject
 import RIO
 import RIO.Partial (fromJust)
@@ -24,7 +25,6 @@ data HoneyOptions = HoneyOptions
     , sampleRate    :: !Natural
     , apiHost       :: !URI.URI
     , defaultFields :: !HoneyObject
-    , blockOnSend   :: !Bool
     } deriving (Show)
 
 apiKeyL :: Lens' HoneyOptions (Maybe ApiKey)
@@ -42,9 +42,6 @@ apiHostL = lens apiHost (\x y -> x { apiHost = y})
 defaultFieldsL :: Lens' HoneyOptions HoneyObject
 defaultFieldsL = lens defaultFields (\x y -> x { defaultFields = y })
 
-blockOnSendL :: Lens' HoneyOptions Bool
-blockOnSendL = lens blockOnSend (\x y -> x { blockOnSend = y})
-
 defaultHoneyOptions :: HoneyOptions
 defaultHoneyOptions = HoneyOptions
     { apiKey = Nothing
@@ -52,5 +49,13 @@ defaultHoneyOptions = HoneyOptions
     , sampleRate = 1
     , apiHost = fromJust $ URI.parseURI "https://api.honeycomb.io/"
     , defaultFields = HM.empty
-    , blockOnSend = False
+    }
+
+mergeOptionsWithBuilder :: HoneyEventBuilder -> HoneyOptions -> HoneyOptions
+mergeOptionsWithBuilder builder opts = HoneyOptions
+    { apiKey = builder ^. builderApiKeyL <|> opts ^. apiKeyL
+    , dataset = builder ^. builderDatasetL <|> opts ^. datasetL
+    , sampleRate = fromMaybe (opts ^. sampleRateL) (builder ^. builderSampleRateL)
+    , apiHost = fromMaybe (opts ^. apiHostL) (builder ^. builderApiHostL)
+    , defaultFields = fromMaybe (opts ^. defaultFieldsL) (builder ^. builderDefaultFieldsL)
     }

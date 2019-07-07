@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 3d69cb4f301860a3acc6bf29dddd203de66f26354862cdc3d3e1d5ae8ee1f4ca
+-- hash: ab87066de9433c5340b9651ef68fd0d9dde7e8cfc14368315c5191980ade02d9
 
 name:           honeycomb
 version:        0.1.0.0
@@ -45,6 +45,7 @@ library
       Network.Monitoring.Honeycomb.Types.FrozenHoneyEvent
       Network.Monitoring.Honeycomb.Types.Honey
       Network.Monitoring.Honeycomb.Types.HoneyEvent
+      Network.Monitoring.Honeycomb.Types.HoneyEventBuilder
       Network.Monitoring.Honeycomb.Types.HoneyException
       Network.Monitoring.Honeycomb.Types.HoneyObject
       Network.Monitoring.Honeycomb.Types.HoneyOptions

@@ -17,12 +17,12 @@ module Network.Monitoring.Honeycomb
     -- $libraryInitialization
       withHoney
     , newHoney
-    , withHoneyOptions
 
     -- * Events
 
     -- ** Creating and sending
     , newEvent
+    , newEventFromBuilder
     , send
     , send'
     , flush
@@ -67,7 +67,7 @@ import qualified RIO.List as List
 -- >     honeyL = lens appHoney (\x y -> x { appHoney = y })
 
 
--- | Creates a new Honeycomb event with no extra fields added.
+-- | Creates a new Honeycomb event.
 newEvent
     :: ( MonadIO m
        , MonadReader env m
@@ -75,7 +75,19 @@ newEvent
        )
     => m HoneyEvent
 newEvent = view (honeyL . honeyOptionsL) >>= mkHoneyEvent
- 
+
+-- | Creates a new Honeycomb event from an event builder.
+newEventFromBuilder
+    :: ( MonadIO m
+       , MonadReader env m
+       , HasHoney env
+       )
+    => HoneyEventBuilder
+    -> m HoneyEvent
+newEventFromBuilder builder =
+    view (honeyL . honeyOptionsL . to (mergeOptionsWithBuilder builder)) >>= mkHoneyEvent
+   
+
 -- $addingFields
 --
 -- The @HoneyEvent@ allows fields to be added at any point between
@@ -173,8 +185,7 @@ send' extraFields event =
             pure ()
         ctx <- view honeyL
         let sendQ = ctx ^. sendQueueL
-            opts = ctx ^. honeyOptionsL
-            shouldBlock = opts ^. blockOnSendL
+            shouldBlock = ctx ^. honeyServerOptionsL . blockOnSendL
             shouldSample = evt ^. frozenEventShouldSampleL
         if shouldSample then atomically $
             if shouldBlock then
@@ -225,7 +236,7 @@ newHoney
     -> n (Honey, m ())
 newHoney honeyServerOptions honeyOptions = do
     (sendQueue, shutdown) <- newTransport honeyServerOptions
-    pure (mkHoney honeyOptions sendQueue, shutdown)
+    pure (mkHoney honeyServerOptions honeyOptions sendQueue, shutdown)
 
 {- |
 Creates a Honey environment, and if given a program that uses this,
@@ -242,17 +253,3 @@ withHoney honeyServerOptions honeyFields inner = withRunInIO $ \run ->
     bracket (newHoney honeyServerOptions honeyFields)
             snd
             (run . inner . fst)
-
-{- | Modifies the HoneyOptions value for the provided program.
-
-This allows a program to be run, with a @HoneyOptions@ value which is different
-to the one configured when setting up the library.
--}
-withHoneyOptions
-    :: ( MonadReader env m
-       , HasHoney env
-       )
-    => (HoneyOptions -> HoneyOptions)  -- ^ The function to modify the current options value
-    -> m a                             -- ^ The program to run
-    -> m a
-withHoneyOptions f = local (over (honeyL . honeyOptionsL) f)
