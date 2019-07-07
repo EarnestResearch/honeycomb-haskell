@@ -1,7 +1,6 @@
 module Network.Monitoring.Honeycomb.Types.HoneyServerOptions
     ( HoneyServerOptions
     , blockOnResponseL
-    , blockOnSendL
     , maxBatchSizeL
     , sendFrequencyL
     , maxConcurrentBatchesL
@@ -15,7 +14,6 @@ import RIO.Time
 
 data HoneyServerOptions = HoneyServerOptions
     { blockOnResponse      :: !Bool
-    , blockOnSend          :: !Bool
     , maxBatchSize         :: !Natural
     , sendFrequency        :: !DiffTime
     , maxConcurrentBatches :: !Natural
@@ -24,9 +22,6 @@ data HoneyServerOptions = HoneyServerOptions
 
 blockOnResponseL :: Lens' HoneyServerOptions Bool
 blockOnResponseL = lens blockOnResponse (\x y -> x { blockOnResponse = y })
-
-blockOnSendL :: Lens' HoneyServerOptions Bool
-blockOnSendL = lens blockOnSend (\x y -> x { blockOnSend = y })
 
 maxBatchSizeL :: Lens' HoneyServerOptions Natural
 maxBatchSizeL = lens maxBatchSize (\x y -> x { maxBatchSize = y })
@@ -55,7 +50,6 @@ defaultPendingWorkCapacity = 10000
 defaultHoneyServerOptions :: HoneyServerOptions
 defaultHoneyServerOptions = HoneyServerOptions
     { blockOnResponse = False
-    , blockOnSend = False
     , maxBatchSize = defaultMaxBatchSize
     , sendFrequency = defaultBatchTimeout
     , maxConcurrentBatches = defaultMaxConcurrentBatches
