@@ -31,9 +31,7 @@ module Network.Monitoring.Honeycomb
     --
     -- $addingFields
     , addField
-    , addFieldSTM
     , add
-    , addSTM
 
     , module Network.Monitoring.Honeycomb.Types
     )
@@ -91,23 +89,6 @@ newEvent = view (honeyL . honeyOptionsL) >>= mkHoneyEvent
 -- taken at that point. Further changes to the mutable variable from
 -- that (or any other thread) will not be reflected in the event.
 
-{- | Adds a field to the event (in the STM monad).
-
-This allows fields to be added to an event between its creation and
-sending. Because it uses mutable variables, fields can be added
-from different threads, and will be visible as long as the mutation
-occurs before the event is sent.
--}
-addFieldSTM
-    :: ( ToHoneyValue v
-       )
-    => Text        -- ^ The name of the field
-    -> v           -- ^ The value of the field
-    -> HoneyEvent  -- ^ The event to which the field will be added
-    -> STM ()
-addFieldSTM k v evt =
-    modifyTVar' (evt ^. eventFieldsL) $ HM.insert k (toHoneyValue v)
-
 {- | Adds a field to the event.
 
 This allows fields to be added to an event between its creation and
@@ -123,24 +104,8 @@ addField
     -> v           -- ^ The value of the field
     -> HoneyEvent  -- ^ The event to which the field will be added
     -> m ()
-addField k v =
-    atomically . addFieldSTM k v
-
-{- | Adds multiplee fields to the event (in the STM monad).
-
-This allows fields to be added to an event between its creation and
-sending. Because it uses mutable variables, fields can be added
-from different threads, and will be visible as long as the mutation
-occurs before the event is sent.
--}
-addSTM
-    :: ( ToHoneyObject o
-       )
-    => o           -- ^ The fields to be added
-    -> HoneyEvent  -- ^ The event to which the fields will be added
-    -> STM ()
-addSTM fields evt =
-    modifyTVar' (evt ^. eventFieldsL) (toHoneyObject fields `HM.union`)
+addField k v evt =
+    atomically $ modifyTVar' (evt ^. eventFieldsL) $ HM.insert k (toHoneyValue v)
 
 {- | Adds multiple fields to the event.
 
@@ -156,8 +121,8 @@ add
     => o           -- ^ The fields to be added
     -> HoneyEvent  -- ^ The event to which the fields will be added
     -> m ()
-add fields =
-    atomically . addSTM fields
+add fields evt =
+    atomically $ modifyTVar' (evt ^. eventFieldsL) (toHoneyObject fields `HM.union`)
 
 {- | Queues the event for sending to the Honeycomb service.
 

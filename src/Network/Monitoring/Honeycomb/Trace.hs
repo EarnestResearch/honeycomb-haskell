@@ -11,10 +11,8 @@ module Network.Monitoring.Honeycomb.Trace
     , withNewSpanFromHeaders
     
     -- * Adding fields
-    , addTraceField
-    , addTraceFieldSTM
-    , addTraceFields
-    , addTraceFieldsSTM
+    , addFieldToSpan
+    , addToSpan
     , module Network.Monitoring.Honeycomb.Trace.Types
     )
 where
@@ -168,18 +166,7 @@ withNewSpanFromHeaders spanName headers f inner = do
     newContext <- createRootOrChildSpanContext spanRef spanName 
     localTrace newContext f inner
 
-addTraceFieldSTM
-    :: ( HC.ToHoneyValue v
-       , MonadReader env m
-       , HasTracer env
-       )
-    => Text
-    -> v
-    -> m (STM ())
-addTraceFieldSTM k v =
-    maybe (pure ()) (HC.addFieldSTM k v) <$> preview (tracerL . spanContextL . _Just . spanEventL)
-
-addTraceField
+addFieldToSpan
     :: ( MonadIO m
        , HC.ToHoneyValue v
        , MonadReader env m
@@ -188,20 +175,11 @@ addTraceField
     => Text
     -> v
     -> m ()
-addTraceField k v =
-    addTraceFieldSTM k v >>= atomically
+addFieldToSpan k v = do
+    event <- preview (tracerL . spanContextL . _Just . spanEventL)
+    maybe (pure ()) (HC.addField k v) event
 
-addTraceFieldsSTM
-    :: ( HC.ToHoneyObject o
-       , MonadReader env m
-       , HasTracer env
-       )
-    => o
-    -> m (STM ())
-addTraceFieldsSTM fields =
-    maybe (pure ()) (HC.addSTM fields) <$> preview (tracerL . spanContextL . _Just . spanEventL)
-
-addTraceFields
+addToSpan
     :: ( MonadIO m
        , HC.ToHoneyObject o
        , MonadReader env m
@@ -209,8 +187,9 @@ addTraceFields
        )
     => o
     -> m ()
-addTraceFields fields =
-    addTraceFieldsSTM fields >>= atomically
+addToSpan fields = do
+    event <- preview (tracerL . spanContextL . _Just . spanEventL)
+    maybe (pure ()) (HC.add fields) event
 
 createRootOrChildSpanContext
     :: ( MonadIO m
