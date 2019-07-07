@@ -17,6 +17,7 @@ module Network.Monitoring.Honeycomb
     -- $libraryInitialization
       withHoney
     , newHoney
+    , withHoneyOptions
 
     -- * Events
 
@@ -280,3 +281,17 @@ withHoney honeyServerOptions honeyOptions honeyFields inner = withRunInIO $ \run
     bracket (newHoney honeyServerOptions honeyOptions honeyFields)
             snd
             (run . inner . fst)
+
+{- | Modifies the HoneyOptions value for the provided program.
+
+This allows a program to be run, with a @HoneyOptions@ value which is different
+to the one configured when setting up the library.
+-}
+withHoneyOptions
+    :: ( MonadReader env m
+       , HasHoney env
+       )
+    => (HoneyOptions -> HoneyOptions)  -- ^ The function to modify the current options value
+    -> m a                             -- ^ The program to run
+    -> m a
+withHoneyOptions f = local (over (honeyL . honeyOptionsL) f)
