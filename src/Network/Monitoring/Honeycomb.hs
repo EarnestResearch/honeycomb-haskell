@@ -58,7 +58,7 @@ import qualified RIO.List as List
 -- >     let ho = defaultHoneyOptions
 -- >           & apiKeyL ?~ "12345678"
 -- >           & datasetL ?~ "test-dataset"
--- >     withHoney defaultHoneyServerOptions ho mempty $ \appHoney ->
+-- >     withHoney defaultHoneyServerOptions ho $ \appHoney ->
 -- >         let app = App
 -- >               { -- include other app context/settings
 -- >               , appHoney
@@ -76,9 +76,7 @@ newEvent
        , HasHoney env
        )
     => m HoneyEvent
-newEvent = do
-    honey <- view honeyL
-    mkHoneyEvent (honey ^. honeyOptionsL) (honey ^. defaultFieldsL)
+newEvent = view (honeyL . honeyOptionsL) >>= mkHoneyEvent
  
 -- $addingFields
 --
@@ -259,11 +257,10 @@ newHoney
        )
     => HoneyServerOptions  -- ^ Options for how event handling is performed
     -> HoneyOptions        -- ^ Options for client library behaviour
-    -> HoneyObject         -- ^ Default fields added to all events
     -> n (Honey, m ())
-newHoney honeyServerOptions honeyOptions defaultFields = do
+newHoney honeyServerOptions honeyOptions = do
     (sendQueue, shutdown) <- newTransport honeyServerOptions
-    pure (mkHoney honeyOptions defaultFields sendQueue, shutdown)
+    pure (mkHoney honeyOptions sendQueue, shutdown)
 
 {- |
 Creates a Honey environment, and if given a program that uses this,
@@ -274,11 +271,10 @@ withHoney
     :: MonadUnliftIO m
     => HoneyServerOptions  -- ^ Options for how event handling is performed
     -> HoneyOptions        -- ^ Options for client library behaviour
-    -> HoneyObject         -- ^ Default fields added to all events
     -> (Honey -> m a)      -- ^ The program to run
     -> m a
-withHoney honeyServerOptions honeyOptions honeyFields inner = withRunInIO $ \run ->
-    bracket (newHoney honeyServerOptions honeyOptions honeyFields)
+withHoney honeyServerOptions honeyFields inner = withRunInIO $ \run ->
+    bracket (newHoney honeyServerOptions honeyFields)
             snd
             (run . inner . fst)
 

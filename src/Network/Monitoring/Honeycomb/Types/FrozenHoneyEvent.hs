@@ -62,7 +62,8 @@ newFrozenEvent extraFields event = do
     let frozenEventSampleRate = options ^. sampleRateL
     frozenEventShouldSample <- fmap (== 1) $ liftIO $ randomRIO (1, toInteger frozenEventSampleRate)
     currentFields <- readTVarIO $ event ^. eventFieldsL
-    let frozenEventFields = extraFields `HM.union` currentFields
+    let frozenEventFields =
+          extraFields `HM.union` currentFields `HM.union` (options ^. defaultFieldsL)
     pure FrozenHoneyEvent
         { frozenEventTimestamp = event ^. eventTimestampL
         , frozenEventFields

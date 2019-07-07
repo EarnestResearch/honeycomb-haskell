@@ -42,7 +42,7 @@ main = do
                  , toPropagationData = const Nothing
                  }
     withLogFunc lo $ \appLogFunc ->
-      withHoney defaultHoneyServerOptions ho mempty $ \appHoney ->
+      withHoney defaultHoneyServerOptions ho $ \appHoney ->
         let app = App
               { appLogFunc
               , appProcessContext

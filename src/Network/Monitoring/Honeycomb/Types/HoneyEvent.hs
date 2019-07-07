@@ -12,6 +12,8 @@ import Network.Monitoring.Honeycomb.Types.HoneyOptions
 import RIO
 import RIO.Time
 
+import qualified RIO.HashMap as HM
+
 data HoneyEvent = HoneyEvent
     { eventTimestamp :: !UTCTime
     , eventOptions   :: !HoneyOptions
@@ -27,14 +29,14 @@ eventOptionsL = lens eventOptions (\x y -> x { eventOptions = y})
 eventFieldsL :: Lens' HoneyEvent (TVar HoneyObject)
 eventFieldsL = lens eventFields (\x y -> x { eventFields = y })
 
-mkHoneyEvent :: MonadIO m => HoneyOptions -> HoneyObject -> m HoneyEvent
-mkHoneyEvent honeyOptions defaultFields = do
+mkHoneyEvent :: MonadIO m => HoneyOptions -> m HoneyEvent
+mkHoneyEvent honeyOptions = do
     eventTimestamp <- getCurrentTime
-    mkHoneyEvent' eventTimestamp honeyOptions defaultFields
+    mkHoneyEvent' eventTimestamp honeyOptions
 
-mkHoneyEvent' :: MonadIO m => UTCTime -> HoneyOptions -> HoneyObject -> m HoneyEvent
-mkHoneyEvent' eventTimestamp eventOptions defaultFields = do
-    eventFields <- newTVarIO defaultFields
+mkHoneyEvent' :: MonadIO m => UTCTime -> HoneyOptions -> m HoneyEvent
+mkHoneyEvent' eventTimestamp eventOptions = do
+    eventFields <- newTVarIO HM.empty
     pure HoneyEvent
         { eventTimestamp
         , eventOptions
