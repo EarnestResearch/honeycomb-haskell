@@ -1,11 +1,9 @@
-module Network.Monitoring.Honeycomb.Events where
+module Network.Monitoring.Honeycomb.Api.Events where
 
 import Data.Coerce (coerce)
 import Network.HTTP.Types.Header (RequestHeaders)
-import Network.Monitoring.Honeycomb.Types
-import Network.Monitoring.Honeycomb.Types.FrozenHoneyEvent
-import Network.Monitoring.Honeycomb.Types.SendEventsResponse
-import Network.URI (URI, normalizeEscape, uriPath)
+import Network.Monitoring.Honeycomb.Api.Types
+import Network.URI (normalizeEscape, uriPath)
 import RIO
 
 import qualified Data.Aeson as JSON
@@ -15,14 +13,13 @@ import qualified RIO.Text as Text
 sendEvents
     :: MonadIO m
     => Client.Manager
-    -> URI
-    -> Dataset
-    -> ApiKey
-    -> [FrozenHoneyEvent]
-    -> m (Client.Response (Maybe SendEventsResponse))
-sendEvents manager baseUri dataset apiKey events = do
+    -> RequestOptions
+    -> [Event]
+    -> m (Client.Response (Maybe [Integer]))
+sendEvents manager requestOptions events = do
+    let baseUri = requestOptions ^. requestApiHostL
     initReq <- liftIO . Client.requestFromURI $ baseUri
-        { uriPath = uriPath baseUri <> "1/batch/" <> (normalizeEscape . Text.unpack $ coerce dataset) } 
+        { uriPath = uriPath baseUri <> "1/batch/" <> (normalizeEscape . Text.unpack . coerce $ requestOptions ^. requestApiDatasetL) } 
     let req = initReq
          { Client.method = "POST"
          , Client.requestHeaders = additionalRequestHeaders <> Client.requestHeaders initReq
@@ -34,6 +31,6 @@ sendEvents manager baseUri dataset apiKey events = do
     additionalRequestHeaders :: RequestHeaders
     additionalRequestHeaders =
         [ ("Content-Type", "application-json")
-        , ("User-Agent", "libhoney-er-haskell/0.1.0.0")
-        , ("X-Honeycomb-Team", encodeUtf8 $ coerce apiKey)
+        , ("User-Agent", "libhoney-hs-er/0.1.0.0")
+        , ("X-Honeycomb-Team", encodeUtf8 . coerce $ requestOptions ^. requestApiKeyL)
         ]

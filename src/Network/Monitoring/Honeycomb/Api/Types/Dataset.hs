@@ -1,4 +1,4 @@
-module Network.Monitoring.Honeycomb.Types.Dataset
+module Network.Monitoring.Honeycomb.Api.Types.Dataset
     ( Dataset (..)
     ) where
 

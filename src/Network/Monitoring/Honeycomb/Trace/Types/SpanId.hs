@@ -9,7 +9,7 @@ module Network.Monitoring.Honeycomb.Trace.Types.SpanId
 where
 
 import Data.Coerce (coerce)
-import Network.Monitoring.Honeycomb.Types.HoneyValue
+import Network.Monitoring.Honeycomb.Types
 import RIO
 
 import qualified Data.UUID as UUID
@@ -36,4 +36,4 @@ instance HasSpanId SpanId where
   getSpanId = id
 
 instance ToHoneyValue SpanId where
-  toHoneyValue = HoneyStringValue . coerce
+  toHoneyValue = HoneyString . coerce

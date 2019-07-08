@@ -9,9 +9,9 @@ module Network.Monitoring.Honeycomb.Types.HoneyOptions
     , defaultHoneyOptions
     ) where
 
-import Network.Monitoring.Honeycomb.Types.ApiKey
-import Network.Monitoring.Honeycomb.Types.Dataset
-import Network.Monitoring.Honeycomb.Types.HoneyObject
+import Network.Monitoring.Honeycomb.Api.Types.ApiKey
+import Network.Monitoring.Honeycomb.Api.Types.Dataset
+import Network.Monitoring.Honeycomb.Api.Types.HoneyObject
 import RIO
 import RIO.Partial (fromJust)
 
@@ -28,16 +28,16 @@ data HoneyOptions = HoneyOptions
     } deriving (Show)
 
 apiKeyL :: Lens' HoneyOptions (Maybe ApiKey)
-apiKeyL = lens apiKey (\x y -> x { apiKey = y})
+apiKeyL = lens apiKey (\x y -> x { apiKey = y })
 
 datasetL :: Lens' HoneyOptions (Maybe Dataset)
-datasetL = lens dataset (\x y -> x { dataset = y})
+datasetL = lens dataset (\x y -> x { dataset = y })
 
 sampleRateL :: Lens' HoneyOptions Natural
-sampleRateL = lens sampleRate (\x y -> x { sampleRate = y})
+sampleRateL = lens sampleRate (\x y -> x { sampleRate = y })
 
 apiHostL :: Lens' HoneyOptions URI.URI
-apiHostL = lens apiHost (\x y -> x { apiHost = y})
+apiHostL = lens apiHost (\x y -> x { apiHost = y })
 
 defaultFieldsL :: Lens' HoneyOptions HoneyObject
 defaultFieldsL = lens defaultFields (\x y -> x { defaultFields = y })

@@ -39,9 +39,9 @@ where
 
 import Network.Monitoring.Honeycomb.Transport
 import Network.Monitoring.Honeycomb.Types
-import Network.Monitoring.Honeycomb.Types.FrozenHoneyEvent
 import RIO
 
+import qualified Network.Monitoring.Honeycomb.Api as Api
 import qualified RIO.HashMap as HM
 import qualified RIO.List as List
 
@@ -161,12 +161,29 @@ send'
     => o           -- ^ An additional set of fields to add before sending
     -> HoneyEvent  -- ^ The event to be sent
     -> m ()
-send' extraFields event =
-    newFrozenEvent (toHoneyObject extraFields) event >>= sendFrozen
+send' extraFields event = do
+    let shouldSample = True
+    apiEvent <- toApiEvent
+    requestOpts <- toRequestOptions
+    sendApiEvent shouldSample requestOpts apiEvent
   where
-    sendFrozen :: FrozenHoneyEvent -> m ()
-    sendFrozen evt = do
-        if List.null $ evt ^. frozenEventFieldsL then
+    toRequestOptions :: m Api.RequestOptions
+    toRequestOptions = do
+        ds <- maybe (throwIO MissingDatasetOption) pure $ event ^. eventOptionsL . datasetL
+        key <- maybe (throwIO MissingApiKeyOption) pure $ event ^. eventOptionsL . apiKeyL
+        pure $ Api.mkRequestOptions (event ^. eventOptionsL . apiHostL) ds key
+
+    toApiEvent :: m Api.Event
+    toApiEvent = do
+        finalFields <- atomically $ HM.union (toHoneyObject extraFields) <$> readTVar (event ^. eventFieldsL)
+        pure $ Api.mkEvent
+            finalFields
+            (event ^. eventTimestampL . to Just)
+            (event ^. eventOptionsL . sampleRateL . to Just)
+
+    sendApiEvent :: Bool -> RequestOptions -> Api.Event -> m ()
+    sendApiEvent shouldSample requestOpts apiEvent = do
+        if List.null $ apiEvent ^. Api.eventFieldsL then
             throwIO EmptyEventData
         else
             pure ()
@@ -174,16 +191,15 @@ send' extraFields event =
         let sendQ = ctx ^. honeyTransportStateL . transportSendQueueL
             opts = ctx ^. honeyOptionsL
             shouldBlock = opts ^. blockOnSendL
-            shouldSample = evt ^. frozenEventShouldSampleL
         if shouldSample then atomically $
             if shouldBlock then
-                writeTBQueue sendQ evt
+                writeTBQueue sendQ (requestOpts, apiEvent)
             else do
                 full <- isFullTBQueue sendQ
                 if full then
                     pure ()  -- [todo] add reporting of queue overflow
                 else
-                    writeTBQueue sendQ evt
+                    writeTBQueue sendQ (requestOpts, apiEvent)
         else
             pure ()
 

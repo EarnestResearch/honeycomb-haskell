@@ -4,28 +4,14 @@ module Network.Monitoring.Honeycomb.Transport
     ) where
 
 import Control.Concurrent.STM.TBQueue (flushTBQueue, lengthTBQueue)
-import Data.Coerce (coerce)
 import Network.HTTP.Client
 import Network.HTTP.Client.TLS (tlsManagerSettings)
-import Network.HTTP.Types.Status (statusCode)
-import Network.Monitoring.Honeycomb.Events (sendEvents)
+import Network.Monitoring.Honeycomb.Api.Events (sendEvents)
+import Network.Monitoring.Honeycomb.Api.Types
 import Network.Monitoring.Honeycomb.Types
-import Network.Monitoring.Honeycomb.Types.FrozenHoneyEvent
-import Network.URI (URI, uriPath, uriToString)
 import RIO
-import RIO.Deque
-import RIO.Time
-import System.IO (print)
 
-import qualified Data.Aeson as JSON
-import qualified Data.Aeson.Text
-import qualified RIO.HashMap as HM
 import qualified RIO.Map as Map
-import qualified RIO.Text as Text
-import qualified RIO.Text.Lazy as TL
-import qualified RIO.ByteString.Lazy as LBS
-
-type SendKey = (URI, Dataset, ApiKey)
 
 newTransport
     :: forall n m .
@@ -62,7 +48,7 @@ readQueue manager transportState closeQ = do
     else
         splitEvents manager events >> readQueue manager transportState closeQ
   where
-    readFromQueueOrWaitSTM :: TVar Bool -> STM (Bool, [FrozenHoneyEvent])
+    readFromQueueOrWaitSTM :: TVar Bool -> STM (Bool, [(RequestOptions, Event)])
     readFromQueueOrWaitSTM timeout = do
         let q = transportState ^. transportSendQueueL
             flushQ = transportState ^. transportFlushQueueL
@@ -74,35 +60,30 @@ readQueue manager transportState closeQ = do
         case flushRequest of
             Just flushVar ->
                 (False,) <$> (putTMVar flushVar () >> flushTBQueue q)  -- acknowledge all flush requests
-            Nothing ->
-                if shouldClose
+            Nothing -> do
+                checkSTM $
+                    shouldClose
                     || currentQueueSize >= 100
                     || (hasTimedOut && currentQueueSize > 0)
-                then
-                    (shouldClose,) <$> flushTBQueue q
-                else
-                    retrySTM
+                (shouldClose,) <$> flushTBQueue q
 
-    readFromQueueOrWait :: m (Bool, [FrozenHoneyEvent])
+    readFromQueueOrWait :: m (Bool, [(RequestOptions, Event)])
     readFromQueueOrWait = do
         delay <- registerDelay $ 1000 * 50  -- timeout = 50ms
         atomically $ readFromQueueOrWaitSTM delay
 
-sendGroup :: MonadUnliftIO m => Manager -> SendKey -> [FrozenHoneyEvent] -> m ()
-sendGroup manager (uri, dataset, apiKey) events = tryAny (void $ sendEvents manager uri dataset apiKey events) >>= fromEither
+sendGroup :: MonadUnliftIO m => Manager -> RequestOptions -> [Event] -> m ()
+sendGroup manager requestOptions events = tryAny (void $ sendEvents manager requestOptions events) >>= fromEither
 
-sendGroups :: MonadUnliftIO m => Manager -> Map SendKey [FrozenHoneyEvent] -> m ()
+sendGroups :: MonadUnliftIO m => Manager -> Map RequestOptions [Event] -> m ()
 sendGroups manager groups = sequence_ $ Map.mapWithKey (sendGroup manager) groups
 
-splitEvents :: MonadUnliftIO m => Manager -> [FrozenHoneyEvent] -> m ()
+splitEvents :: MonadUnliftIO m => Manager -> [(RequestOptions, Event)] -> m ()
 splitEvents manager events =
     sendGroups manager $ Map.fromListWith (++) (fmap toEntry events)
   where
-    toEntry :: FrozenHoneyEvent -> (SendKey, [FrozenHoneyEvent])
+    toEntry :: (RequestOptions, Event) -> (RequestOptions, [Event])
     toEntry evt =
-        ( ( evt ^. frozenEventApiHostL
-          , evt ^. frozenEventDatasetL
-          , evt ^. frozenEventApiKeyL
-          )
-        , [evt] 
+        ( fst evt
+        , [snd evt]
         )

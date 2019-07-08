@@ -7,14 +7,14 @@ module Network.Monitoring.Honeycomb.Types.TransportState
 
 import RIO
 
-import Network.Monitoring.Honeycomb.Types.FrozenHoneyEvent
+import qualified Network.Monitoring.Honeycomb.Api.Types as Api
 
 data TransportState = TransportState
-    { transportSendQueue :: !(TBQueue FrozenHoneyEvent)
+    { transportSendQueue :: !(TBQueue (Api.RequestOptions, Api.Event))
     , transportFlushQueue :: !(TMVar (TMVar ()))  -- do not expect a reply if library has shut down
     }
 
-transportSendQueueL :: Lens' TransportState (TBQueue FrozenHoneyEvent)
+transportSendQueueL :: Lens' TransportState (TBQueue (Api.RequestOptions, Api.Event))
 transportSendQueueL = lens transportSendQueue (\x y -> x { transportSendQueue = y })
 
 transportFlushQueueL :: Lens' TransportState (TMVar (TMVar ()))

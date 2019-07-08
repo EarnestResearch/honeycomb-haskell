@@ -1,6 +1,6 @@
-module Network.Monitoring.Honeycomb.Types.HoneyObject where
+module Network.Monitoring.Honeycomb.Api.Types.HoneyObject where
 
-import Network.Monitoring.Honeycomb.Types.HoneyValue
+import Network.Monitoring.Honeycomb.Api.Types.HoneyValue
 
 import RIO
 

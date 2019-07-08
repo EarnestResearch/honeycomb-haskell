@@ -5,19 +5,20 @@ module Network.Monitoring.Honeycomb.Types.HoneyEvent
     , eventTimestampL
     , eventFieldsL
     , eventOptionsL
-    ) where
+    )
+where
 
-import Network.Monitoring.Honeycomb.Types.HoneyObject
 import Network.Monitoring.Honeycomb.Types.HoneyOptions
 import RIO
 import RIO.Time
 
+import qualified Network.Monitoring.Honeycomb.Api as Api
 import qualified RIO.HashMap as HM
 
 data HoneyEvent = HoneyEvent
     { eventTimestamp :: !UTCTime
     , eventOptions   :: !HoneyOptions
-    , eventFields    :: !(TVar HoneyObject) 
+    , eventFields    :: !(TVar Api.HoneyObject) 
     }
 
 eventTimestampL :: Lens' HoneyEvent UTCTime
@@ -26,7 +27,7 @@ eventTimestampL = lens eventTimestamp (\x y -> x { eventTimestamp = y })
 eventOptionsL :: Lens' HoneyEvent HoneyOptions
 eventOptionsL = lens eventOptions (\x y -> x { eventOptions = y})
 
-eventFieldsL :: Lens' HoneyEvent (TVar HoneyObject)
+eventFieldsL :: Lens' HoneyEvent (TVar Api.HoneyObject)
 eventFieldsL = lens eventFields (\x y -> x { eventFields = y })
 
 mkHoneyEvent :: MonadIO m => HoneyOptions -> m HoneyEvent

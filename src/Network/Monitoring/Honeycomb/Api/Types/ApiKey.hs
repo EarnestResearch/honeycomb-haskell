@@ -1,4 +1,4 @@
-module Network.Monitoring.Honeycomb.Types.ApiKey
+module Network.Monitoring.Honeycomb.Api.Types.ApiKey
     ( ApiKey (..)
     ) where
 

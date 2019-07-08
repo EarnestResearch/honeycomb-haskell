@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e464a4d6c59b71a8838150b9c63605029558f248a54712c3d0e7d57e816d3ffe
+-- hash: e02d02359ee222bad89e9d04141573e160dc245c9fb61fe9468016628ca0ea6a
 
 name:           honeycomb
 version:        0.1.0.0
@@ -28,7 +28,15 @@ source-repository head
 library
   exposed-modules:
       Network.Monitoring.Honeycomb
-      Network.Monitoring.Honeycomb.Events
+      Network.Monitoring.Honeycomb.Api
+      Network.Monitoring.Honeycomb.Api.Events
+      Network.Monitoring.Honeycomb.Api.Types
+      Network.Monitoring.Honeycomb.Api.Types.ApiKey
+      Network.Monitoring.Honeycomb.Api.Types.Dataset
+      Network.Monitoring.Honeycomb.Api.Types.Event
+      Network.Monitoring.Honeycomb.Api.Types.HoneyObject
+      Network.Monitoring.Honeycomb.Api.Types.HoneyValue
+      Network.Monitoring.Honeycomb.Api.Types.RequestOptions
       Network.Monitoring.Honeycomb.Trace
       Network.Monitoring.Honeycomb.Trace.Types
       Network.Monitoring.Honeycomb.Trace.Types.Propagation
@@ -41,18 +49,12 @@ library
       Network.Monitoring.Honeycomb.Trace.Types.Tracer
       Network.Monitoring.Honeycomb.Transport
       Network.Monitoring.Honeycomb.Types
-      Network.Monitoring.Honeycomb.Types.ApiKey
-      Network.Monitoring.Honeycomb.Types.Dataset
-      Network.Monitoring.Honeycomb.Types.FrozenHoneyEvent
       Network.Monitoring.Honeycomb.Types.Honey
       Network.Monitoring.Honeycomb.Types.HoneyEvent
       Network.Monitoring.Honeycomb.Types.HoneyException
-      Network.Monitoring.Honeycomb.Types.HoneyObject
       Network.Monitoring.Honeycomb.Types.HoneyOptions
       Network.Monitoring.Honeycomb.Types.HoneyResponse
       Network.Monitoring.Honeycomb.Types.HoneyServerOptions
-      Network.Monitoring.Honeycomb.Types.HoneyValue
-      Network.Monitoring.Honeycomb.Types.SendEventsResponse
       Network.Monitoring.Honeycomb.Types.TransportState
   other-modules:
       Paths_honeycomb
