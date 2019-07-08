@@ -1,12 +1,10 @@
 module Network.Monitoring.Honeycomb.Api.Types.HoneyObject where
 
 import Network.Monitoring.Honeycomb.Api.Types.HoneyValue
-
 import RIO
 
 import qualified RIO.HashMap as HM
 
-type HoneyField = (Text, HoneyValue)
 type HoneyObject = HM.HashMap Text HoneyValue
 
 class ToHoneyObject a where

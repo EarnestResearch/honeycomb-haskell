@@ -20,17 +20,24 @@ sendEvents
     -> [Event]
     -> m (Client.Response (Maybe [Integer]))
 sendEvents manager requestOptions events = do
-    let baseUri = requestOptions ^. requestApiHostL
-    initReq <- liftIO . Client.requestFromURI $ baseUri
-        { uriPath = uriPath baseUri <> "1/batch/" <> (normalizeEscape . Text.unpack . coerce $ requestOptions ^. requestApiDatasetL) } 
-    let req = initReq
-         { Client.method = "POST"
-         , Client.requestHeaders = additionalRequestHeaders <> Client.requestHeaders initReq
-         , Client.requestBody = Client.RequestBodyLBS $ JSON.encode events
-         }
-    response <- liftIO $ Client.httpLbs req manager
+    initReq <- liftIO $ Client.requestFromURI batchUri
+    response <- liftIO $ Client.httpLbs (newReq initReq) manager
     pure $ JSON.decode' <$> response
   where
+    newReq :: Client.Request -> Client.Request
+    newReq initReq = initReq
+        { Client.method = "POST"
+        , Client.requestHeaders = additionalRequestHeaders <> Client.requestHeaders initReq
+        , Client.requestBody = Client.RequestBodyLBS $ JSON.encode events
+        }
+
+    batchUri =
+        let baseUri = requestOptions ^. requestApiHostL in
+          baseUri { uriPath = uriPath baseUri <> "1/batch/" <> batchPath }
+
+    batchPath =
+        "1/batch/" <> (normalizeEscape . Text.unpack . coerce $ requestOptions ^. requestApiDatasetL)
+
     additionalRequestHeaders :: RequestHeaders
     additionalRequestHeaders =
         [ ("Content-Type", "application-json")
