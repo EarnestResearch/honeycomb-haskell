@@ -49,13 +49,13 @@ readQueue manager transportState closeQ = do
         splitEvents manager events >> readQueue manager transportState closeQ
   where
     readFromQueueOrWaitSTM :: TVar Bool -> STM (Bool, [(RequestOptions, Event)])
-    readFromQueueOrWaitSTM timeout = do
+    readFromQueueOrWaitSTM timeoutAfter = do
         let q = transportState ^. transportSendQueueL
             flushQ = transportState ^. transportFlushQueueL
         shouldClose <- readTVar closeQ
         flushRequest <- tryReadTMVar flushQ
         currentQueueSize <- lengthTBQueue q
-        hasTimedOut <- readTVar timeout
+        hasTimedOut <- readTVar timeoutAfter
         
         case flushRequest of
             Just flushVar ->

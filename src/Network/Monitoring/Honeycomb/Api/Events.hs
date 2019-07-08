@@ -1,4 +1,7 @@
-module Network.Monitoring.Honeycomb.Api.Events where
+module Network.Monitoring.Honeycomb.Api.Events
+    ( sendEvents
+    )
+where
 
 import Data.Coerce (coerce)
 import Network.HTTP.Types.Header (RequestHeaders)
