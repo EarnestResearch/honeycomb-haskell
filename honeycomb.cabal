@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e02d02359ee222bad89e9d04141573e160dc245c9fb61fe9468016628ca0ea6a
+-- hash: 4ce0e4e3d469d20dd1599d76462414cc6474bf6360b04b97c420b5af59096aa9
 
 name:           honeycomb
 version:        0.1.0.0
@@ -56,6 +56,7 @@ library
       Network.Monitoring.Honeycomb.Types.HoneyResponse
       Network.Monitoring.Honeycomb.Types.HoneyServerOptions
       Network.Monitoring.Honeycomb.Types.TransportState
+      Network.Monitoring.Honeycomb.Wai
   other-modules:
       Paths_honeycomb
   hs-source-dirs:
@@ -76,6 +77,8 @@ library
     , scientific
     , stm
     , uuid
+    , wai
+    , wai-transformers
   default-language: Haskell2010
 
 executable honeycomb-example-exe
@@ -105,6 +108,8 @@ executable honeycomb-example-exe
     , scientific
     , stm
     , uuid
+    , wai
+    , wai-transformers
   default-language: Haskell2010
 
 test-suite honeycomb-test
@@ -134,4 +139,6 @@ test-suite honeycomb-test
     , scientific
     , stm
     , uuid
+    , wai
+    , wai-transformers
   default-language: Haskell2010

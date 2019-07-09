@@ -33,6 +33,8 @@ dependencies:
 - stm
 - uuid
 - scientific
+- wai
+- wai-transformers
 
 default-extensions:
 - AutoDeriveTypeable
