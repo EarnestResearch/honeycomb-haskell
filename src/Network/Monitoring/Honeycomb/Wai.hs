@@ -1,8 +1,6 @@
 {-# LANGUAGE TypeOperators #-}
 module Network.Monitoring.Honeycomb.Wai where
 
-import Lens.Micro (_Just)
-import Lens.Micro.Mtl (preview)
 import Network.HTTP.Types.Status (statusCode)
 import Network.Wai
 import Network.Monitoring.Honeycomb
@@ -36,7 +34,7 @@ traceApplication'
 traceApplication' name app req inner =
     withNewRootSpan name (const mempty) $ do
         addToSpan getRequestFields
-        app req inner
+        app req (\response -> addToSpan (getResponseFields response) >> inner response)
   where
     getRequestFields :: HoneyObject
     getRequestFields = HM.fromList
