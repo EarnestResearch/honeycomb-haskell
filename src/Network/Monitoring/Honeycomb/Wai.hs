@@ -8,11 +8,20 @@ import Network.Wai
 import Network.Monitoring.Honeycomb
 import Network.Monitoring.Honeycomb.Trace
 import RIO
-import System.IO (print)
 
 import qualified RIO.HashMap as HM
 
 type Application' m = Request -> (Response -> m ResponseReceived) -> m ResponseReceived
+
+liftApplication :: MonadUnliftIO m => Application -> Application' m
+liftApplication app req respond =
+    withRunInIO $ \runInIO -> liftIO $ app req (runInIO . respond)
+
+unliftApplication :: MonadUnliftIO m => Application' m -> m Application
+unliftApplication app =
+    withRunInIO $ \runInIO ->
+        pure $ \req respond ->
+            runInIO $ app req (liftIO . respond)
 
 traceApplication'
     :: forall m env .
@@ -22,15 +31,12 @@ traceApplication'
        , HasTracer env
        )
     => SpanName
-    -> Application
+    -> Application' m
     -> Application' m
 traceApplication' name app req inner =
     withNewRootSpan name (const mempty) $ do
-        --curFields <- preview $ tracerL . spanContextL . _Just . spanEventL . eventFieldsL
-        --frozen <- maybe (pure HM.empty) readTVarIO curFields
-        --liftIO $ print $ "Cur fields: " <> show frozen
         addToSpan getRequestFields
-        withRunInIO $ \runInIO -> app req (runInIO . inner)
+        app req inner
   where
     getRequestFields :: HoneyObject
     getRequestFields = HM.fromList
