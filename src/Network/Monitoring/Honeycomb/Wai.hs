@@ -12,6 +12,8 @@ import System.IO (print)
 
 import qualified RIO.HashMap as HM
 
+type Application' m = Request -> (Response -> m ResponseReceived) -> m ResponseReceived
+
 traceApplication'
     :: forall m env .
        ( MonadUnliftIO m
@@ -21,22 +23,17 @@ traceApplication'
        )
     => SpanName
     -> Application
-    -> m Application
-traceApplication' name app =
+    -> Application' m
+traceApplication' name app req inner =
     withNewRootSpan name (const mempty) $ do
-        u <- askUnliftIO
-        curFields <- preview $ tracerL . spanContextL . _Just . spanEventL . eventFieldsL
-        frozen <- maybe (pure HM.empty) readTVarIO curFields
-        liftIO $ print $ "Cur fields: " <> show frozen
-        pure $ \req inner -> do
-            unliftIO u $ addToSpan $ getRequestFields req
-            curFields' <- unliftIO u $ preview $ tracerL . spanContextL . _Just . spanEventL . eventFieldsL
-            frozen' <- maybe (pure HM.empty) readTVarIO curFields'
-            print $ "New cur fields: " <> show frozen'
-            app req (unliftIO u . withNewSpan "child" (const mempty) . liftIO . inner)
+        --curFields <- preview $ tracerL . spanContextL . _Just . spanEventL . eventFieldsL
+        --frozen <- maybe (pure HM.empty) readTVarIO curFields
+        --liftIO $ print $ "Cur fields: " <> show frozen
+        addToSpan getRequestFields
+        withRunInIO $ \runInIO -> app req (runInIO . inner)
   where
-    getRequestFields :: Request -> HoneyObject
-    getRequestFields req = HM.fromList
+    getRequestFields :: HoneyObject
+    getRequestFields = HM.fromList
         [ ("meta.span_type", HoneyString "http_request")
         , ("request.header.user_agent", maybe HoneyNil (toHoneyValue . decodeUtf8Lenient) (requestHeaderUserAgent req))
         , ("request.host", maybe HoneyNil (toHoneyValue . decodeUtf8Lenient) (requestHeaderHost req))
