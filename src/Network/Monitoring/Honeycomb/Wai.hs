@@ -34,7 +34,10 @@ traceApplication'
 traceApplication' name app req inner =
     withNewRootSpan name (const mempty) $ do
         addToSpan getRequestFields
-        app req (\response -> addToSpan (getResponseFields response) >> inner response)
+        app req (\response -> do
+            addToSpan (getResponseFields response)
+            inner response
+            )
   where
     getRequestFields :: HoneyObject
     getRequestFields = HM.fromList
