@@ -34,7 +34,7 @@ traceApplication'
 traceApplication' name app req inner =
     withNewRootSpan name (const mempty) $ do
         addToSpan getRequestFields
-        app req (\response -> do
+        (\x y -> app x y `catchAny` (\e -> reportErrorStatus >> throwIO e)) req (\response -> do
             addToSpan (getResponseFields response)
             inner response
             )
@@ -46,6 +46,9 @@ traceApplication' name app req inner =
         , ("request.host", maybe HoneyNil (toHoneyValue . decodeUtf8Lenient) (requestHeaderHost req))
         , ("request.path", toHoneyValue . decodeUtf8Lenient $ rawPathInfo req)
         ]
+
+    reportErrorStatus :: m ()
+    reportErrorStatus = addFieldToSpan "response.status_code" (500 :: Int)
 
     getResponseFields :: Response -> HoneyObject
     getResponseFields response = HM.fromList
