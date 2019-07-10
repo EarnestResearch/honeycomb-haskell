@@ -40,6 +40,7 @@ where
 import Network.Monitoring.Honeycomb.Transport
 import Network.Monitoring.Honeycomb.Types
 import RIO
+import System.IO (print)
 
 import qualified Network.Monitoring.Honeycomb.Api as Api
 import qualified RIO.HashMap as HM
@@ -175,7 +176,8 @@ send' extraFields event = do
 
     toApiEvent :: m Api.Event
     toApiEvent = do
-        finalFields <- atomically $ HM.union (toHoneyObject extraFields) <$> readTVar (event ^. eventFieldsL)
+        eventFields <- readTVarIO (event ^. eventFieldsL)
+        let finalFields = HM.union (toHoneyObject extraFields) eventFields
         pure $ Api.mkEvent
             finalFields
             (event ^. eventTimestampL . to Just)
