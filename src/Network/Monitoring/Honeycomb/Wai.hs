@@ -3,14 +3,13 @@ module Network.Monitoring.Honeycomb.Wai where
 
 import Network.HTTP.Types.Status (statusCode)
 import Network.Wai
-import Network.Wai.Trans
 import Network.Monitoring.Honeycomb
 import Network.Monitoring.Honeycomb.Trace
 import RIO
 
 import qualified RIO.HashMap as HM
 
-traceApplication
+traceApplication'
     :: forall m env .
        ( MonadUnliftIO m
        , MonadReader env m
@@ -18,18 +17,19 @@ traceApplication
        , HasTracer env
        )
     => SpanName
-    -> MiddlewareT m
-traceApplication name app req respond =
-    withNewRootSpan name (const mempty) $
-        app req handleResponse
+    -> Application
+    -> m Application
+traceApplication' name app =
+    withNewRootSpan name (const mempty) $ do
+        u <- askUnliftIO
+        pure $ \req inner ->
+            app req ( \response -> do
+                unliftIO u $ addToSpan $ getRequestFields req `HM.union` getResponseFields response
+                inner response
+                )
   where
-    handleResponse :: Response -> m ResponseReceived
-    handleResponse response = do
-        addToSpan $ getRequestFields `HM.union` getResponseFields response
-        respond response
-
-    getRequestFields :: HoneyObject
-    getRequestFields = HM.fromList
+    getRequestFields :: Request -> HoneyObject
+    getRequestFields req = HM.fromList
         [ ("meta.span_type", HoneyString "http_request")
         , ("request.header.user_agent", maybe HoneyNil (toHoneyValue . decodeUtf8Lenient) (requestHeaderUserAgent req))
         , ("request.host", maybe HoneyNil (toHoneyValue . decodeUtf8Lenient) (requestHeaderHost req))

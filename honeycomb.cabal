@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 4ce0e4e3d469d20dd1599d76462414cc6474bf6360b04b97c420b5af59096aa9
+-- hash: 5c7a8f3f7e84636057d92acf19f6e19ffecb69c0bbdfdab434ce765586cece5f
 
 name:           honeycomb
 version:        0.1.0.0
@@ -78,7 +78,6 @@ library
     , stm
     , uuid
     , wai
-    , wai-transformers
   default-language: Haskell2010
 
 executable honeycomb-example-exe
@@ -109,7 +108,6 @@ executable honeycomb-example-exe
     , stm
     , uuid
     , wai
-    , wai-transformers
   default-language: Haskell2010
 
 test-suite honeycomb-test
@@ -140,5 +138,4 @@ test-suite honeycomb-test
     , stm
     , uuid
     , wai
-    , wai-transformers
   default-language: Haskell2010
