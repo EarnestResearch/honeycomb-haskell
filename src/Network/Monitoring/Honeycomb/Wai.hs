@@ -9,19 +9,32 @@ import RIO
 
 import qualified RIO.HashMap as HM
 
-type Application' m = Request -> (Response -> m ResponseReceived) -> m ResponseReceived
+type ApplicationT m = Request -> (Response -> m ResponseReceived) -> m ResponseReceived
+type MiddlewareT m = ApplicationT m -> ApplicationT m
 
-liftApplication :: MonadUnliftIO m => Application -> Application' m
+liftApplication :: MonadUnliftIO m => Application -> ApplicationT m
 liftApplication app req respond =
     withRunInIO $ \runInIO -> liftIO $ app req (runInIO . respond)
 
-unliftApplication :: MonadUnliftIO m => Application' m -> m Application
-unliftApplication app =
+liftMiddleware :: MonadUnliftIO m => Middleware -> MiddlewareT m
+liftMiddleware mid app req respond = do
+    app' <- runApplicationT app
+    withRunInIO $ \runInIO -> mid app' req (runInIO . respond)
+
+runApplicationT :: MonadUnliftIO m => ApplicationT m -> m Application
+runApplicationT app =
     withRunInIO $ \runInIO ->
         pure $ \req respond ->
             runInIO $ app req (liftIO . respond)
 
-traceApplication'
+runMiddlewareT :: MonadUnliftIO m => MiddlewareT m -> m Middleware
+runMiddlewareT mid =
+    withRunInIO $ \runInIO ->
+        pure $ \app req respond -> do
+            app' <- runInIO . runApplicationT . mid $ liftApplication app
+            app' req respond
+
+traceApplicationT
     :: forall m env .
        ( MonadUnliftIO m
        , MonadReader env m
@@ -29,12 +42,11 @@ traceApplication'
        , HasTracer env
        )
     => SpanName
-    -> Application' m
-    -> Application' m
-traceApplication' name app req inner =
+    -> MiddlewareT m
+traceApplicationT name app req inner =
     withNewRootSpan name (const mempty) $ do
         addToSpan getRequestFields
-        (\x y -> app x y `catchAny` (\e -> reportErrorStatus >> throwIO e)) req (\response -> do
+        (\x y -> app x y `catchAny` reportErrorStatus) req (\response -> do
             addToSpan (getResponseFields response)
             inner response
             )
@@ -47,8 +59,8 @@ traceApplication' name app req inner =
         , ("request.path", toHoneyValue . decodeUtf8Lenient $ rawPathInfo req)
         ]
 
-    reportErrorStatus :: m ()
-    reportErrorStatus = addFieldToSpan "response.status_code" (500 :: Int)
+    reportErrorStatus :: SomeException -> m a
+    reportErrorStatus e = addFieldToSpan "response.status_code" (500 :: Int) >> throwIO e
 
     getResponseFields :: Response -> HoneyObject
     getResponseFields response = HM.fromList
