@@ -11,6 +11,7 @@ import Network.Monitoring.Honeycomb.Api.Types
 import Network.Monitoring.Honeycomb.Types
 import RIO
 
+import qualified RIO.List as List
 import qualified RIO.Map as Map
 
 newTransport
@@ -53,19 +54,16 @@ readQueue manager transportState closeQ = do
         let q = transportState ^. transportSendQueueL
             flushQ = transportState ^. transportFlushQueueL
         shouldClose <- readTVar closeQ
-        flushRequest <- tryReadTMVar flushQ
+        flushRequests <- flushTBQueue flushQ
         currentQueueSize <- lengthTBQueue q
         hasTimedOut <- readTVar timeoutAfter
-        
-        case flushRequest of
-            Just flushVar ->
-                (False,) <$> (putTMVar flushVar () >> flushTBQueue q)  -- acknowledge all flush requests
-            Nothing -> do
-                checkSTM $
-                    shouldClose
-                    || currentQueueSize >= 100
-                    || (hasTimedOut && currentQueueSize > 0)
-                (shouldClose,) <$> flushTBQueue q
+        checkSTM $
+            shouldClose
+            || not (List.null flushRequests)
+            || currentQueueSize >= 100
+            || (hasTimedOut && currentQueueSize > 0)
+        traverse_ (`putTMVar` ()) flushRequests
+        (shouldClose,) <$> flushTBQueue q
 
     readFromQueueOrWait :: m (Bool, [(RequestOptions, Event)])
     readFromQueueOrWait = do

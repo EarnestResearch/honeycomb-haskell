@@ -11,15 +11,15 @@ import qualified Network.Monitoring.Honeycomb.Api.Types as Api
 
 data TransportState = TransportState
     { transportSendQueue :: !(TBQueue (Api.RequestOptions, Api.Event))
-    , transportFlushQueue :: !(TMVar (TMVar ()))  -- do not expect a reply if library has shut down
+    , transportFlushQueue :: !(TBQueue (TMVar ()))  -- do not expect a reply if library has shut down
     }
 
 transportSendQueueL :: Lens' TransportState (TBQueue (Api.RequestOptions, Api.Event))
 transportSendQueueL = lens transportSendQueue (\x y -> x { transportSendQueue = y })
 
-transportFlushQueueL :: Lens' TransportState (TMVar (TMVar ()))
+transportFlushQueueL :: Lens' TransportState (TBQueue (TMVar ()))
 transportFlushQueueL = lens transportFlushQueue (\x y -> x { transportFlushQueue = y })
 
 mkTransportState :: MonadIO m => Natural -> m TransportState
 mkTransportState maxQueueSize =
-  TransportState <$> newTBQueueIO maxQueueSize <*> newEmptyTMVarIO
+  TransportState <$> newTBQueueIO maxQueueSize <*> newTBQueueIO 100

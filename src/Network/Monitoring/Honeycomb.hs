@@ -224,7 +224,7 @@ flush
 flush timeout_us = do
     flushQueue <- view $ honeyL . honeyTransportStateL . transportFlushQueueL
     mvar <- newEmptyTMVarIO
-    atomically $ putTMVar flushQueue mvar
+    atomically $ writeTBQueue flushQueue mvar
     void $ timeout timeout_us $ atomically $ takeTMVar mvar
 
 {- | Creates a new Honey library instance.
