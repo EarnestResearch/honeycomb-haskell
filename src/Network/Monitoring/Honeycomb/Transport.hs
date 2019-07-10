@@ -73,7 +73,7 @@ readQueue manager transportState closeQ = do
         atomically $ readFromQueueOrWaitSTM delay
 
 sendGroup :: MonadUnliftIO m => Manager -> RequestOptions -> [Event] -> m ()
-sendGroup manager requestOptions events = tryAny (void $ sendEvents manager requestOptions events) >>= fromEither
+sendGroup manager requestOptions events = void $ tryAny (void $ sendEvents manager requestOptions events)
 
 sendGroups :: MonadUnliftIO m => Manager -> Map RequestOptions [Event] -> m ()
 sendGroups manager groups = sequence_ $ Map.mapWithKey (sendGroup manager) groups
