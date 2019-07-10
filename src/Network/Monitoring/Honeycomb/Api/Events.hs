@@ -35,8 +35,7 @@ sendEvents manager requestOptions events = do
         let baseUri = requestOptions ^. requestApiHostL in
           baseUri { uriPath = uriPath baseUri <> "1/batch/" <> batchPath }
 
-    batchPath =
-        "1/batch/" <> (normalizeEscape . Text.unpack . coerce $ requestOptions ^. requestApiDatasetL)
+    batchPath = normalizeEscape . Text.unpack . coerce $ requestOptions ^. requestApiDatasetL
 
     additionalRequestHeaders :: RequestHeaders
     additionalRequestHeaders =
