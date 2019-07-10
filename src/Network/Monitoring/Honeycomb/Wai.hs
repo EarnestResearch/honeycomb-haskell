@@ -33,7 +33,7 @@ traceApplication' name app =
             curFields' <- unliftIO u $ preview $ tracerL . spanContextL . _Just . spanEventL . eventFieldsL
             frozen' <- maybe (pure HM.empty) readTVarIO curFields'
             print $ "New cur fields: " <> show frozen'
-            app req inner
+            app req (unliftIO u . withNewSpan "child" (const mempty) . liftIO . inner)
   where
     getRequestFields :: Request -> HoneyObject
     getRequestFields req = HM.fromList
