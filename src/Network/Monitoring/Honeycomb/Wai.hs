@@ -22,11 +22,9 @@ traceApplication'
 traceApplication' name app =
     withNewRootSpan name (const mempty) $ do
         u <- askUnliftIO
-        pure $ \req inner ->
-            app req ( \response -> do
-                unliftIO u $ addToSpan $ getRequestFields req `HM.union` getResponseFields response
-                inner response
-                )
+        pure $ \req inner -> do
+            unliftIO u $ addToSpan $ getRequestFields req
+            app req inner
   where
     getRequestFields :: Request -> HoneyObject
     getRequestFields req = HM.fromList
