@@ -45,7 +45,7 @@ traceApplicationT
     -> (Request -> Maybe SpanReference)
     -> MiddlewareT m
 traceApplicationT serviceName name parentSpanRef app req inner =
-    withNewRootSpan serviceName name (parentSpanRef req) (const mempty) $ do
+    withNewRootSpan' serviceName name (parentSpanRef req) $ do
         add getRequestFields
         (\x y -> app x y `catchAny` reportErrorStatus) req (\response -> do
             add (getResponseFields response)

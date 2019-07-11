@@ -7,14 +7,28 @@ module Network.Monitoring.Honeycomb.Trace
     -- * Creating spans
 
       withNewSpan
+    , withNewSpan'
     , withNewRootSpan
+    , withNewRootSpan'
     
     -- * Adding fields
+
     , addField
     , add
+
+    -- * Modifying child span behavior
+    --
+    -- $modifyingSpans
+
     , withInheritableFields
-    , module Network.Monitoring.Honeycomb
+
+    -- * Types
+
     , module Network.Monitoring.Honeycomb.Trace.Types
+
+    -- * Imported from Honeycomb
+
+    , module Network.Monitoring.Honeycomb
     )
 where
 
@@ -124,6 +138,19 @@ withNewRootSpan serviceName spanName parentSpanRef f inner =
             newContext <- createRootSpanContext serviceName spanName
             localTrace newContext f inner
 
+withNewRootSpan'
+    :: ( MonadUnliftIO m
+        , MonadReader env m
+        , HasHoney env
+        , HasSpanContext env)
+    => ServiceName                                 -- ^ The name of the service
+    -> SpanName                                    -- ^ The name of the span
+    -> Maybe SpanReference                         -- ^ Parent span from an external system (if known)
+    -> m a                                         -- ^ Program to run in the new span
+    -> m a
+withNewRootSpan' serviceName spanName spanRef =
+    withNewRootSpan serviceName spanName spanRef (const mempty)
+
 {- | Starts a new child span.
 
 This runs the supplied program in a new child span.
@@ -159,6 +186,18 @@ withNewSpan spanName f inner = do
             newContext <- createChildSpanContext spanReference serviceName spanName inheritableFields inheritedFields 
             localTrace newContext f inner
 
+withNewSpan'
+    :: ( MonadUnliftIO m
+        , MonadReader env m
+        , HasHoney env
+        , HasSpanContext env
+        )
+    => SpanName                                    -- ^ The name of the span
+    -> m a                                         -- ^ Program to run in the new span
+    -> m a
+withNewSpan' spanName =
+    withNewSpan spanName (const mempty)
+
 addField
     :: ( MonadIO m
        , HC.ToHoneyValue v
@@ -183,6 +222,16 @@ add
 add fields = do
     event <- preview (spanContextL . _Just . spanEventL)
     maybe (pure ()) (HC.add fields) event
+
+-- $modifyingSpans
+--
+-- Spans are represented by a @SpanContext@ field, which is generally
+-- immutable (other than the set of fields stored in the current event).
+-- To modify behavior of child spans, we may modify the span context,
+-- and provide that context in a modified environment for future calls.
+--
+-- This section provides helpers for modifying useful settings and/or
+-- parameters.
 
 {- | Modifies the list of fields which are inherited by child spans.
 
