@@ -32,9 +32,11 @@ import qualified RIO.Set as Set
 
 -- $libraryInitialization
 --
--- The tracing library is set up by creating a @Tracer@ value,
--- placing it in a @MonadReader@ environment, and defining the
--- @HasTracer@ typeclass for the environment.
+-- The tracing library is set up by creating @HasSpanContext@
+-- typeclass instance for a @MonadReader@ environment.
+-- This should point to a value of @Maybe SpanContext@ in the
+-- environment; this can be initialized to @Nothing@ at
+-- startup.
 --
 -- It also expects the base Honeycomb library to be configured
 -- and available. For example:
@@ -43,20 +45,19 @@ import qualified RIO.Set as Set
 -- >     let ho = defaultHoneyOptions
 -- >           & apiKeyL ?~ "12345678"
 -- >           & datasetL ?~ "test-dataset"
--- >         appTracer = mkTracer "test_service"
 -- >     withHoney defaultHoneyServerOptions ho mempty $ \appHoney ->
 -- >         let app = App
 -- >               { -- include other app context/settings
 -- >               , appHoney
--- >               , appTracer
+-- >               , appSpanContext = Nothing
 -- >               }
 -- >         in runRIO app run
 --
 -- > instance HasHoney App where
 -- >     honeyL = lens appHoney (\x y -> x { appHoney = y })
 -- >
--- > instance HasTracer App where
--- >     tracerL = lens appTracer (\x y -> x { appTracer = y })
+-- > instance HasSpanContext App where
+-- >     spanContextL = lens spanContextL (\x y -> x { spanContextL = y })
 
 finishTrace
     :: ( MonadUnliftIO m
@@ -183,12 +184,22 @@ add fields = do
     event <- preview (spanContextL . _Just . spanEventL)
     maybe (pure ()) (HC.add fields) event
 
+{- | Modifies the list of fields which are inherited by child spans.
+
+When a child span is created, it can copy the values of some fields from
+the parent span. For example, you might want to include a user ID, or
+similar value, to provide downstream context.
+
+As the fields in a span are mutable, the values are copied at the time
+that the child span is created; it will not inherit any values which
+are added to the parent at a later point.
+-}
 withInheritableFields
     :: ( MonadReader env m
        , HasSpanContext env
        )
-    => (Set Text -> Set Text)
-    -> m a
+    => (Set Text -> Set Text)  -- ^ The modification to apply to the set of inheritable fields
+    -> m a                     -- ^ The program to run with the modified set of fields
     -> m a
 withInheritableFields modify inner = do
     inner & local (over (spanContextL . _Just . inheritableFieldsL) (modify))
