@@ -5,7 +5,7 @@
 module Main (main) where
 
 import Import
-import Network.Monitoring.Honeycomb
+import Honeycomb
 import Run
 import RIO.Process
 import Options.Applicative.Simple

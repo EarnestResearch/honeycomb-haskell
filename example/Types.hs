@@ -1,7 +1,7 @@
 module Types where
 
-import Network.Monitoring.Honeycomb.Trace.Types
-import Network.Monitoring.Honeycomb.Types
+import Honeycomb.Trace.Types
+import Honeycomb.Types
 import RIO
 import RIO.Process
 

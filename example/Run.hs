@@ -2,7 +2,7 @@
 module Run (run) where
 
 import Import
-import Network.Monitoring.Honeycomb.Trace
+import Honeycomb.Trace
 
 import qualified RIO.Set as Set
 

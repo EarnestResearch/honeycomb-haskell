@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 7bfaf4a8cd2de2b2e601ad21063221015ae6fad8406819cc4eb0921b20683777
+-- hash: 5b609b98adf79f9fdb72449774cbba52094636231508a4564aa07c428612d661
 
 name:           honeycomb
 version:        0.1.0.0
@@ -27,34 +27,34 @@ source-repository head
 
 library
   exposed-modules:
-      Network.Monitoring.Honeycomb
-      Network.Monitoring.Honeycomb.Api
-      Network.Monitoring.Honeycomb.Api.Events
-      Network.Monitoring.Honeycomb.Api.Types
-      Network.Monitoring.Honeycomb.Api.Types.ApiKey
-      Network.Monitoring.Honeycomb.Api.Types.Dataset
-      Network.Monitoring.Honeycomb.Api.Types.Event
-      Network.Monitoring.Honeycomb.Api.Types.HoneyObject
-      Network.Monitoring.Honeycomb.Api.Types.HoneyValue
-      Network.Monitoring.Honeycomb.Api.Types.RequestOptions
-      Network.Monitoring.Honeycomb.Trace
-      Network.Monitoring.Honeycomb.Trace.Types
-      Network.Monitoring.Honeycomb.Trace.Types.ServiceName
-      Network.Monitoring.Honeycomb.Trace.Types.SpanContext
-      Network.Monitoring.Honeycomb.Trace.Types.SpanId
-      Network.Monitoring.Honeycomb.Trace.Types.SpanName
-      Network.Monitoring.Honeycomb.Trace.Types.SpanReference
-      Network.Monitoring.Honeycomb.Trace.Types.TraceId
-      Network.Monitoring.Honeycomb.Transport
-      Network.Monitoring.Honeycomb.Types
-      Network.Monitoring.Honeycomb.Types.Honey
-      Network.Monitoring.Honeycomb.Types.HoneyEvent
-      Network.Monitoring.Honeycomb.Types.HoneyException
-      Network.Monitoring.Honeycomb.Types.HoneyOptions
-      Network.Monitoring.Honeycomb.Types.HoneyResponse
-      Network.Monitoring.Honeycomb.Types.HoneyServerOptions
-      Network.Monitoring.Honeycomb.Types.TransportState
-      Network.Monitoring.Honeycomb.Wai
+      Honeycomb
+      Honeycomb.Api
+      Honeycomb.Api.Events
+      Honeycomb.Api.Types
+      Honeycomb.Api.Types.ApiKey
+      Honeycomb.Api.Types.Dataset
+      Honeycomb.Api.Types.Event
+      Honeycomb.Api.Types.HoneyObject
+      Honeycomb.Api.Types.HoneyValue
+      Honeycomb.Api.Types.RequestOptions
+      Honeycomb.Trace
+      Honeycomb.Trace.Types
+      Honeycomb.Trace.Types.ServiceName
+      Honeycomb.Trace.Types.SpanContext
+      Honeycomb.Trace.Types.SpanId
+      Honeycomb.Trace.Types.SpanName
+      Honeycomb.Trace.Types.SpanReference
+      Honeycomb.Trace.Types.TraceId
+      Honeycomb.Transport
+      Honeycomb.Types
+      Honeycomb.Types.Honey
+      Honeycomb.Types.HoneyEvent
+      Honeycomb.Types.HoneyException
+      Honeycomb.Types.HoneyOptions
+      Honeycomb.Types.HoneyResponse
+      Honeycomb.Types.HoneyServerOptions
+      Honeycomb.Types.TransportState
+      Honeycomb.Wai
   other-modules:
       Paths_honeycomb
   hs-source-dirs:
