@@ -54,9 +54,9 @@ traceApplicationT serviceName name parentSpanRef app req inner =
   where
     getRequestFields :: HoneyObject
     getRequestFields = HM.fromList
-        [ ("meta.span_type", HoneyString "http_request")
-        , ("request.header.user_agent", maybe HoneyNil (toHoneyValue . decodeUtf8Lenient) (requestHeaderUserAgent req))
-        , ("request.host", maybe HoneyNil (toHoneyValue . decodeUtf8Lenient) (requestHeaderHost req))
+        [ ("meta.span_type", "http_request")
+        , ("request.header.user_agent", maybe HoneyNull (toHoneyValue . decodeUtf8Lenient) (requestHeaderUserAgent req))
+        , ("request.host", maybe HoneyNull (toHoneyValue . decodeUtf8Lenient) (requestHeaderHost req))
         , ("request.path", toHoneyValue . decodeUtf8Lenient $ rawPathInfo req)
         ]
 

@@ -20,13 +20,13 @@ where
 
 import Lens.Micro (_Just)
 import Lens.Micro.Mtl (preview)
-import Network.Monitoring.Honeycomb hiding (add, addField)
+import Network.Monitoring.Honeycomb (HasHoney, HoneyObject, toHoneyValue, HoneyValue (..))
 import Network.Monitoring.Honeycomb.Trace.Types
 import RIO
 import RIO.Partial (fromJust)
 import RIO.Time
 
-import qualified Network.Monitoring.Honeycomb as HC (add, addField)
+import qualified Network.Monitoring.Honeycomb as HC (ToHoneyValue, ToHoneyObject, add, addField, eventTimestampL, eventFieldsL, newEvent, send')
 import qualified RIO.HashMap as HM
 import qualified RIO.Set as Set
 
@@ -74,7 +74,7 @@ finishTrace f inner = do
     ctx <- fromJust <$> view spanContextL  -- always called after setting tracecontext
     let 
         event = spanEvent ctx
-        start = event ^. eventTimestampL
+        start = event ^. HC.eventTimestampL
         duration = toHoneyValue $ diffUTCTime end start
         extraFields = HM.fromList (catMaybes
           [ Just ("duration_ms", toHoneyValue duration)
@@ -84,7 +84,7 @@ finishTrace f inner = do
           , (\e -> ("trace.parent_id", toHoneyValue e)) <$> parentSpanId ctx
           , Just ("name", toHoneyValue $ spanName ctx)
           ]) `HM.union` f result
-    send' extraFields event >> fromEither result
+    HC.send' extraFields event >> fromEither result
     
 localTrace
     :: ( MonadUnliftIO m
@@ -155,13 +155,13 @@ withNewSpan spanName f inner = do
                     pure $ HM.empty
                 else
                     HM.filterWithKey (\k _ -> Set.member k inheritableFields)
-                        <$> readTVarIO (oldCtx ^. spanEventL . eventFieldsL)
+                        <$> readTVarIO (oldCtx ^. spanEventL . HC.eventFieldsL)
             newContext <- createChildSpanContext spanReference serviceName spanName inheritableFields inheritedFields 
             localTrace newContext f inner
 
 addField
     :: ( MonadIO m
-       , ToHoneyValue v
+       , HC.ToHoneyValue v
        , MonadReader env m
        , HasSpanContext env
        )
@@ -174,7 +174,7 @@ addField k v = do
 
 add
     :: ( MonadIO m
-       , ToHoneyObject o
+       , HC.ToHoneyObject o
        , MonadReader env m
        , HasSpanContext env
        )
@@ -216,7 +216,7 @@ createChildSpanContext
     -> HoneyObject
     -> m SpanContext
 createChildSpanContext parentSpanRef serviceName spanName inheritableFields inheritedFields = do
-    spanEvent <- newEvent
+    spanEvent <- HC.newEvent
     HC.add inheritedFields spanEvent
     spanId <- mkSpanId
     pure SpanContext
@@ -237,7 +237,7 @@ createRootSpanContext
     -> SpanName
     -> m SpanContext
 createRootSpanContext serviceName spanName = do
-    spanEvent <- newEvent
+    spanEvent <- HC.newEvent
     threadId <- mkTraceId
     spanId <- mkSpanId
     pure SpanContext

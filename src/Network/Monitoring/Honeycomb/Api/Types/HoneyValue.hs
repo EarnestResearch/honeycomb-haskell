@@ -4,7 +4,7 @@ module Network.Monitoring.Honeycomb.Api.Types.HoneyValue
     , toHoneyValue
     ) where
 
-import Numeric.Natural (Natural)
+import Data.Scientific (Scientific, fromFloatDigits)
 import RIO
 import RIO.Time
 
@@ -12,12 +12,10 @@ import qualified Data.Aeson as JSON
 import qualified RIO.Text as Text
 
 data HoneyValue
-    = HoneyNil
+    = HoneyNull
     | HoneyString !Text
+    | HoneyNumber !Scientific
     | HoneyBool !Bool
-    | HoneyFloat !Float
-    | HoneyDouble !Double
-    | HoneyInt !Int
     deriving (Eq, Show)
 
 class ToHoneyValue a where
@@ -27,25 +25,28 @@ instance ToHoneyValue HoneyValue where
     toHoneyValue = id
 
 instance ToHoneyValue Int where
-    toHoneyValue = HoneyInt
+    toHoneyValue = HoneyNumber . fromIntegral
 
 instance ToHoneyValue Integer where
-    toHoneyValue = HoneyInt . fromIntegral
+    toHoneyValue = HoneyNumber . fromIntegral
 
 instance ToHoneyValue Natural where
-    toHoneyValue = HoneyInt . fromIntegral
+    toHoneyValue = HoneyNumber . fromIntegral
 
 instance ToHoneyValue NominalDiffTime where
-    toHoneyValue = HoneyDouble . (* 1000) . realToFrac
+    toHoneyValue = HoneyNumber . (* 1000) . realToFrac
 
 instance ToHoneyValue UTCTime where
     toHoneyValue = HoneyString . Text.pack . formatTime defaultTimeLocale "%Y-%m-%dT%H:%M:%S%QZ"
 
 instance ToHoneyValue Double where
-    toHoneyValue = HoneyDouble
+    toHoneyValue = HoneyNumber . fromFloatDigits
 
 instance ToHoneyValue Float where
-    toHoneyValue = HoneyFloat
+    toHoneyValue = HoneyNumber . fromFloatDigits
+
+instance ToHoneyValue Scientific where
+    toHoneyValue = HoneyNumber
 
 instance ToHoneyValue Text where
     toHoneyValue = HoneyString
@@ -57,9 +58,7 @@ instance IsString HoneyValue where
     fromString = HoneyString . Text.pack
 
 instance JSON.ToJSON HoneyValue where
-    toJSON HoneyNil = JSON.Null
-    toJSON (HoneyString s) = JSON.toJSON s
-    toJSON (HoneyBool b) = JSON.toJSON b
-    toJSON (HoneyFloat f) = JSON.toJSON f
-    toJSON (HoneyDouble d) = JSON.toJSON d
-    toJSON (HoneyInt i) = JSON.toJSON i
+    toJSON (HoneyNull)      = JSON.Null
+    toJSON (HoneyString s)  = JSON.String s
+    toJSON (HoneyNumber n)  = JSON.Number n
+    toJSON (HoneyBool b)    = JSON.Bool b
