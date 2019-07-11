@@ -40,7 +40,6 @@ where
 import Network.Monitoring.Honeycomb.Transport
 import Network.Monitoring.Honeycomb.Types
 import RIO
-import System.IO (print)
 
 import qualified Network.Monitoring.Honeycomb.Api as Api
 import qualified RIO.HashMap as HM

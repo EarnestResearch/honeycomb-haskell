@@ -6,8 +6,6 @@ module Main (main) where
 
 import Import
 import Network.Monitoring.Honeycomb
-import Network.Monitoring.Honeycomb.Trace
-import Lens.Micro ((?~), (.~))
 import Run
 import RIO.Process
 import Options.Applicative.Simple
@@ -36,11 +34,6 @@ main = do
     let ho = defaultHoneyOptions
                & apiKeyL ?~ ApiKey (Text.pack (optionsApiKey appOptions))
                & datasetL ?~ "tracing-development"
-        appTracer = mkTracer "test_service"
-               & propagationL .~ Propagation
-                 { fromPropagationData = const mempty
-                 , toPropagationData = const Nothing
-                 }
     withLogFunc lo $ \appLogFunc ->
       withHoney defaultHoneyServerOptions ho $ \appHoney ->
         let app = App
@@ -48,6 +41,6 @@ main = do
               , appProcessContext
               , appOptions
               , appHoney
-              , appTracer
+              , appSpanContext = Nothing
               }
         in runRIO app run

@@ -15,7 +15,7 @@ import RIO
 import qualified Data.UUID as UUID
 import qualified Data.UUID.V4 as V4
 
-newtype SpanId = SpanId Text deriving (Show)
+newtype SpanId = SpanId Text deriving (Eq, Show)
 
 mkSpanId :: MonadIO m => m SpanId
 mkSpanId = toSpanId <$> liftIO V4.nextRandom

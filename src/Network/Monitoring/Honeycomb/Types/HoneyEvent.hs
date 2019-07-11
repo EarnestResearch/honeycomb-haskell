@@ -19,7 +19,7 @@ data HoneyEvent = HoneyEvent
     { eventTimestamp :: !UTCTime
     , eventOptions   :: !HoneyOptions
     , eventFields    :: !(TVar Api.HoneyObject) 
-    }
+    } deriving (Eq)
 
 eventTimestampL :: Lens' HoneyEvent UTCTime
 eventTimestampL = lens eventTimestamp (\x y -> x { eventTimestamp = y })

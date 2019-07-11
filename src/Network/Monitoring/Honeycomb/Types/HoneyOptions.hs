@@ -25,7 +25,7 @@ data HoneyOptions = HoneyOptions
     , apiHost       :: !URI.URI
     , defaultFields :: !HoneyObject
     , blockOnSend   :: !Bool
-    } deriving (Show)
+    } deriving (Eq, Show)
 
 apiKeyL :: Lens' HoneyOptions (Maybe ApiKey)
 apiKeyL = lens apiKey (\x y -> x { apiKey = y })

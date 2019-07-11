@@ -3,7 +3,6 @@ module Network.Monitoring.Honeycomb.Wai where
 
 import Network.HTTP.Types.Status (statusCode)
 import Network.Wai
-import Network.Monitoring.Honeycomb
 import Network.Monitoring.Honeycomb.Trace
 import RIO
 
@@ -39,15 +38,17 @@ traceApplicationT
        ( MonadUnliftIO m
        , MonadReader env m
        , HasHoney env
-       , HasTracer env
+       , HasSpanContext env
        )
-    => SpanName
+    => ServiceName
+    -> SpanName
+    -> (Request -> Maybe SpanReference)
     -> MiddlewareT m
-traceApplicationT name app req inner =
-    withNewRootSpan name (const mempty) $ do
-        addToSpan getRequestFields
+traceApplicationT serviceName name parentSpanRef app req inner =
+    withNewRootSpan serviceName name (parentSpanRef req) (const mempty) $ do
+        add getRequestFields
         (\x y -> app x y `catchAny` reportErrorStatus) req (\response -> do
-            addToSpan (getResponseFields response)
+            add (getResponseFields response)
             inner response
             )
   where
@@ -60,7 +61,7 @@ traceApplicationT name app req inner =
         ]
 
     reportErrorStatus :: SomeException -> m a
-    reportErrorStatus e = addFieldToSpan "response.status_code" (500 :: Int) >> throwIO e
+    reportErrorStatus e = addField "response.status_code" (500 :: Int) >> throwIO e
 
     getResponseFields :: Response -> HoneyObject
     getResponseFields response = HM.fromList

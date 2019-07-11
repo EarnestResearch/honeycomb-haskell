@@ -6,27 +6,28 @@ module Network.Monitoring.Honeycomb.Trace
 
     -- * Creating spans
 
-      withNewRootSpan
-    , withNewSpan
-    , withNewSpanFromHeaders
+      withNewSpan
+    , withNewRootSpan
     
     -- * Adding fields
-    , addFieldToSpan
-    , addToSpan
+    , addField
+    , add
+    , module Network.Monitoring.Honeycomb
     , module Network.Monitoring.Honeycomb.Trace.Types
     )
 where
 
-import Lens.Micro ((^?), _Just)
+import Lens.Micro (_Just)
 import Lens.Micro.Mtl (preview)
-import Network.HTTP.Types.Header (RequestHeaders)
+import Network.Monitoring.Honeycomb hiding (add, addField)
 import Network.Monitoring.Honeycomb.Trace.Types
 import RIO
 import RIO.Partial (fromJust)
 import RIO.Time
 
-import qualified Network.Monitoring.Honeycomb as HC
+import qualified Network.Monitoring.Honeycomb as HC (add, addField)
 import qualified RIO.HashMap as HM
+import qualified RIO.Set as Set
 
 -- $libraryInitialization
 --
@@ -59,47 +60,42 @@ import qualified RIO.HashMap as HM
 finishTrace
     :: ( MonadUnliftIO m
        , MonadReader env m
-       , HC.HasHoney env
-       , HasTracer env
+       , HasHoney env
+       , HasSpanContext env
        )
-    => (Either SomeException a -> HC.HoneyObject)
+    => (Either SomeException a -> HoneyObject)
     -> m a
     -> m a
 finishTrace f inner = do
     result <- try inner
     end <- getCurrentTime
-    tracer <- view tracerL
+    ctx <- fromJust <$> view spanContextL  -- always called after setting tracecontext
     let 
-        ctx = fromJust $ tracer ^. spanContextL  -- always called after setting tracecontext
         event = spanEvent ctx
-        start = event ^. HC.eventTimestampL
-        duration = HC.toHoneyValue $ diffUTCTime end start
+        start = event ^. eventTimestampL
+        duration = toHoneyValue $ diffUTCTime end start
         extraFields = HM.fromList (catMaybes
-          [ Just ("duration_ms", HC.toHoneyValue duration)
-          , Just ("service_name", HC.toHoneyValue $ tracer ^. serviceNameL)
-          , Just ("trace.trace_id", HC.toHoneyValue $ getTraceId ctx)
-          , Just ("trace.span_id", HC.toHoneyValue $ getSpanId ctx)
-          , (\e -> ("trace.parent_id", HC.toHoneyValue e)) <$> parentSpanId ctx
-          , Just ("name", HC.toHoneyValue $ spanName ctx)
+          [ Just ("duration_ms", toHoneyValue duration)
+          , Just ("service_name", toHoneyValue $ ctx ^. serviceNameL)
+          , Just ("trace.trace_id", toHoneyValue $ getTraceId ctx)
+          , Just ("trace.span_id", toHoneyValue $ getSpanId ctx)
+          , (\e -> ("trace.parent_id", toHoneyValue e)) <$> parentSpanId ctx
+          , Just ("name", toHoneyValue $ spanName ctx)
           ]) `HM.union` f result
-    HC.send' extraFields event >> fromEither result
-
-locally :: MonadReader s m => ASetter s s a b -> (a -> b) -> m r -> m r
-locally l f = local (over l f)
-{-# INLINE locally #-}
+    send' extraFields event >> fromEither result
     
 localTrace
     :: ( MonadUnliftIO m
        , MonadReader env m
-       , HC.HasHoney env
-       , HasTracer env
+       , HasHoney env
+       , HasSpanContext env
        )
     => SpanContext
-    -> (Either SomeException a -> HC.HoneyObject)
+    -> (Either SomeException a -> HoneyObject)
     -> m a
     -> m a 
 localTrace context f inner =
-    finishTrace f inner & locally (tracerL . spanContextL) (const $ Just context)
+    finishTrace f inner & local (over spanContextL (const $ Just context))
 
 {- | Starts a new root span.
 
@@ -109,131 +105,124 @@ span exists, it will be ignored.
 withNewRootSpan
     :: ( MonadUnliftIO m
        , MonadReader env m
-       , HC.HasHoney env
-       , HasTracer env)
-    => SpanName                                    -- ^ The name of the span
-    -> (Either SomeException a -> HC.HoneyObject)  -- ^ Additional fields to add based on result of program
+       , HasHoney env
+       , HasSpanContext env)
+    => ServiceName                                 -- ^ The name of the service
+    -> SpanName                                    -- ^ The name of the span
+    -> Maybe SpanReference                         -- ^ Parent span from an external system (if known)
+    -> (Either SomeException a -> HoneyObject)     -- ^ Additional fields to add based on result of program
     -> m a                                         -- ^ Program to run in the new span
     -> m a
-withNewRootSpan spanName f inner = do
-    newContext <- createRootSpanContext spanName
-    localTrace newContext f inner
+withNewRootSpan serviceName spanName parentSpanRef f inner =
+    case parentSpanRef of
+        Just parentSpan -> do
+            newContext <- createChildSpanContext parentSpan serviceName spanName Set.empty HM.empty
+            localTrace newContext f inner
+        Nothing -> do
+            newContext <- createRootSpanContext serviceName spanName
+            localTrace newContext f inner
 
 {- | Starts a new child span.
 
 This runs the supplied program in a new child span.
 If an existing span exists, that will be marked as
-the new span's parent. If there is no existing span, this
-will begin a root span (with no parent).
+the new span's parent. If there is no existing span, the
+program is unchanged (i.e creating a trace must be
+explicit).
 -}
 withNewSpan
     :: ( MonadUnliftIO m
        , MonadReader env m
-       , HC.HasHoney env
-       , HasTracer env
+       , HasHoney env
+       , HasSpanContext env
        )
     => SpanName                                    -- ^ The name of the span
-    -> (Either SomeException a -> HC.HoneyObject)  -- ^ Additional fields to add based on result of program
+    -> (Either SomeException a -> HoneyObject)     -- ^ Additional fields to add based on result of program
     -> m a                                         -- ^ Program to run in the new span
     -> m a
 withNewSpan spanName f inner = do
     oldEnv <- ask
-    let oldRef = oldEnv ^? tracerL . spanContextL . _Just . spanReferenceL
-    newContext <- createRootOrChildSpanContext oldRef spanName
-    localTrace newContext f inner
+    case oldEnv ^. spanContextL of
+        Nothing -> inner
+        Just oldCtx -> do
+            let inheritableFields = oldCtx ^. inheritableFieldsL
+                spanReference = oldCtx ^. spanReferenceL
+                serviceName = oldCtx ^. serviceNameL
+            inheritedFields <-
+                if Set.null inheritableFields then
+                    pure $ HM.empty
+                else
+                    HM.filterWithKey (\k _ -> Set.member k inheritableFields)
+                        <$> readTVarIO (oldCtx ^. spanEventL . eventFieldsL)
+            newContext <- createChildSpanContext spanReference serviceName spanName inheritableFields inheritedFields 
+            localTrace newContext f inner
 
-{- | Starts a new child span with parent details extracted from headers.
-
-This runs the supplied program in a new child span. The details of
-the parent span are taken from the supplied request headers. If the
-span details cannot be extracted, this will begin a new root span.
--}
-withNewSpanFromHeaders
-    :: ( MonadUnliftIO m
-       , MonadReader env m
-       , HC.HasHoney env
-       , HasTracer env
-       )
-    => SpanName                                    -- ^ The name of the span
-    -> RequestHeaders                              -- ^ Supplied request headers
-    -> (Either SomeException a -> HC.HoneyObject)  -- ^ Additional fields to add based on result of program
-    -> m a                                         -- ^ Program to run in the new span
-    -> m a
-withNewSpanFromHeaders spanName headers f inner = do
-    oldEnv <- ask
-    let toPropagationData = oldEnv ^. tracerL . propagationL . toPropagationDataL
-        spanRef = view propagationSpanReferenceL <$> toPropagationData headers
-    newContext <- createRootOrChildSpanContext spanRef spanName 
-    localTrace newContext f inner
-
-addFieldToSpan
+addField
     :: ( MonadIO m
-       , HC.ToHoneyValue v
+       , ToHoneyValue v
        , MonadReader env m
-       , HasTracer env
+       , HasSpanContext env
        )
     => Text
     -> v
     -> m ()
-addFieldToSpan k v = do
-    event <- preview (tracerL . spanContextL . _Just . spanEventL)
+addField k v = do
+    event <- preview (spanContextL . _Just . spanEventL)
     maybe (pure ()) (HC.addField k v) event
 
-addToSpan
+add
     :: ( MonadIO m
-       , HC.ToHoneyObject o
+       , ToHoneyObject o
        , MonadReader env m
-       , HasTracer env
+       , HasSpanContext env
        )
     => o
     -> m ()
-addToSpan fields = do
-    event <- preview (tracerL . spanContextL . _Just . spanEventL)
+add fields = do
+    event <- preview (spanContextL . _Just . spanEventL)
     maybe (pure ()) (HC.add fields) event
-
-createRootOrChildSpanContext
-    :: ( MonadIO m
-       , MonadReader env m
-       , HC.HasHoney env
-       )
-    => Maybe SpanReference
-    -> SpanName
-    -> m SpanContext
-createRootOrChildSpanContext (Just ref) spanName = createChildSpanContext spanName ref
-createRootOrChildSpanContext Nothing spanName = createRootSpanContext spanName
 
 createChildSpanContext
     :: ( MonadIO m
        , MonadReader env m
-       , HC.HasHoney env
+       , HasHoney env
        )
-    => SpanName
-    -> SpanReference
+    => SpanReference
+    -> ServiceName
+    -> SpanName
+    -> Set Text
+    -> HoneyObject
     -> m SpanContext
-createChildSpanContext spanName parentSpanRef = do
-    spanEvent <- HC.newEvent
+createChildSpanContext parentSpanRef serviceName spanName inheritableFields inheritedFields = do
+    spanEvent <- newEvent
+    HC.add inheritedFields spanEvent
     spanId <- mkSpanId
     pure SpanContext
-        { spanReference = mkSpanReference (getTraceId parentSpanRef) spanId
+        { spanReference = SpanReference (getTraceId parentSpanRef) spanId
         , parentSpanId = Just $ getSpanId parentSpanRef
+        , serviceName = serviceName
         , spanName
         , spanEvent
+        , inheritableFields
         }
 
 createRootSpanContext
     :: ( MonadIO m
        , MonadReader env m
-       , HC.HasHoney env
+       , HasHoney env
        )
-    => SpanName
+    => ServiceName
+    -> SpanName
     -> m SpanContext
-createRootSpanContext spanName = do
-    spanEvent <- HC.newEvent
+createRootSpanContext serviceName spanName = do
+    spanEvent <- newEvent
     threadId <- mkTraceId
     spanId <- mkSpanId
     pure SpanContext
-        { spanReference = mkSpanReference threadId spanId
+        { spanReference = SpanReference threadId spanId
         , parentSpanId = Nothing
+        , serviceName
         , spanName
         , spanEvent
+        , inheritableFields = Set.empty
         }

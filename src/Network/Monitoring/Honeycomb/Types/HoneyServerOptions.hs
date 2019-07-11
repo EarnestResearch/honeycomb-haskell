@@ -18,7 +18,7 @@ data HoneyServerOptions = HoneyServerOptions
     , sendFrequency        :: !DiffTime
     , maxConcurrentBatches :: !Natural
     , pendingWorkCapacity  :: !Natural
-    } deriving (Show)
+    } deriving (Eq, Show)
 
 blockOnResponseL :: Lens' HoneyServerOptions Bool
 blockOnResponseL = lens blockOnResponse (\x y -> x { blockOnResponse = y })

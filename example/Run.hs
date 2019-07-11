@@ -7,7 +7,7 @@ import Network.Monitoring.Honeycomb.Trace
 innerProgram2 :: RIO App ()
 innerProgram2 =
   withNewSpan "inner2" (const mempty) $ do
-    addFieldToSpan "test" ("test" :: Text)
+    addField "test" ("test" :: Text)
     logInfo "We're inside the application!"
 
 innerProgram :: RIO App ()
@@ -16,5 +16,5 @@ innerProgram = withNewSpan "inner" (const mempty) $
 
 run :: RIO App ()
 run = 
-  withNewSpan "outer" (const mempty) $
+  withNewRootSpan "test_service" "outer" Nothing (const mempty) $
     void $ concurrently innerProgram innerProgram

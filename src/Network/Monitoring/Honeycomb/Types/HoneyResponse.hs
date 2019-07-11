@@ -12,7 +12,7 @@ data HoneyResponse = HoneyResponse
     { honeyResponseStatus  :: !Int
     , honeyResponseLatency :: !NominalDiffTime
     , honeyResponseError   :: !(Maybe Text)
-    } deriving (Show)
+    } deriving (Eq, Show)
 
 honeyResponseStatusL :: Lens' HoneyResponse Int
 honeyResponseStatusL = lens honeyResponseStatus (\x y -> x { honeyResponseStatus = y })

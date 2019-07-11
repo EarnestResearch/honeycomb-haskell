@@ -1,6 +1,5 @@
 module Network.Monitoring.Honeycomb.Trace.Types.SpanReference
-    ( SpanReference
-    , mkSpanReference
+    ( SpanReference (..)
     )
 where
 
@@ -8,16 +7,10 @@ import Network.Monitoring.Honeycomb.Trace.Types.SpanId
 import Network.Monitoring.Honeycomb.Trace.Types.TraceId
 import RIO
 
-data SpanReference = SpanReference
-    { refTraceId :: !TraceId
-    , refSpanId  :: !SpanId
-    } deriving (Show)
-
-mkSpanReference :: TraceId -> SpanId -> SpanReference
-mkSpanReference = SpanReference
+data SpanReference = SpanReference !TraceId !SpanId deriving (Eq, Show)
 
 instance HasTraceId SpanReference where
-    getTraceId = refTraceId
+    getTraceId (SpanReference tid _) = tid
 
 instance HasSpanId SpanReference where
-    getSpanId = refSpanId
+    getSpanId (SpanReference _ sid) = sid

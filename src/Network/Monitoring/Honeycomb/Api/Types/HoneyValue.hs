@@ -18,7 +18,7 @@ data HoneyValue
     | HoneyFloat !Float
     | HoneyDouble !Double
     | HoneyInt !Int
-    deriving (Show)
+    deriving (Eq, Show)
 
 class ToHoneyValue a where
     toHoneyValue :: a -> HoneyValue

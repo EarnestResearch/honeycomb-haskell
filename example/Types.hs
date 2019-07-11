@@ -17,7 +17,7 @@ data App = App
     , appOptions        :: !Options
     -- Add other app-specific configuration information here
     , appHoney          :: !Honey
-    , appTracer         :: !Tracer
+    , appSpanContext    :: !(Maybe SpanContext)
     }
 
 instance HasLogFunc App where
@@ -26,5 +26,5 @@ instance HasProcessContext App where
     processContextL = lens appProcessContext (\x y -> x { appProcessContext = y })
 instance HasHoney App where
     honeyL = lens appHoney (\x y -> x { appHoney = y })
-instance HasTracer App where
-    tracerL = lens appTracer (\x y -> x { appTracer = y })
+instance HasSpanContext App where
+    spanContextL = lens appSpanContext (\x y -> x { appSpanContext = y })

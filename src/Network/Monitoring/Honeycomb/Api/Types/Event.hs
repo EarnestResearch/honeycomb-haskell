@@ -18,7 +18,7 @@ data Event = Event
     { eventFields     :: !HoneyObject
     , eventTimestamp  :: !(Maybe UTCTime)
     , eventSampleRate :: !(Maybe Natural)
-    } deriving (Show)
+    } deriving (Eq, Show)
 
 eventFieldsL :: Lens' Event HoneyObject
 eventFieldsL = lens eventFields (\x y -> x { eventFields = y })

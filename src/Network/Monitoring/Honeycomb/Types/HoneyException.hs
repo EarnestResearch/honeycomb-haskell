@@ -8,7 +8,7 @@ data HoneyException
     = MissingApiKeyOption
     | MissingDatasetOption
     | EmptyEventData
-    deriving (Show)
+    deriving (Eq, Show)
 
 instance Exception HoneyException
 

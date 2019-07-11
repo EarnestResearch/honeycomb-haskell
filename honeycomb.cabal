@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 5c7a8f3f7e84636057d92acf19f6e19ffecb69c0bbdfdab434ce765586cece5f
+-- hash: 7bfaf4a8cd2de2b2e601ad21063221015ae6fad8406819cc4eb0921b20683777
 
 name:           honeycomb
 version:        0.1.0.0
@@ -39,14 +39,12 @@ library
       Network.Monitoring.Honeycomb.Api.Types.RequestOptions
       Network.Monitoring.Honeycomb.Trace
       Network.Monitoring.Honeycomb.Trace.Types
-      Network.Monitoring.Honeycomb.Trace.Types.Propagation
-      Network.Monitoring.Honeycomb.Trace.Types.PropagationData
+      Network.Monitoring.Honeycomb.Trace.Types.ServiceName
       Network.Monitoring.Honeycomb.Trace.Types.SpanContext
       Network.Monitoring.Honeycomb.Trace.Types.SpanId
       Network.Monitoring.Honeycomb.Trace.Types.SpanName
       Network.Monitoring.Honeycomb.Trace.Types.SpanReference
       Network.Monitoring.Honeycomb.Trace.Types.TraceId
-      Network.Monitoring.Honeycomb.Trace.Types.Tracer
       Network.Monitoring.Honeycomb.Transport
       Network.Monitoring.Honeycomb.Types
       Network.Monitoring.Honeycomb.Types.Honey

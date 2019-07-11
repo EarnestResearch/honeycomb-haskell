@@ -15,7 +15,7 @@ import RIO
 import qualified Data.UUID as UUID
 import qualified Data.UUID.V4 as V4
 
-newtype TraceId = TraceId Text deriving (Show)
+newtype TraceId = TraceId Text deriving (Eq, Show)
 
 mkTraceId :: MonadIO m => m TraceId
 mkTraceId = toTraceId <$> liftIO V4.nextRandom

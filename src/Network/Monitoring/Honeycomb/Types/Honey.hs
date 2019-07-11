@@ -14,7 +14,7 @@ import RIO
 data Honey = Honey
     { honeyOptions        :: !HoneyOptions
     , honeyTransportState :: !TransportState
-    }
+    } deriving (Eq, Show)
 
 honeyOptionsL :: Lens' Honey HoneyOptions
 honeyOptionsL = lens honeyOptions (\x y -> x { honeyOptions = y })
