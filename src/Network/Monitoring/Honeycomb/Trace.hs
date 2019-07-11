@@ -12,6 +12,7 @@ module Network.Monitoring.Honeycomb.Trace
     -- * Adding fields
     , addField
     , add
+    , withInheritableFields
     , module Network.Monitoring.Honeycomb
     , module Network.Monitoring.Honeycomb.Trace.Types
     )
@@ -181,6 +182,16 @@ add
 add fields = do
     event <- preview (spanContextL . _Just . spanEventL)
     maybe (pure ()) (HC.add fields) event
+
+withInheritableFields
+    :: ( MonadReader env m
+       , HasSpanContext env
+       )
+    => (Set Text -> Set Text)
+    -> m a
+    -> m a
+withInheritableFields modify inner = do
+    inner & local (over (spanContextL . _Just . inheritableFieldsL) (modify))
 
 createChildSpanContext
     :: ( MonadIO m
