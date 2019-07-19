@@ -1,2 +1,6 @@
 language: nix
-script: nix-build -A honeycomb.components.tests default.nix
+script:
+- nix-env -iA cachix -f https://cachix.org/api/v1/install
+- cachix use earnestresearch-oss
+- cachix push earnestresearch-oss --watch-store &
+- nix-build -A honeycomb.components.tests default.nix
