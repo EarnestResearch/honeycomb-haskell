@@ -1,7 +1,8 @@
 module Honeycomb.Types.HoneyResponse
     ( HoneyResponse (..)
-    , honeyResponseStatusL
-    , honeyResponseLatencyL
+    , honeyResponseStatusCodeL
+    , honeyResponseBodyL
+    , honeyResponseDurationL
     , honeyResponseErrorL
     ) where
 
@@ -9,16 +10,21 @@ import RIO
 import RIO.Time
 
 data HoneyResponse = HoneyResponse
-    { honeyResponseStatus  :: !Int
-    , honeyResponseLatency :: !NominalDiffTime
+    { honeyResponseMetadata :: ()
+    , honeyResponseStatusCode  :: !Int
+    , honeyResponseBody :: !ByteString
+    , honeyResponseDuration :: !NominalDiffTime
     , honeyResponseError   :: !(Maybe Text)
     } deriving (Eq, Show)
 
-honeyResponseStatusL :: Lens' HoneyResponse Int
-honeyResponseStatusL = lens honeyResponseStatus (\x y -> x { honeyResponseStatus = y })
+honeyResponseStatusCodeL :: Lens' HoneyResponse Int
+honeyResponseStatusCodeL = lens honeyResponseStatusCode (\x y -> x { honeyResponseStatusCode = y })
 
-honeyResponseLatencyL :: Lens' HoneyResponse NominalDiffTime
-honeyResponseLatencyL = lens honeyResponseLatency (\x y -> x { honeyResponseLatency = y })
+honeyResponseBodyL :: Lens' HoneyResponse ByteString
+honeyResponseBodyL = lens honeyResponseBody (\x y -> x { honeyResponseBody = y })
+
+honeyResponseDurationL :: Lens' HoneyResponse NominalDiffTime
+honeyResponseDurationL = lens honeyResponseDuration (\x y -> x { honeyResponseDuration = y })
 
 honeyResponseErrorL :: Lens' HoneyResponse (Maybe Text)
 honeyResponseErrorL = lens honeyResponseError (\x y -> x { honeyResponseError = y })

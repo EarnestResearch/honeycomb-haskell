@@ -109,6 +109,8 @@ tests:
     dependencies:
     - honeycomb
     - hspec
+    build-tools:
+    - hspec-discover
 
     ghc-options:
     - -threaded

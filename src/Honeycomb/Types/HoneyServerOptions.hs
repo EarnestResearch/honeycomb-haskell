@@ -10,12 +10,11 @@ module Honeycomb.Types.HoneyServerOptions
 
 import Numeric.Natural (Natural)
 import RIO
-import RIO.Time
 
 data HoneyServerOptions = HoneyServerOptions
     { blockOnResponse      :: !Bool
     , maxBatchSize         :: !Natural
-    , sendFrequency        :: !DiffTime
+    , sendFrequency        :: !Int      -- ^ Frequency of batch sending in milliseconds
     , maxConcurrentBatches :: !Natural
     , pendingWorkCapacity  :: !Natural
     } deriving (Eq, Show)
@@ -26,7 +25,7 @@ blockOnResponseL = lens blockOnResponse (\x y -> x { blockOnResponse = y })
 maxBatchSizeL :: Lens' HoneyServerOptions Natural
 maxBatchSizeL = lens maxBatchSize (\x y -> x { maxBatchSize = y })
 
-sendFrequencyL :: Lens' HoneyServerOptions DiffTime
+sendFrequencyL :: Lens' HoneyServerOptions Int
 sendFrequencyL = lens sendFrequency (\x y -> x { sendFrequency = y })
 
 maxConcurrentBatchesL :: Lens' HoneyServerOptions Natural
@@ -38,8 +37,8 @@ pendingWorkCapacityL = lens pendingWorkCapacity (\x y -> x { pendingWorkCapacity
 defaultMaxBatchSize :: Natural
 defaultMaxBatchSize = 50
 
-defaultBatchTimeout :: DiffTime
-defaultBatchTimeout = picosecondsToDiffTime 100000000000  -- 100ms
+defaultBatchTimeout :: Int -- [todo] why is this not sendFrequency, Kenneth?
+defaultBatchTimeout = 100  -- 100 ms
 
 defaultMaxConcurrentBatches :: Natural
 defaultMaxConcurrentBatches = 80

@@ -22,10 +22,11 @@ newTransport
     => HoneyServerOptions
     -> n (TransportState, m ())
 newTransport honeyServerOptions = do
-    transportState <- mkTransportState $ honeyServerOptions ^. pendingWorkCapacityL
+    transportState <- mkTransportState
+        (honeyServerOptions ^. pendingWorkCapacityL) (honeyServerOptions ^. pendingWorkCapacityL) -- [todo] use different parameters
     closeQueue <- newTVarIO False
     httpManager <- liftIO $ newManager tlsManagerSettings
-    readThreadId <- async $ readQueue httpManager transportState closeQueue
+    readThreadId <- async $ readQueue honeyServerOptions httpManager transportState closeQueue
     link readThreadId  -- [todo] think about whether this is a good idea
     let shutdown = atomically (writeTVar closeQueue True) >> wait readThreadId
     pure (transportState, shutdown)
@@ -41,13 +42,13 @@ withTransport honeyServerOptions inner = withRunInIO $ \run ->
         (run . inner . fst)
     
 
-readQueue :: forall m . MonadUnliftIO m => Manager -> TransportState -> TVar Bool -> m ()
-readQueue manager transportState closeQ = do
+readQueue :: forall m . MonadUnliftIO m => HoneyServerOptions -> Manager -> TransportState -> TVar Bool -> m ()
+readQueue honeyServerOptions manager transportState closeQ = do
     (shouldStop, events) <- readFromQueueOrWait
     if shouldStop then
         splitEvents manager events
     else
-        splitEvents manager events >> readQueue manager transportState closeQ
+        splitEvents manager events >> readQueue honeyServerOptions manager transportState closeQ
   where
     readFromQueueOrWaitSTM :: TVar Bool -> STM (Bool, [(RequestOptions, Event)])
     readFromQueueOrWaitSTM timeoutAfter = do
@@ -60,18 +61,25 @@ readQueue manager transportState closeQ = do
         checkSTM $
             shouldClose
             || not (List.null flushRequests)
-            || currentQueueSize >= 100
+            || currentQueueSize >= honeyServerOptions ^. maxBatchSizeL
             || (hasTimedOut && currentQueueSize > 0)
         traverse_ (`putTMVar` ()) flushRequests
         (shouldClose,) <$> flushTBQueue q
 
     readFromQueueOrWait :: m (Bool, [(RequestOptions, Event)])
     readFromQueueOrWait = do
-        delay <- registerDelay $ 1000 * 50  -- timeout = 50ms
+        delay <- registerDelay $ (honeyServerOptions ^. sendFrequencyL) * 1000
         atomically $ readFromQueueOrWaitSTM delay
 
-sendGroup :: MonadUnliftIO m => Manager -> RequestOptions -> [Event] -> m ()
-sendGroup manager requestOptions events = void $ tryAny (void $ sendEvents manager requestOptions events)
+sendGroup :: forall m . MonadUnliftIO m => Manager -> RequestOptions -> [Event] -> m ()
+sendGroup manager requestOptions events = do
+    sendResult <- tryAny $ sendEvents manager requestOptions events
+    respond sendResult
+  where
+    -- [todo] dummy code
+    respond :: Either SomeException (Response (Maybe [Integer])) -> m ()
+    respond (Left _) = pure ()
+    respond (Right _) = pure ()
 
 sendGroups :: MonadUnliftIO m => Manager -> Map RequestOptions [Event] -> m ()
 sendGroups manager groups = sequence_ $ Map.mapWithKey (sendGroup manager) groups
