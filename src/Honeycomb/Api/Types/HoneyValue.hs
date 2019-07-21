@@ -24,6 +24,9 @@ class ToHoneyValue a where
 instance ToHoneyValue HoneyValue where
     toHoneyValue = id
 
+instance ToHoneyValue Bool where
+    toHoneyValue = HoneyBool
+
 instance ToHoneyValue Int where
     toHoneyValue = HoneyNumber . fromIntegral
 
@@ -58,7 +61,7 @@ instance IsString HoneyValue where
     fromString = HoneyString . Text.pack
 
 instance JSON.ToJSON HoneyValue where
-    toJSON (HoneyNull)      = JSON.Null
+    toJSON HoneyNull        = JSON.Null
     toJSON (HoneyString s)  = JSON.String s
     toJSON (HoneyNumber n)  = JSON.Number n
     toJSON (HoneyBool b)    = JSON.Bool b

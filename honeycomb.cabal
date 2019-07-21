@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 890b2db05ecb677b24aaa0018ee4c25adc2bb8d5188f8d496a12b04f4d91b835
+-- hash: 345e2bb094ab932fe79826872e5265557697fce0d3a6c023ca750e03fb5e5953
 
 name:           honeycomb
 version:        0.1.0.0
@@ -112,6 +112,7 @@ test-suite honeycomb-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      HoneycombSpec
       Util
       UtilSpec
       Paths_honeycomb
@@ -136,6 +137,7 @@ test-suite honeycomb-test
     , rio >=0.1.8.0
     , scientific
     , stm
+    , transformers
     , uuid
     , wai
   default-language: Haskell2010

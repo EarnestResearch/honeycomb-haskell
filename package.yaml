@@ -109,6 +109,7 @@ tests:
     dependencies:
     - honeycomb
     - hspec
+    - transformers
     build-tools:
     - hspec-discover
 

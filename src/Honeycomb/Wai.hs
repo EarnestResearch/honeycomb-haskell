@@ -7,6 +7,7 @@ import Honeycomb.Trace
 import RIO
 
 import qualified RIO.HashMap as HM
+import qualified RIO.Text as Text
 
 type ApplicationT m = Request -> (Response -> m ResponseReceived) -> m ResponseReceived
 type MiddlewareT m = ApplicationT m -> ApplicationT m
@@ -53,11 +54,18 @@ traceApplicationT serviceName name parentSpanRef app req inner =
             )
   where
     getRequestFields :: HoneyObject
-    getRequestFields = HM.fromList
-        [ ("meta.span_type", "http_request")
-        , ("request.header.user_agent", maybe HoneyNull (toHoneyValue . decodeUtf8Lenient) (requestHeaderUserAgent req))
-        , ("request.host", maybe HoneyNull (toHoneyValue . decodeUtf8Lenient) (requestHeaderHost req))
-        , ("request.path", toHoneyValue . decodeUtf8Lenient $ rawPathInfo req)
+    getRequestFields =
+        let headers = requestHeaders req in
+        HM.fromList
+        [ ("request.remote_addr", HoneyString . tshow $ remoteHost req)
+        , ("request.http_version", HoneyString . tshow $ httpVersion req)
+        , ("request.method", HoneyString . decodeUtf8Lenient $ requestMethod req)
+        , ("request.header.user_agent", maybe HoneyNull (HoneyString . decodeUtf8Lenient) (requestHeaderUserAgent req))
+        , ("request.host", maybe HoneyNull (HoneyString . decodeUtf8Lenient) (requestHeaderHost req))
+        , ("request.path", HoneyString . decodeUtf8Lenient $ rawPathInfo req)
+        , ("request.query", HoneyString . decodeUtf8Lenient $ rawQueryString req)
+        , ("request.scheme", HoneyString $ if isSecure req then "https" else "http")
+        , ("request.secure", HoneyBool $ isSecure req)
         ]
 
     reportErrorStatus :: SomeException -> m a
