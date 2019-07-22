@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 345e2bb094ab932fe79826872e5265557697fce0d3a6c023ca750e03fb5e5953
+-- hash: 03a53d1308165821bb74f93b795cdb9a5bd968041190a107374364c65242bb7b
 
 name:           honeycomb
 version:        0.1.0.0
@@ -37,6 +37,7 @@ library
       Honeycomb.Api.Types.HoneyObject
       Honeycomb.Api.Types.HoneyValue
       Honeycomb.Api.Types.RequestOptions
+      Honeycomb.HTTP.Client
       Honeycomb.Trace
       Honeycomb.Trace.Types
       Honeycomb.Trace.Types.ServiceName
@@ -66,6 +67,7 @@ library
     , base >=4.11 && <10
     , http-client
     , http-client-tls
+    , http-conduit
     , http-types
     , microlens
     , microlens-mtl
@@ -95,6 +97,7 @@ executable honeycomb-example-exe
     , honeycomb
     , http-client
     , http-client-tls
+    , http-conduit
     , http-types
     , microlens
     , microlens-mtl
@@ -129,6 +132,7 @@ test-suite honeycomb-test
     , hspec
     , http-client
     , http-client-tls
+    , http-conduit
     , http-types
     , microlens
     , microlens-mtl
