@@ -7,6 +7,7 @@ import Honeycomb.Trace
 import RIO
 
 import qualified RIO.HashMap as HM
+import qualified RIO.List as List
 import qualified RIO.Text as Text
 
 type ApplicationT m = Request -> (Response -> m ResponseReceived) -> m ResponseReceived
@@ -43,9 +44,38 @@ traceApplicationT
        )
     => ServiceName
     -> SpanName
+    -> MiddlewareT m
+traceApplicationT serviceName spanName =
+    traceApplicationT' serviceName spanName readTraceHeader
+  where
+    readTraceHeader :: Request -> Maybe SpanReference
+    readTraceHeader req = do
+        let headers = requestHeaders req
+        (_, headerValue) <- List.find (\(name, _) -> name == "X-Honeycomb-Trace") headers
+        let parts = Text.split (== '=') <$> Text.split (== ';') (decodeUtf8Lenient headerValue)
+        (_ : tid) <- List.find (getVal "trace_id") parts
+        (_ : sid) <- List.find (getVal "span_id") parts
+        pure $ SpanReference (TraceId $ Text.intercalate "" tid) (SpanId $ Text.intercalate "" sid)
+
+    getVal :: Text -> [Text] -> Bool
+    getVal header values =
+        case values of
+            [] -> False
+            _ : [] -> False
+            h : _ -> h == header
+
+traceApplicationT'
+    :: forall m env .
+       ( MonadUnliftIO m
+       , MonadReader env m
+       , HasHoney env
+       , HasSpanContext env
+       )
+    => ServiceName
+    -> SpanName
     -> (Request -> Maybe SpanReference)
     -> MiddlewareT m
-traceApplicationT serviceName name parentSpanRef app req inner =
+traceApplicationT' serviceName name parentSpanRef app req inner =
     withNewRootSpan' serviceName name (parentSpanRef req) $ do
         add getRequestFields
         (\x y -> app x y `catchAny` reportErrorStatus) req (\response -> do
@@ -55,10 +85,8 @@ traceApplicationT serviceName name parentSpanRef app req inner =
   where
     getRequestFields :: HoneyObject
     getRequestFields =
-        let headers = requestHeaders req in
         HM.fromList
-        [ ("request.remote_addr", HoneyString . tshow $ remoteHost req)
-        , ("request.http_version", HoneyString . tshow $ httpVersion req)
+        [ ("request.http_version", HoneyString . tshow $ httpVersion req)
         , ("request.method", HoneyString . decodeUtf8Lenient $ requestMethod req)
         , ("request.header.user_agent", maybe HoneyNull (HoneyString . decodeUtf8Lenient) (requestHeaderUserAgent req))
         , ("request.host", maybe HoneyNull (HoneyString . decodeUtf8Lenient) (requestHeaderHost req))
