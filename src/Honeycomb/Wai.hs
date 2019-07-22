@@ -52,7 +52,8 @@ traceApplicationT serviceName spanName =
     readTraceHeader req = do
         let headers = requestHeaders req
         (_, headerValue) <- List.find (\(name, _) -> name == "X-Honeycomb-Trace") headers
-        let parts = traceShowId $ Text.split (== '=') <$> Text.split (== ',') (decodeUtf8Lenient headerValue)
+        headerText <- getV1 $ decodeUtf8Lenient headerValue
+        let parts = traceShowId $ Text.split (== '=') <$> Text.split (== ',') headerText
         (_ : tid) <- List.find (getVal "trace_id") parts
         (_ : sid) <- List.find (getVal "parent_id") parts
         pure $ SpanReference (TraceId $ Text.intercalate "=" tid) (SpanId $ Text.intercalate "=" sid)
@@ -63,6 +64,13 @@ traceApplicationT serviceName spanName =
             [] -> False
             _ : [] -> False
             h : _ -> h == header
+
+    getV1 :: Text -> Maybe Text
+    getV1 t =
+      if (Text.take 2 t) == "1;" then
+        Just $ Text.drop 2 t
+      else
+        Nothing
 
 traceApplicationT'
     :: forall m env .
