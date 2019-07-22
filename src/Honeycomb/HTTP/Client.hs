@@ -1,8 +1,15 @@
-module Honeycomb.HTTP.Client where
+module Honeycomb.HTTP.Client
+    ( httpBS
+    , httpLBS
+    , httpNoBody
+    , httpJSON
+    , module Network.HTTP.Simple
+    ) where
 
 import Data.Coerce (coerce)
 import Honeycomb.Trace
-import Data.Aeson (FromJSON (..), Value)
+import Network.HTTP.Simple hiding (httpBS, httpLBS, httpNoBody, httpJSON)
+import Data.Aeson (FromJSON)
 import RIO
 
 import qualified Network.HTTP.Simple as H
