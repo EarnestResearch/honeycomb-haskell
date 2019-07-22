@@ -13,7 +13,6 @@ import RIO
 import RIO.Time
 
 import qualified Honeycomb.Api as Api
-import qualified RIO.HashMap as HM
 
 data HoneyEvent = HoneyEvent
     { eventTimestamp :: !UTCTime
@@ -37,7 +36,7 @@ mkHoneyEvent honeyOptions = do
 
 mkHoneyEvent' :: MonadIO m => UTCTime -> HoneyOptions -> m HoneyEvent
 mkHoneyEvent' eventTimestamp eventOptions = do
-    eventFields <- newTVarIO HM.empty
+    eventFields <- newTVarIO $ eventOptions ^. defaultFieldsL
     pure HoneyEvent
         { eventTimestamp
         , eventOptions
