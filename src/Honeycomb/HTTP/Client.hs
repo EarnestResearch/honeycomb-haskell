@@ -3,15 +3,23 @@ module Honeycomb.HTTP.Client
     , httpLBS
     , httpNoBody
     , httpJSON
+    , httpJSONEither
+    , httpSink
+    , httpSource
+    , withResponse
+    , httpLbs
     , module Network.HTTP.Simple
     ) where
 
+
+import Control.Monad.Trans.Resource (MonadResource)
 import Data.Coerce (coerce)
 import Honeycomb.Trace
-import Network.HTTP.Simple hiding (httpBS, httpLBS, httpNoBody, httpJSON)
+import Network.HTTP.Simple hiding (httpBS, httpLBS, httpNoBody, httpJSON, httpJSONEither, httpSink, httpSource, withResponse, httpLbs)
 import Data.Aeson (FromJSON)
 import RIO
 
+import qualified Data.Conduit as C
 import qualified Network.HTTP.Simple as H
 import qualified RIO.ByteString as BS
 import qualified RIO.ByteString.Lazy as LBS
@@ -58,3 +66,30 @@ httpNoBody = addTraceHeaderM >=> H.httpNoBody
 
 httpJSON :: (MonadIO m, MonadReader env m, HasSpanContext env, FromJSON a) => H.Request -> m (H.Response a)
 httpJSON = addTraceHeaderM >=> H.httpJSON
+
+httpJSONEither :: (MonadIO m, MonadReader env m, HasSpanContext env, FromJSON a)
+               => H.Request
+               -> m (H.Response (Either JSONException a))
+httpJSONEither = addTraceHeaderM >=> H.httpJSONEither
+
+httpSink :: (MonadUnliftIO m, MonadReader env m, HasSpanContext env)
+         => H.Request
+         -> (H.Response () -> C.ConduitM BS.ByteString Void m a)
+         -> m a
+httpSink req sink = addTraceHeaderM req >>= \r -> H.httpSink r sink
+
+httpSource :: (MonadResource m, MonadIO n, MonadReader env m, HasSpanContext env)
+           => H.Request
+           -> (H.Response (C.ConduitM i BS.ByteString n ())
+                -> C.ConduitM i o m r)
+           -> C.ConduitM i o m r
+httpSource req withRes = addTraceHeaderM req >>= \r -> H.httpSource r withRes
+
+withResponse :: (MonadUnliftIO m, MonadIO n, MonadReader env m, HasSpanContext env)
+             => H.Request
+             -> (H.Response (C.ConduitM i BS.ByteString n ()) -> m a)
+             -> m a
+withResponse req withRes = addTraceHeaderM req >>= \r -> H.withResponse r withRes
+
+httpLbs :: (MonadIO m, MonadReader env m, HasSpanContext env) => H.Request -> m (H.Response LBS.ByteString)
+httpLbs = httpLBS

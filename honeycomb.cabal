@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 03a53d1308165821bb74f93b795cdb9a5bd968041190a107374364c65242bb7b
+-- hash: 2960348340d0128999caece01a403bc8e355b2f3ed959139c49277270cbe2c9f
 
 name:           honeycomb
 version:        0.1.0.0
@@ -65,6 +65,7 @@ library
   build-depends:
       aeson
     , base >=4.11 && <10
+    , conduit
     , http-client
     , http-client-tls
     , http-conduit
@@ -73,6 +74,7 @@ library
     , microlens-mtl
     , network-uri
     , random
+    , resourcet
     , rio >=0.1.8.0
     , scientific
     , stm
@@ -94,6 +96,7 @@ executable honeycomb-example-exe
   build-depends:
       aeson
     , base >=4.11 && <10
+    , conduit
     , honeycomb
     , http-client
     , http-client-tls
@@ -104,6 +107,7 @@ executable honeycomb-example-exe
     , network-uri
     , optparse-simple
     , random
+    , resourcet
     , rio >=0.1.8.0
     , scientific
     , stm
@@ -128,6 +132,7 @@ test-suite honeycomb-test
   build-depends:
       aeson
     , base >=4.11 && <10
+    , conduit
     , honeycomb
     , hspec
     , http-client
@@ -138,6 +143,7 @@ test-suite honeycomb-test
     , microlens-mtl
     , network-uri
     , random
+    , resourcet
     , rio >=0.1.8.0
     , scientific
     , stm
