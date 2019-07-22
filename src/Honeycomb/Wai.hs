@@ -52,7 +52,7 @@ traceApplicationT serviceName spanName =
     readTraceHeader req = do
         let headers = requestHeaders req
         (_, headerValue) <- List.find (\(name, _) -> name == "X-Honeycomb-Trace") headers
-        let parts = Text.split (== '=') <$> Text.split (== ';') (decodeUtf8Lenient headerValue)
+        let parts = traceShowId $ Text.split (== '=') <$> Text.split (== ';') (decodeUtf8Lenient headerValue)
         (_ : tid) <- List.find (getVal "trace_id") parts
         (_ : sid) <- List.find (getVal "parent_id") parts
         pure $ SpanReference (TraceId $ Text.intercalate "=" tid) (SpanId $ Text.intercalate "=" sid)
