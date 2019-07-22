@@ -33,7 +33,7 @@ addTraceHeader (SpanContext { spanReference }) =
  where
   headerValue :: TraceId -> SpanId -> BS.ByteString
   headerValue tid sid =
-    "1;trace_id=" <> (encodeUtf8 $ coerce tid) <> ",span_id=" <> (encodeUtf8 $ coerce sid)
+    "1;trace_id=" <> (encodeUtf8 $ coerce tid) <> ",parent_id=" <> (encodeUtf8 $ coerce sid)
 
 addTraceHeaderM :: (MonadReader env m, HasSpanContext env) => H.Request -> m (H.Request)
 addTraceHeaderM req = do
