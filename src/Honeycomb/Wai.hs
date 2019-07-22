@@ -53,7 +53,7 @@ traceApplicationT serviceName spanName =
         let headers = requestHeaders req
         (_, headerValue) <- List.find (\(name, _) -> name == "X-Honeycomb-Trace") headers
         headerText <- getV1 $ decodeUtf8Lenient headerValue
-        let parts = traceShowId $ Text.split (== '=') <$> Text.split (== ',') headerText
+        let parts = Text.split (== '=') <$> Text.split (== ',') headerText
         (_ : tid) <- List.find (getVal "trace_id") parts
         (_ : sid) <- List.find (getVal "parent_id") parts
         pure $ SpanReference (TraceId $ Text.intercalate "=" tid) (SpanId $ Text.intercalate "=" sid)
@@ -99,7 +99,7 @@ traceApplicationT' serviceName name parentSpanRef app req inner =
         , ("request.header.user_agent", maybe HoneyNull (HoneyString . decodeUtf8Lenient) (requestHeaderUserAgent req))
         , ("request.host", maybe HoneyNull (HoneyString . decodeUtf8Lenient) (requestHeaderHost req))
         , ("request.path", HoneyString . decodeUtf8Lenient $ rawPathInfo req)
-        , ("request.query", HoneyString . decodeUtf8Lenient $ rawQueryString req)
+        , ("request.query", HoneyString . Text.dropPrefix "?" . decodeUtf8Lenient $ rawQueryString req)
         , ("request.scheme", HoneyString $ if isSecure req then "https" else "http")
         , ("request.secure", HoneyBool $ isSecure req)
         ]
