@@ -1,18 +1,13 @@
 { pkgs ? import <nixpkgs> {} }:
 
 let
-  spec = builtins.fromJSON (builtins.readFile ./haskell-nix-src.json);
-  haskell = import(pkgs.fetchgit {
-    name = "haskell-lib";
-    inherit (spec) url rev sha256 fetchSubmodules;
-  }) {};
+  haskell = import (builtins.fetchTarball https://github.com/input-output-hk/haskell.nix/archive/9840ec47efd9e2a4434f0e1eef47d6347ec108fd.tar.gz) { inherit pkgs; };
 
   pkgSet = haskell.mkStackPkgSet {
-    stack-pkgs = import (haskell.callStackToNix {
-      src = ./.;
-    });
+    stack-pkgs = import nix/pkgs.nix;
     pkg-def-extras = [];
     modules = [];
   };
+
 in
-  pkgSet.config.hsPkgs // { _config = pkgSet.config; }
+  pkgSet.config.hsPkgs
