@@ -13,5 +13,5 @@ mkDerivation {
     scientific stm text time unliftio unordered-containers uuid
   ];
   homepage = "https://github.com/EarnestResearch/honeycomb#readme";
-  license = stdenv.lib.licenses.bsd3;
+  license = stdenv.lib.licenses.asl20;
 }

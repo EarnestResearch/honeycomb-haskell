@@ -8,7 +8,7 @@ bug-reports:    https://github.com/EarnestResearch/honeycomb/issues
 author:         Gary Coady
 maintainer:     gcoady@earnestresearch.com
 copyright:      2019 Earnest Research
-license:        BSD3
+license:        Apache-2.0
 license-file:   LICENSE
 build-type:     Simple
 extra-source-files:
