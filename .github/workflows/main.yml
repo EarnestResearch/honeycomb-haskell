@@ -1,0 +1,25 @@
+name: CI
+
+on: [push]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ghc_version: [ghc865]
+    
+    steps:
+    - uses: actions/checkout@v1
+    - name: nix
+      run: curl https://nixos.org/nix/install | sh
+    - name: Install cachix
+      run: nix-env -iA cachix -f https://cachix.org/api/v1/install
+    - name: Switch cache
+      run: cachix use earnestresearch-oss
+    - name: Watch store
+      env:
+        CACHIX_SIGNING_KEY: ${{ secrets.CACHIX_SIGNING_KEY }}
+      run: cachix push earnestresearch-oss --watch-store &
+    - name: nix build ${{ matrix.ghc_version }}
+      run: nix-build --argstr compiler ${{ matrix.ghc_version }}
