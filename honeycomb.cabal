@@ -69,7 +69,6 @@ library
     , network-uri
     , random
     , resourcet
-    , rio >=0.1.8.0
     , scientific
     , stm
     , text
