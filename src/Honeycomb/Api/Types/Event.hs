@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Honeycomb.Api.Types.Event
     ( Event
     , mkEvent
@@ -7,10 +8,10 @@ module Honeycomb.Api.Types.Event
     ) where
 
 import Data.Aeson ((.=))
+import Data.Time (UTCTime)
+import Lens.Micro (Lens', lens, (^.))
 import Honeycomb.Api.Types.HoneyObject
-
-import RIO
-import RIO.Time
+import Numeric.Natural (Natural)
 
 import qualified Data.Aeson as JSON
 

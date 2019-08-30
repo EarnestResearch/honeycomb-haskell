@@ -1,3 +1,5 @@
+{-# LANGUAGE NamedFieldPuns    #-}
+{-# LANGUAGE OverloadedStrings #-}
 module Honeycomb.Trace
     (
     -- * Library initialization
@@ -32,17 +34,19 @@ module Honeycomb.Trace
     )
 where
 
-import Lens.Micro (_Just)
-import Lens.Micro.Mtl (preview)
+import Control.Monad.Reader (MonadIO, MonadReader, ask, local)
+import Data.Maybe (catMaybes, fromJust)
+import Data.Time.Clock (getCurrentTime, diffUTCTime)
+import Lens.Micro (_Just, over, (&), (^.))
+import Lens.Micro.Mtl (preview, view)
 import Honeycomb (HasHoney, HoneyObject, toHoneyValue, HoneyValue (..))
 import Honeycomb.Trace.Types
-import RIO
-import RIO.Partial (fromJust)
-import RIO.Time
+import UnliftIO
 
+import qualified Data.HashMap.Strict as HM
+import qualified Data.HashSet as HS
+import qualified Data.Text as T
 import qualified Honeycomb as HC (ToHoneyValue, ToHoneyObject, add, addField, eventTimestampL, eventFieldsL, newEvent, send')
-import qualified RIO.HashMap as HM
-import qualified RIO.Set as Set
 
 -- $libraryInitialization
 --
@@ -84,7 +88,7 @@ finishTrace
     -> m a
 finishTrace f inner = do
     result <- try inner
-    end <- getCurrentTime
+    end <- liftIO getCurrentTime
     ctx <- fromJust <$> view spanContextL  -- always called after setting tracecontext
     let 
         event = spanEvent ctx
@@ -132,7 +136,7 @@ withNewRootSpan
 withNewRootSpan serviceName spanName parentSpanRef f inner =
     case parentSpanRef of
         Just parentSpan -> do
-            newContext <- createChildSpanContext parentSpan serviceName spanName Set.empty HM.empty
+            newContext <- createChildSpanContext parentSpan serviceName spanName HS.empty HM.empty
             localTrace newContext f inner
         Nothing -> do
             newContext <- createRootSpanContext serviceName spanName
@@ -178,10 +182,10 @@ withNewSpan spanName f inner = do
                 spanReference = oldCtx ^. spanReferenceL
                 serviceName = oldCtx ^. serviceNameL
             inheritedFields <-
-                if Set.null inheritableFields then
+                if HS.null inheritableFields then
                     pure $ HM.empty
                 else
-                    HM.filterWithKey (\k _ -> Set.member k inheritableFields)
+                    HM.filterWithKey (\k _ -> HS.member k inheritableFields)
                         <$> readTVarIO (oldCtx ^. spanEventL . HC.eventFieldsL)
             newContext <- createChildSpanContext spanReference serviceName spanName inheritableFields inheritedFields 
             localTrace newContext f inner
@@ -204,7 +208,7 @@ addField
        , MonadReader env m
        , HasSpanContext env
        )
-    => Text
+    => T.Text
     -> v
     -> m ()
 addField k v = do
@@ -247,8 +251,8 @@ withInheritableFields
     :: ( MonadReader env m
        , HasSpanContext env
        )
-    => (Set Text -> Set Text)  -- ^ The modification to apply to the set of inheritable fields
-    -> m a                     -- ^ The program to run with the modified set of fields
+    => (HS.HashSet T.Text -> HS.HashSet T.Text)  -- ^ The modification to apply to the set of inheritable fields
+    -> m a                                       -- ^ The program to run with the modified set of fields
     -> m a
 withInheritableFields modify inner = do
     inner & local (over (spanContextL . _Just . inheritableFieldsL) (modify))
@@ -261,7 +265,7 @@ createChildSpanContext
     => SpanReference
     -> ServiceName
     -> SpanName
-    -> Set Text
+    -> HS.HashSet T.Text
     -> HoneyObject
     -> m SpanContext
 createChildSpanContext parentSpanRef serviceName spanName inheritableFields inheritedFields = do
@@ -295,5 +299,5 @@ createRootSpanContext serviceName spanName = do
         , serviceName
         , spanName
         , spanEvent
-        , inheritableFields = Set.empty
+        , inheritableFields = HS.empty
         }

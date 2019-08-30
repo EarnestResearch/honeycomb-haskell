@@ -1,19 +1,13 @@
-cabal-version: 1.12
-
--- This file has been generated from package.yaml by hpack version 0.31.1.
---
--- see: https://github.com/sol/hpack
---
--- hash: 2960348340d0128999caece01a403bc8e355b2f3ed959139c49277270cbe2c9f
+cabal-version:  1.12
 
 name:           honeycomb
 version:        0.1.0.0
 description:    Please see the README on Github at <https://github.com/EarnestResearch/libhoney-hs#readme>
-homepage:       https://github.com/githubuser/honeycomb#readme
-bug-reports:    https://github.com/githubuser/honeycomb/issues
-author:         Author name here
-maintainer:     example@example.com
-copyright:      2019 Author name here
+homepage:       https://github.com/EarnestResearch/honeycomb#readme
+bug-reports:    https://github.com/EarnestResearch/honeycomb/issues
+author:         Gary Coady
+maintainer:     gcoady@earnestresearch.com
+copyright:      2019 Earnest Research
 license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
@@ -23,7 +17,7 @@ extra-source-files:
 
 source-repository head
   type: git
-  location: https://github.com/githubuser/honeycomb
+  location: https://github.com/EarnestResearch/honeycomb
 
 library
   exposed-modules:
@@ -31,13 +25,13 @@ library
       Honeycomb.Api
       Honeycomb.Api.Events
       Honeycomb.Api.Types
+      Honeycomb.Api.Types.ApiHost
       Honeycomb.Api.Types.ApiKey
       Honeycomb.Api.Types.Dataset
       Honeycomb.Api.Types.Event
       Honeycomb.Api.Types.HoneyObject
       Honeycomb.Api.Types.HoneyValue
       Honeycomb.Api.Types.RequestOptions
-      Honeycomb.HTTP.Client
       Honeycomb.Trace
       Honeycomb.Trace.Types
       Honeycomb.Trace.Types.ServiceName
@@ -55,99 +49,32 @@ library
       Honeycomb.Types.HoneyResponse
       Honeycomb.Types.HoneyServerOptions
       Honeycomb.Types.TransportState
-      Honeycomb.Wai
   other-modules:
       Paths_honeycomb
   hs-source-dirs:
       src
-  default-extensions: AutoDeriveTypeable BangPatterns BinaryLiterals ConstraintKinds DataKinds DefaultSignatures DeriveDataTypeable DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable DoAndIfThenElse EmptyDataDecls ExistentialQuantification FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MonadFailDesugaring MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude OverloadedStrings PartialTypeSignatures PatternGuards PolyKinds RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeFamilies TypeSynonymInstances ViewPatterns
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wpartial-fields -Wredundant-constraints
+  default-extensions: AutoDeriveTypeable BangPatterns BinaryLiterals ConstraintKinds DataKinds DefaultSignatures DeriveDataTypeable DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable DoAndIfThenElse EmptyDataDecls ExistentialQuantification FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MonadFailDesugaring MultiParamTypeClasses MultiWayIf NamedFieldPuns OverloadedStrings PartialTypeSignatures PatternGuards PolyKinds RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeFamilies TypeSynonymInstances ViewPatterns
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wpartial-fields -Wredundant-constraints -fhide-source-paths
   build-depends:
       aeson
     , base >=4.11 && <10
-    , conduit
+    , bytestring
+    , hashable
     , http-client
     , http-client-tls
-    , http-conduit
     , http-types
     , microlens
     , microlens-mtl
+    , mtl
     , network-uri
     , random
     , resourcet
     , rio >=0.1.8.0
     , scientific
     , stm
+    , text
+    , time
+    , unliftio
+    , unordered-containers
     , uuid
-    , wai
-  default-language: Haskell2010
-
-executable honeycomb-example-exe
-  main-is: Main.hs
-  other-modules:
-      Import
-      Run
-      Types
-      Paths_honeycomb
-  hs-source-dirs:
-      example
-  default-extensions: AutoDeriveTypeable BangPatterns BinaryLiterals ConstraintKinds DataKinds DefaultSignatures DeriveDataTypeable DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable DoAndIfThenElse EmptyDataDecls ExistentialQuantification FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MonadFailDesugaring MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude OverloadedStrings PartialTypeSignatures PatternGuards PolyKinds RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeFamilies TypeSynonymInstances ViewPatterns
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
-  build-depends:
-      aeson
-    , base >=4.11 && <10
-    , conduit
-    , honeycomb
-    , http-client
-    , http-client-tls
-    , http-conduit
-    , http-types
-    , microlens
-    , microlens-mtl
-    , network-uri
-    , optparse-simple
-    , random
-    , resourcet
-    , rio >=0.1.8.0
-    , scientific
-    , stm
-    , uuid
-    , wai
-  default-language: Haskell2010
-
-test-suite honeycomb-test
-  type: exitcode-stdio-1.0
-  main-is: Spec.hs
-  other-modules:
-      HoneycombSpec
-      Util
-      UtilSpec
-      Paths_honeycomb
-  hs-source-dirs:
-      test
-  default-extensions: AutoDeriveTypeable BangPatterns BinaryLiterals ConstraintKinds DataKinds DefaultSignatures DeriveDataTypeable DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable DoAndIfThenElse EmptyDataDecls ExistentialQuantification FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MonadFailDesugaring MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude OverloadedStrings PartialTypeSignatures PatternGuards PolyKinds RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeFamilies TypeSynonymInstances ViewPatterns
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
-  build-tool-depends:
-      hspec-discover:hspec-discover
-  build-depends:
-      aeson
-    , base >=4.11 && <10
-    , conduit
-    , honeycomb
-    , hspec
-    , http-client
-    , http-client-tls
-    , http-conduit
-    , http-types
-    , microlens
-    , microlens-mtl
-    , network-uri
-    , random
-    , resourcet
-    , rio >=0.1.8.0
-    , scientific
-    , stm
-    , transformers
-    , uuid
-    , wai
   default-language: Haskell2010

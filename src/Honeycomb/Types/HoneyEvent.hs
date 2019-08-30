@@ -1,3 +1,4 @@
+{-# LANGUAGE NamedFieldPuns #-}
 module Honeycomb.Types.HoneyEvent
     ( HoneyEvent
     , mkHoneyEvent
@@ -8,9 +9,11 @@ module Honeycomb.Types.HoneyEvent
     )
 where
 
+import Control.Monad.Reader (MonadIO, liftIO)
+import Data.Time.Clock (UTCTime, getCurrentTime)
 import Honeycomb.Types.HoneyOptions
-import RIO
-import RIO.Time
+import Lens.Micro (Lens', lens, (^.))
+import UnliftIO.STM (TVar, newTVarIO)
 
 import qualified Honeycomb.Api as Api
 
@@ -31,7 +34,7 @@ eventFieldsL = lens eventFields (\x y -> x { eventFields = y })
 
 mkHoneyEvent :: MonadIO m => HoneyOptions -> m HoneyEvent
 mkHoneyEvent honeyOptions = do
-    eventTimestamp <- getCurrentTime
+    eventTimestamp <- liftIO getCurrentTime
     mkHoneyEvent' eventTimestamp honeyOptions
 
 mkHoneyEvent' :: MonadIO m => UTCTime -> HoneyOptions -> m HoneyEvent

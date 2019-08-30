@@ -1,4 +1,2 @@
-let
-  hsPkgs = import ./default.nix {};
-in
-  hsPkgs.honeycomb.components.all
+{ nixpkgs ? import <nixpkgs> {}, compiler ? "ghc864" }:
+(import ./default.nix { inherit nixpkgs compiler; }).env

@@ -8,14 +8,15 @@ module Honeycomb.Trace.Types.SpanId
     )
 where
 
+import Control.Monad.Reader (MonadIO, liftIO)
 import Data.Coerce (coerce)
 import Honeycomb.Types
-import RIO
 
+import qualified Data.Text as T
 import qualified Data.UUID as UUID
 import qualified Data.UUID.V4 as V4
 
-newtype SpanId = SpanId Text deriving (Eq, Show)
+newtype SpanId = SpanId T.Text deriving (Eq, Show)
 
 mkSpanId :: MonadIO m => m SpanId
 mkSpanId = toSpanId <$> liftIO V4.nextRandom
@@ -23,7 +24,7 @@ mkSpanId = toSpanId <$> liftIO V4.nextRandom
 class ToSpanId a where
   toSpanId :: a -> SpanId
 
-instance ToSpanId Text where
+instance ToSpanId T.Text where
   toSpanId = SpanId
 
 instance ToSpanId UUID.UUID where

@@ -5,7 +5,6 @@ where
 
 import Honeycomb.Trace.Types.SpanId
 import Honeycomb.Trace.Types.TraceId
-import RIO
 
 data SpanReference = SpanReference !TraceId !SpanId deriving (Eq, Show)
 

@@ -7,7 +7,9 @@ module Honeycomb.Types.TransportState
     ) where
 
 import Honeycomb.Types.HoneyResponse
-import RIO
+import Lens.Micro (Lens', lens)
+import Numeric.Natural (Natural)
+import UnliftIO
 
 import qualified Honeycomb.Api.Types as Api
 

@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleInstances #-}
 module Honeycomb.Trace.Types.SpanContext
     ( SpanContext (..)
     , spanReferenceL
@@ -17,7 +18,10 @@ import Honeycomb.Trace.Types.SpanName
 import Honeycomb.Trace.Types.SpanReference
 import Honeycomb.Trace.Types.TraceId
 import Honeycomb.Types.HoneyEvent
-import RIO
+import Lens.Micro (Lens', lens)
+
+import qualified Data.HashSet as HS
+import qualified Data.Text as T
 
 data SpanContext = SpanContext
     { spanReference     :: !SpanReference
@@ -25,7 +29,7 @@ data SpanContext = SpanContext
     , serviceName       :: !ServiceName
     , spanName          :: !SpanName
     , spanEvent         :: !HoneyEvent
-    , inheritableFields :: !(Set Text)
+    , inheritableFields :: !(HS.HashSet T.Text)
     } deriving (Eq, Show)
 
 spanReferenceL :: Lens' SpanContext SpanReference
@@ -43,7 +47,7 @@ spanNameL = lens spanName (\x y -> x { spanName = y })
 spanEventL :: Lens' SpanContext HoneyEvent
 spanEventL = lens spanEvent (\x y -> x { spanEvent = y })
 
-inheritableFieldsL :: Lens' SpanContext (Set Text)
+inheritableFieldsL :: Lens' SpanContext (HS.HashSet T.Text)
 inheritableFieldsL = lens inheritableFields (\x y -> x { inheritableFields = y })
 
 class HasSpanContext env where

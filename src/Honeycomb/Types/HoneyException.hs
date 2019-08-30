@@ -2,7 +2,7 @@ module Honeycomb.Types.HoneyException
     ( HoneyException (..)
     ) where
 
-import RIO
+import UnliftIO.Exception (Exception)
 
 data HoneyException
     = MissingApiKeyOption

@@ -7,9 +7,9 @@ module Honeycomb.Types.Honey
     , honeyL
     ) where
 
+import Lens.Micro (Lens', lens)
 import Honeycomb.Types.HoneyOptions
 import Honeycomb.Types.TransportState
-import RIO
 
 data Honey = Honey
     { honeyOptions        :: !HoneyOptions

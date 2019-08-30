@@ -1,18 +1,23 @@
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TupleSections       #-}
 module Honeycomb.Transport
     ( newTransport
     , withTransport
     ) where
 
 import Control.Concurrent.STM.TBQueue (flushTBQueue, lengthTBQueue)
+import Control.Monad.Reader (MonadIO)
+import Data.Foldable (traverse_)
+import Lens.Micro ((^.))
 import Network.HTTP.Client
 import Network.HTTP.Client.TLS (tlsManagerSettings)
 import Honeycomb.Api.Events (sendEvents)
 import Honeycomb.Api.Types
 import Honeycomb.Types
-import RIO
+import UnliftIO
 
-import qualified RIO.List as List
-import qualified RIO.Map as Map
+import qualified Data.HashMap.Strict as HM
+import qualified Data.List as List
 
 newTransport
     :: forall n m .
@@ -81,12 +86,12 @@ sendGroup manager requestOptions events = do
     respond (Left _) = pure ()
     respond (Right _) = pure ()
 
-sendGroups :: MonadUnliftIO m => Manager -> Map RequestOptions [Event] -> m ()
-sendGroups manager groups = sequence_ $ Map.mapWithKey (sendGroup manager) groups
+sendGroups :: MonadUnliftIO m => Manager -> HM.HashMap RequestOptions [Event] -> m ()
+sendGroups manager groups = sequence_ $ HM.mapWithKey (sendGroup manager) groups
 
 splitEvents :: MonadUnliftIO m => Manager -> [(RequestOptions, Event)] -> m ()
 splitEvents manager events =
-    sendGroups manager $ Map.fromListWith (++) (fmap toEntry events)
+    sendGroups manager $ HM.fromListWith (++) (fmap toEntry events)
   where
     toEntry :: (RequestOptions, Event) -> (RequestOptions, [Event])
     toEntry evt =

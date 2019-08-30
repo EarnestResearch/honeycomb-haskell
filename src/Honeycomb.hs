@@ -1,3 +1,4 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 {-|
 Module      : Honeycomb
 Description : Client library for @honeycomb.io@
@@ -37,13 +38,17 @@ module Honeycomb
     )
 where
 
+import Control.Monad.Reader (MonadReader, local, void)
 import Honeycomb.Transport
 import Honeycomb.Types
-import RIO
+import Lens.Micro (over, to, (^.))
+import Lens.Micro.Mtl (view)
+import UnliftIO
 
+import qualified Data.Text as T
+import qualified Data.HashMap.Strict as HM
+import qualified Data.List as List
 import qualified Honeycomb.Api as Api
-import qualified RIO.HashMap as HM
-import qualified RIO.List as List
 
 -- $libraryInitialization
 -- To initialize the library, a `MonadReader` environment should be initialized, with
@@ -99,7 +104,7 @@ addField
     :: ( MonadIO m
        , ToHoneyValue v
        )
-    => Text        -- ^ The name of the field
+    => T.Text      -- ^ The name of the field
     -> v           -- ^ The value of the field
     -> HoneyEvent  -- ^ The event to which the field will be added
     -> m ()

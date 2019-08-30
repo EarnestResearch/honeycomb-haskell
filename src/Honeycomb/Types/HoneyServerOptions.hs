@@ -8,8 +8,8 @@ module Honeycomb.Types.HoneyServerOptions
     , defaultHoneyServerOptions
     ) where
 
+import Lens.Micro (Lens', lens)
 import Numeric.Natural (Natural)
-import RIO
 
 data HoneyServerOptions = HoneyServerOptions
     { blockOnResponse      :: !Bool

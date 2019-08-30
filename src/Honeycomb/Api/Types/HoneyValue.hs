@@ -1,19 +1,22 @@
+{-# LANGUAGE FlexibleInstances #-}
 module Honeycomb.Api.Types.HoneyValue
     ( HoneyValue (..)
     , ToHoneyValue
     , toHoneyValue
     ) where
 
+import Data.Time.Clock (NominalDiffTime, UTCTime)
+import Data.Time.Format (defaultTimeLocale, formatTime)
 import Data.Scientific (Scientific, fromFloatDigits)
-import RIO
-import RIO.Time
+import Data.String (IsString, fromString)
+import Numeric.Natural (Natural)
 
 import qualified Data.Aeson as JSON
-import qualified RIO.Text as Text
+import qualified Data.Text as T
 
 data HoneyValue
     = HoneyNull
-    | HoneyString !Text
+    | HoneyString !T.Text
     | HoneyNumber !Scientific
     | HoneyBool !Bool
     deriving (Eq, Show)
@@ -40,7 +43,7 @@ instance ToHoneyValue NominalDiffTime where
     toHoneyValue = HoneyNumber . (* 1000) . realToFrac
 
 instance ToHoneyValue UTCTime where
-    toHoneyValue = HoneyString . Text.pack . formatTime defaultTimeLocale "%Y-%m-%dT%H:%M:%S%QZ"
+    toHoneyValue = HoneyString . T.pack . formatTime defaultTimeLocale "%Y-%m-%dT%H:%M:%S%QZ"
 
 instance ToHoneyValue Double where
     toHoneyValue = HoneyNumber . fromFloatDigits
@@ -51,14 +54,14 @@ instance ToHoneyValue Float where
 instance ToHoneyValue Scientific where
     toHoneyValue = HoneyNumber
 
-instance ToHoneyValue Text where
+instance ToHoneyValue T.Text where
     toHoneyValue = HoneyString
 
 instance ToHoneyValue [Char] where
-    toHoneyValue = HoneyString . Text.pack
+    toHoneyValue = HoneyString . T.pack
 
 instance IsString HoneyValue where
-    fromString = HoneyString . Text.pack
+    fromString = HoneyString . T.pack
 
 instance JSON.ToJSON HoneyValue where
     toJSON HoneyNull        = JSON.Null

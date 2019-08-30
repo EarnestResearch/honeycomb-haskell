@@ -1,3 +1,5 @@
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric  #-}
 module Honeycomb.Api.Types.RequestOptions
     ( RequestOptions
     , mkRequestOptions
@@ -7,21 +9,23 @@ module Honeycomb.Api.Types.RequestOptions
     )
 where
 
+import Data.Hashable (Hashable)
+import GHC.Generics (Generic)
+import Honeycomb.Api.Types.ApiHost
 import Honeycomb.Api.Types.ApiKey
 import Honeycomb.Api.Types.Dataset
-import Network.URI (URI)
-import RIO
+import Lens.Micro (Lens', lens)
 
 data RequestOptions = RequestOptions
-  { requestApiHost :: !URI
+  { requestApiHost :: !ApiHost
   , requestApiDataset :: !Dataset
   , requestApiKey :: !ApiKey
-  } deriving (Eq, Ord, Show)
+  } deriving (Eq, Generic, Hashable, Ord, Show)
 
-mkRequestOptions :: URI -> Dataset -> ApiKey -> RequestOptions
+mkRequestOptions :: ApiHost -> Dataset -> ApiKey -> RequestOptions
 mkRequestOptions = RequestOptions
 
-requestApiHostL :: Lens' RequestOptions URI
+requestApiHostL :: Lens' RequestOptions ApiHost
 requestApiHostL = lens requestApiHost (\x y -> x { requestApiHost = y })
 
 requestApiDatasetL :: Lens' RequestOptions Dataset
