@@ -15,10 +15,8 @@ cabal.sandbox.config
 *.aux
 *.hp
 *.eventlog
-.stack-work/
 cabal.project.local
 cabal.project.local~
 .HTF/
 .ghc.environment.*
 result
-stack.yaml.lock
