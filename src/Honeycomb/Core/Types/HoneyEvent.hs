@@ -1,5 +1,5 @@
 {-# LANGUAGE NamedFieldPuns #-}
-module Honeycomb.Types.HoneyEvent
+module Honeycomb.Core.Types.HoneyEvent
     ( HoneyEvent
     , mkHoneyEvent
     , mkHoneyEvent'
@@ -11,7 +11,7 @@ where
 
 import Control.Monad.Reader (MonadIO, liftIO)
 import Data.Time.Clock (UTCTime, getCurrentTime)
-import Honeycomb.Types.HoneyOptions
+import Honeycomb.Core.Types.HoneyOptions
 import Lens.Micro (Lens', lens, (^.))
 import UnliftIO.STM (TVar, newTVarIO)
 

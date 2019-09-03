@@ -30,7 +30,7 @@ module Honeycomb.Trace
 
     -- * Imported from Honeycomb
 
-    , module Honeycomb
+    , module Honeycomb.Core
     )
 where
 
@@ -39,7 +39,8 @@ import Data.Maybe (catMaybes, fromJust)
 import Data.Time.Clock (getCurrentTime, diffUTCTime)
 import Lens.Micro (_Just, over, (&), (^.))
 import Lens.Micro.Mtl (preview, view)
-import Honeycomb hiding (add, addField)
+import Honeycomb (newEvent, send')
+import Honeycomb.Core
 import Honeycomb.Trace.Types
 import UnliftIO
 

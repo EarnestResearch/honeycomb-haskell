@@ -1,4 +1,4 @@
-module Honeycomb.Types.TransportState
+module Honeycomb.Core.Types.TransportState
     ( TransportState
     , transportSendQueueL
     , transportResponseQueueL
@@ -6,7 +6,7 @@ module Honeycomb.Types.TransportState
     , mkTransportState
     ) where
 
-import Honeycomb.Types.HoneyResponse
+import Honeycomb.Core.Types.HoneyResponse
 import Lens.Micro (Lens', lens)
 import Numeric.Natural (Natural)
 import UnliftIO

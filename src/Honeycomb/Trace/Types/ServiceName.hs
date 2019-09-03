@@ -3,7 +3,7 @@ module Honeycomb.Trace.Types.ServiceName where
 
 import Data.Coerce (coerce)
 import Data.String (IsString)
-import Honeycomb.Types
+import Honeycomb.Core.Types
 
 import qualified Data.Text as T
   

@@ -10,7 +10,7 @@ where
 
 import Control.Monad.Reader (MonadIO, liftIO)
 import Data.Coerce (coerce)
-import Honeycomb.Types
+import Honeycomb.Core.Types
 
 import qualified Data.Text as T
 import qualified Data.UUID as UUID

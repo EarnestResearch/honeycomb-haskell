@@ -1,4 +1,4 @@
-module Honeycomb.Types.Honey
+module Honeycomb.Core.Types.Honey
     ( Honey
     , mkHoney
     , honeyOptionsL
@@ -8,8 +8,8 @@ module Honeycomb.Types.Honey
     ) where
 
 import Lens.Micro (Lens', lens)
-import Honeycomb.Types.HoneyOptions
-import Honeycomb.Types.TransportState
+import Honeycomb.Core.Types.HoneyOptions
+import Honeycomb.Core.Types.TransportState
 
 data Honey = Honey
     { honeyOptions        :: !HoneyOptions

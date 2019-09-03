@@ -41,14 +41,15 @@ library
       Honeycomb.Trace.Types.SpanReference
       Honeycomb.Trace.Types.TraceId
       Honeycomb.Transport
-      Honeycomb.Types
-      Honeycomb.Types.Honey
-      Honeycomb.Types.HoneyEvent
-      Honeycomb.Types.HoneyException
-      Honeycomb.Types.HoneyOptions
-      Honeycomb.Types.HoneyResponse
-      Honeycomb.Types.HoneyServerOptions
-      Honeycomb.Types.TransportState
+      Honeycomb.Core
+      Honeycomb.Core.Types
+      Honeycomb.Core.Types.Honey
+      Honeycomb.Core.Types.HoneyEvent
+      Honeycomb.Core.Types.HoneyException
+      Honeycomb.Core.Types.HoneyOptions
+      Honeycomb.Core.Types.HoneyResponse
+      Honeycomb.Core.Types.HoneyServerOptions
+      Honeycomb.Core.Types.TransportState
   other-modules:
       Paths_honeycomb
   hs-source-dirs:

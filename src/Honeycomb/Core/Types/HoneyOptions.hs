@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Honeycomb.Types.HoneyOptions
+module Honeycomb.Core.Types.HoneyOptions
     ( HoneyOptions
     , apiKeyL
     , datasetL

@@ -1,4 +1,4 @@
-module Honeycomb.Types.HoneyException
+module Honeycomb.Core.Types.HoneyException
     ( HoneyException (..)
     ) where
 

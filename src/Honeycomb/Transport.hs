@@ -13,7 +13,7 @@ import Network.HTTP.Client
 import Network.HTTP.Client.TLS (tlsManagerSettings)
 import Honeycomb.Api.Events (sendEvents)
 import Honeycomb.Api.Types
-import Honeycomb.Types
+import Honeycomb.Core.Types
 import UnliftIO
 
 import qualified Data.HashMap.Strict as HM

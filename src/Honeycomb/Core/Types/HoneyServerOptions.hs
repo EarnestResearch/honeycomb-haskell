@@ -1,4 +1,4 @@
-module Honeycomb.Types.HoneyServerOptions
+module Honeycomb.Core.Types.HoneyServerOptions
     ( HoneyServerOptions
     , blockOnResponseL
     , maxBatchSizeL

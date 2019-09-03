@@ -17,7 +17,7 @@ import Honeycomb.Trace.Types.SpanId
 import Honeycomb.Trace.Types.SpanName
 import Honeycomb.Trace.Types.SpanReference
 import Honeycomb.Trace.Types.TraceId
-import Honeycomb.Types.HoneyEvent
+import Honeycomb.Core.Types.HoneyEvent
 import Lens.Micro (Lens', lens)
 
 import qualified Data.HashSet as HS

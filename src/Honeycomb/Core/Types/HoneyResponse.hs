@@ -1,4 +1,4 @@
-module Honeycomb.Types.HoneyResponse
+module Honeycomb.Core.Types.HoneyResponse
     ( HoneyResponse (..)
     , honeyResponseStatusCodeL
     , honeyResponseBodyL
