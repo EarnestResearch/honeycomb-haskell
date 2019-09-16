@@ -4,8 +4,11 @@ module Honeycomb.Core
     -- * Library initialization
     --
     -- $libraryInitialization
-      withHoney
+      honeyOptionsFromEnv
+    , withHoney
+    , withHoney'
     , newHoney
+    , newHoney'
     , withHoneyOptions
 
     -- * Events
@@ -18,10 +21,12 @@ module Honeycomb.Core
 where
 
 import Control.Monad.Reader (MonadReader, local, void)
+import qualified Data.Text as T
 import Honeycomb.Transport
 import Honeycomb.Core.Types
-import Lens.Micro (over)
+import Lens.Micro (over, (&), (.~))
 import Lens.Micro.Mtl (view)
+import System.Environment (lookupEnv)
 import UnliftIO
 
 {- | Waits until all currently sent events have been dequeued and processed.
@@ -51,15 +56,35 @@ flush timeout_us = do
 A background thread is started up, which will dequeue events that
 need to be sent. On shutdown, the event queue is shut down, and
 the background thread stops once all messages are processed. 
+
+Discovers Honey options from the environment; if you wish to set the
+options manually, use {{newHoney'}}
 -}
 newHoney
     :: ( MonadUnliftIO n
        , MonadIO m
        )
     => HoneyServerOptions  -- ^ Options for how event handling is performed
+    -> n (Honey, m ())
+newHoney honeyServerOptions = do
+    honeyOptions <- honeyOptionsFromEnv
+    (transportState, shutdown) <- newTransport honeyServerOptions
+    pure (mkHoney honeyOptions transportState, shutdown)
+
+{- | Creates a new Honey library instance.
+
+A background thread is started up, which will dequeue events that
+need to be sent. On shutdown, the event queue is shut down, and
+the background thread stops once all messages are processed. 
+-}
+newHoney'
+    :: ( MonadUnliftIO n
+       , MonadIO m
+       )
+    => HoneyServerOptions  -- ^ Options for how event handling is performed
     -> HoneyOptions        -- ^ Options for client library behaviour
     -> n (Honey, m ())
-newHoney honeyServerOptions honeyOptions = do
+newHoney' honeyServerOptions honeyOptions = do
     (transportState, shutdown) <- newTransport honeyServerOptions
     pure (mkHoney honeyOptions transportState, shutdown)
 
@@ -67,17 +92,35 @@ newHoney honeyServerOptions honeyOptions = do
 Creates a Honey environment, and if given a program that uses this,
 will run the program with an environment, correctly shutting everything
 down afterwards.
+
+Discovers Honey options from the environment; if you wish to set the
+options manually, use {{withHoney'}} or {{withHoneyOptions}}
 -}
 withHoney
+    :: MonadUnliftIO m
+    => HoneyServerOptions  -- ^ Options for how event handling is performed
+    -> (Honey -> m a)      -- ^ The program to run
+    -> m a
+withHoney honeyServerOptions inner = withRunInIO $ \run ->
+    bracket (newHoney honeyServerOptions)
+            snd
+            (run . inner . fst)
+
+{- |
+Creates a Honey environment, and if given a program that uses this,
+will run the program with an environment, correctly shutting everything
+down afterwards.
+-}
+withHoney'
     :: MonadUnliftIO m
     => HoneyServerOptions  -- ^ Options for how event handling is performed
     -> HoneyOptions        -- ^ Options for client library behaviour
     -> (Honey -> m a)      -- ^ The program to run
     -> m a
-withHoney honeyServerOptions honeyFields inner = withRunInIO $ \run ->
-    bracket (newHoney honeyServerOptions honeyFields)
-            snd
-            (run . inner . fst)
+withHoney' honeyServerOptions honeyOptions inner = withRunInIO $ \run ->
+    bracket (newHoney' honeyServerOptions honeyOptions)
+        snd
+        (run . inner . fst)
 
 {- | Modifies the HoneyOptions value for the provided program.
 
@@ -92,3 +135,14 @@ withHoneyOptions
     -> m a                             -- ^ The program to run
     -> m a
 withHoneyOptions f = local (over (honeyL . honeyOptionsL) f)
+
+honeyOptionsFromEnv
+    :: MonadIO m
+    => m HoneyOptions
+honeyOptionsFromEnv = do
+    apiKeyEnv <- liftIO $ (fmap . fmap) (ApiKey . T.pack) $ lookupEnv "HONEYCOMB_API_KEY"
+    datasetEnv <- liftIO $ (fmap . fmap) (Dataset . T.pack) $ lookupEnv "HONEYCOMB_DATASET"
+    pure $ defaultHoneyOptions
+            & apiKeyL .~ apiKeyEnv
+            & datasetL .~ datasetEnv
+
