@@ -159,13 +159,14 @@ send'
 send' extraFields event = do
     let shouldSample = True
     apiEvent <- toApiEvent
-    maybe (pure ()) (\opts -> sendApiEvent shouldSample opts apiEvent) toRequestOptions
+    requestOpts <- toRequestOptions
+    sendApiEvent shouldSample requestOpts apiEvent
   where
-    toRequestOptions :: Maybe Api.RequestOptions
-    toRequestOptions =
-        Api.mkRequestOptions (event ^. eventOptionsL . apiHostL)
-            <$> event ^. eventOptionsL . datasetL
-            <*> event ^. eventOptionsL . apiKeyL
+    toRequestOptions :: m Api.RequestOptions
+    toRequestOptions = do
+        ds <- maybe (throwIO MissingDatasetOption) pure $ event ^. eventOptionsL . datasetL
+        key <- maybe (throwIO MissingApiKeyOption) pure $ event ^. eventOptionsL . apiKeyL
+        pure $ Api.mkRequestOptions (event ^. eventOptionsL . apiHostL) ds key
 
     toApiEvent :: m Api.Event
     toApiEvent = do
