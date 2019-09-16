@@ -7,6 +7,7 @@ module Honeycomb.Core.Types.HoneyOptions
     , apiHostL
     , defaultFieldsL
     , blockOnSendL
+    , disabledL
     , defaultHoneyOptions
     ) where
 
@@ -26,6 +27,7 @@ data HoneyOptions = HoneyOptions
     , apiHost       :: !ApiHost
     , defaultFields :: !HoneyObject
     , blockOnSend   :: !Bool
+    , disabled      :: !Bool
     } deriving (Eq, Show)
 
 apiKeyL :: Lens' HoneyOptions (Maybe ApiKey)
@@ -46,6 +48,9 @@ defaultFieldsL = lens defaultFields (\x y -> x { defaultFields = y })
 blockOnSendL :: Lens' HoneyOptions Bool
 blockOnSendL = lens blockOnSend (\x y -> x { blockOnSend = y})
 
+disabledL :: Lens' HoneyOptions Bool
+disabledL = lens disabled (\x y -> x { disabled = y})
+
 defaultHoneyOptions :: HoneyOptions
 defaultHoneyOptions = HoneyOptions
     { apiKey = Nothing
@@ -54,4 +59,5 @@ defaultHoneyOptions = HoneyOptions
     , apiHost = "https://api.honeycomb.io/"
     , defaultFields = HM.empty
     , blockOnSend = False
+    , disabled = False
     }

@@ -21,6 +21,7 @@ module Honeycomb.Core
 where
 
 import Control.Monad.Reader (MonadReader, local, void)
+import Data.Maybe (isJust)
 import qualified Data.Text as T
 import Honeycomb.Transport
 import Honeycomb.Core.Types
@@ -142,7 +143,9 @@ honeyOptionsFromEnv
 honeyOptionsFromEnv = do
     apiKeyEnv <- liftIO $ (fmap . fmap) (ApiKey . T.pack) $ lookupEnv "HONEYCOMB_API_KEY"
     datasetEnv <- liftIO $ (fmap . fmap) (Dataset . T.pack) $ lookupEnv "HONEYCOMB_DATASET"
+    disabledEnv <- liftIO $ (fmap . fmap) (Dataset . T.pack) $ lookupEnv "HONEYCOMB_DISABLED"
     pure $ defaultHoneyOptions
             & apiKeyL .~ apiKeyEnv
             & datasetL .~ datasetEnv
+            & disabledL .~ isJust disabledEnv
 
