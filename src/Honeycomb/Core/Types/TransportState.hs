@@ -1,5 +1,5 @@
 module Honeycomb.Core.Types.TransportState
-    ( TransportState
+    ( TransportState (..)
     , transportSendQueueL
     , transportResponseQueueL
     , transportFlushQueueL

@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Honeycomb.Core.Types.HoneyOptions
-    ( HoneyOptions
+    ( HoneyOptions (..)
     , apiKeyL
     , datasetL
     , sampleRateL
