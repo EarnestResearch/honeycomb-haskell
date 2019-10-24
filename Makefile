@@ -1,5 +1,3 @@
+.PHONY: build
 build:
-	nix-build
-
-shell:
-	nix-shell
+	nix-build --pure
