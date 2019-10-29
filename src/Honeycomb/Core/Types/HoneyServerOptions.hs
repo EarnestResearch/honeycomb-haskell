@@ -1,5 +1,5 @@
 module Honeycomb.Core.Types.HoneyServerOptions
-    ( HoneyServerOptions
+    ( HoneyServerOptions (..)
     , blockOnResponseL
     , maxBatchSizeL
     , sendFrequencyL

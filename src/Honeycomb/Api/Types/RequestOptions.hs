@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric  #-}
 module Honeycomb.Api.Types.RequestOptions
-    ( RequestOptions
+    ( RequestOptions (..)
     , mkRequestOptions
     , requestApiHostL
     , requestApiDatasetL

@@ -1,5 +1,5 @@
 module Honeycomb.Core.Types.Honey
-    ( Honey
+    ( Honey (..)
     , mkHoney
     , honeyOptionsL
     , honeyTransportStateL

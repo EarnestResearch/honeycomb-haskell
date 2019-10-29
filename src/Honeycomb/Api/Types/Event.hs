@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Honeycomb.Api.Types.Event
-    ( Event
+    ( Event(..)
     , mkEvent
     , eventFieldsL
     , eventTimestampL
