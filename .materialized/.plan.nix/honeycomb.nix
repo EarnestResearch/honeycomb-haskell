@@ -77,7 +77,6 @@ in
           (hsPkgs."mtl" or (buildDepError "mtl"))
           (hsPkgs."network-uri" or (buildDepError "network-uri"))
           (hsPkgs."random" or (buildDepError "random"))
-          (hsPkgs."resourcet" or (buildDepError "resourcet"))
           (hsPkgs."scientific" or (buildDepError "scientific"))
           (hsPkgs."stm" or (buildDepError "stm"))
           (hsPkgs."text" or (buildDepError "text"))

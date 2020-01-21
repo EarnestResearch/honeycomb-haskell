@@ -70,7 +70,6 @@ library
     , mtl
     , network-uri
     , random
-    , resourcet
     , scientific
     , stm
     , text

@@ -116,7 +116,6 @@
         "tls".flags.network = true;
         "tls".flags.hans = false;
         "microlens-mtl".revision = (((hackage."microlens-mtl")."0.2.0.1").revisions).default;
-        "resourcet".revision = (((hackage."resourcet")."1.2.2").revisions).default;
         "pretty".revision = (((hackage."pretty")."1.1.3.6").revisions).default;
         "microlens".revision = (((hackage."microlens")."0.4.11.2").revisions).default;
         "aeson".revision = (((hackage."aeson")."1.4.6.0").revisions).default;
