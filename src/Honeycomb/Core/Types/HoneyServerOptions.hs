@@ -1,44 +1,48 @@
 module Honeycomb.Core.Types.HoneyServerOptions
-    ( HoneyServerOptions
-    , blockOnResponseL
-    , maxBatchSizeL
-    , sendFrequencyL
-    , maxConcurrentBatchesL
-    , pendingWorkCapacityL
-    , defaultHoneyServerOptions
-    ) where
+  ( HoneyServerOptions,
+    blockOnResponseL,
+    maxBatchSizeL,
+    sendFrequencyL,
+    maxConcurrentBatchesL,
+    pendingWorkCapacityL,
+    defaultHoneyServerOptions,
+  )
+where
 
 import Lens.Micro (Lens', lens)
 import Numeric.Natural (Natural)
 
-data HoneyServerOptions = HoneyServerOptions
-    { blockOnResponse      :: !Bool
-    , maxBatchSize         :: !Natural
-    , sendFrequency        :: !Int      -- ^ Frequency of batch sending in milliseconds
-    , maxConcurrentBatches :: !Natural
-    , pendingWorkCapacity  :: !Natural
-    } deriving (Eq, Show)
+data HoneyServerOptions
+  = HoneyServerOptions
+      { blockOnResponse :: !Bool,
+        maxBatchSize :: !Natural,
+        -- | Frequency of batch sending in milliseconds
+        sendFrequency :: !Int,
+        maxConcurrentBatches :: !Natural,
+        pendingWorkCapacity :: !Natural
+      }
+  deriving (Eq, Show)
 
 blockOnResponseL :: Lens' HoneyServerOptions Bool
-blockOnResponseL = lens blockOnResponse (\x y -> x { blockOnResponse = y })
+blockOnResponseL = lens blockOnResponse (\x y -> x {blockOnResponse = y})
 
 maxBatchSizeL :: Lens' HoneyServerOptions Natural
-maxBatchSizeL = lens maxBatchSize (\x y -> x { maxBatchSize = y })
+maxBatchSizeL = lens maxBatchSize (\x y -> x {maxBatchSize = y})
 
 sendFrequencyL :: Lens' HoneyServerOptions Int
-sendFrequencyL = lens sendFrequency (\x y -> x { sendFrequency = y })
+sendFrequencyL = lens sendFrequency (\x y -> x {sendFrequency = y})
 
 maxConcurrentBatchesL :: Lens' HoneyServerOptions Natural
-maxConcurrentBatchesL = lens maxConcurrentBatches (\x y -> x { maxConcurrentBatches = y })
+maxConcurrentBatchesL = lens maxConcurrentBatches (\x y -> x {maxConcurrentBatches = y})
 
 pendingWorkCapacityL :: Lens' HoneyServerOptions Natural
-pendingWorkCapacityL = lens pendingWorkCapacity (\x y -> x { pendingWorkCapacity = y })
+pendingWorkCapacityL = lens pendingWorkCapacity (\x y -> x {pendingWorkCapacity = y})
 
 defaultMaxBatchSize :: Natural
 defaultMaxBatchSize = 50
 
 defaultBatchTimeout :: Int -- [todo] why is this not sendFrequency, Kenneth?
-defaultBatchTimeout = 100  -- 100 ms
+defaultBatchTimeout = 100 -- 100 ms
 
 defaultMaxConcurrentBatches :: Natural
 defaultMaxConcurrentBatches = 80
@@ -48,9 +52,9 @@ defaultPendingWorkCapacity = 10000
 
 defaultHoneyServerOptions :: HoneyServerOptions
 defaultHoneyServerOptions = HoneyServerOptions
-    { blockOnResponse = False
-    , maxBatchSize = defaultMaxBatchSize
-    , sendFrequency = defaultBatchTimeout
-    , maxConcurrentBatches = defaultMaxConcurrentBatches
-    , pendingWorkCapacity = defaultPendingWorkCapacity
-    }
+  { blockOnResponse = False,
+    maxBatchSize = defaultMaxBatchSize,
+    sendFrequency = defaultBatchTimeout,
+    maxConcurrentBatches = defaultMaxConcurrentBatches,
+    pendingWorkCapacity = defaultPendingWorkCapacity
+  }

@@ -1,16 +1,16 @@
 module Honeycomb.Core.Types
-  ( module Honeycomb.Api.Types.ApiKey
-  , module Honeycomb.Api.Types.Dataset
-  , module Honeycomb.Api.Types.HoneyObject
-  , module Honeycomb.Api.Types.HoneyValue
-  , module Honeycomb.Api.Types.RequestOptions
-  , module Honeycomb.Core.Types.Honey
-  , module Honeycomb.Core.Types.HoneyEvent
-  , module Honeycomb.Core.Types.HoneyException
-  , module Honeycomb.Core.Types.HoneyOptions
-  , module Honeycomb.Core.Types.HoneyResponse
-  , module Honeycomb.Core.Types.HoneyServerOptions
-  , module Honeycomb.Core.Types.TransportState
+  ( module Honeycomb.Api.Types.ApiKey,
+    module Honeycomb.Api.Types.Dataset,
+    module Honeycomb.Api.Types.HoneyObject,
+    module Honeycomb.Api.Types.HoneyValue,
+    module Honeycomb.Api.Types.RequestOptions,
+    module Honeycomb.Core.Types.Honey,
+    module Honeycomb.Core.Types.HoneyEvent,
+    module Honeycomb.Core.Types.HoneyException,
+    module Honeycomb.Core.Types.HoneyOptions,
+    module Honeycomb.Core.Types.HoneyResponse,
+    module Honeycomb.Core.Types.HoneyServerOptions,
+    module Honeycomb.Core.Types.TransportState,
   )
 where
 

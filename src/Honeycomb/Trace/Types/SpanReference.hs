@@ -1,6 +1,6 @@
 module Honeycomb.Trace.Types.SpanReference
-    ( SpanReference (..)
-    )
+  ( SpanReference (..),
+  )
 where
 
 import Honeycomb.Trace.Types.SpanId
@@ -9,7 +9,7 @@ import Honeycomb.Trace.Types.TraceId
 data SpanReference = SpanReference !TraceId !SpanId deriving (Eq, Show)
 
 instance HasTraceId SpanReference where
-    getTraceId (SpanReference tid _) = tid
+  getTraceId (SpanReference tid _) = tid
 
 instance HasSpanId SpanReference where
-    getSpanId (SpanReference _ sid) = sid
+  getSpanId (SpanReference _ sid) = sid

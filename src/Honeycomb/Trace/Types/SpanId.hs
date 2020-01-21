@@ -1,20 +1,19 @@
 module Honeycomb.Trace.Types.SpanId
-    ( SpanId (..)
-    , HasSpanId
-    , ToSpanId
-    , mkSpanId
-    , getSpanId
-    , toSpanId
-    )
+  ( SpanId (..),
+    HasSpanId,
+    ToSpanId,
+    mkSpanId,
+    getSpanId,
+    toSpanId,
+  )
 where
 
 import Control.Monad.Reader (MonadIO, liftIO)
 import Data.Coerce (coerce)
-import Honeycomb.Core.Types
-
 import qualified Data.Text as T
 import qualified Data.UUID as UUID
 import qualified Data.UUID.V4 as V4
+import Honeycomb.Core.Types
 
 newtype SpanId = SpanId T.Text deriving (Eq, Show)
 

@@ -1,20 +1,19 @@
 module Honeycomb.Trace.Types.TraceId
-    ( TraceId (..)
-    , HasTraceId
-    , ToTraceId
-    , mkTraceId
-    , toTraceId
-    , getTraceId
-    )
+  ( TraceId (..),
+    HasTraceId,
+    ToTraceId,
+    mkTraceId,
+    toTraceId,
+    getTraceId,
+  )
 where
 
 import Control.Monad.Reader (MonadIO, liftIO)
 import Data.Coerce (coerce)
-import Honeycomb.Core.Types
-
 import qualified Data.Text as T
 import qualified Data.UUID as UUID
 import qualified Data.UUID.V4 as V4
+import Honeycomb.Core.Types
 
 newtype TraceId = TraceId T.Text deriving (Eq, Show)
 
