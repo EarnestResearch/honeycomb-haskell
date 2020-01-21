@@ -1,10 +1,19 @@
-{ pkgs ? import <nixpkgs> {}, compiler ? "ghc865" }:
-
-with import <nixpkgs> {};
+{ pkgs ? import ./nixpkgs {} }:
 
 let
-  drv = haskellPackages.callPackage ./. { inherit pkgs compiler; };
+  hsPkgs = import ./default.nix { inherit pkgs; };
 in
-  drv.env.overrideAttrs (old: {
-    buildInputs = old.buildInputs ++ [ haskellPackages.ghcid cabal-install ];
-  })
+
+hsPkgs.shellFor {
+  packages = ps: with ps; [
+    honeycomb
+  ];
+
+  buildInputs = with pkgs; [
+    cabal-install
+    hlint
+    ormolu
+  ];
+
+  inherit (pkgs.earnestresearch.pre-commit-check) shellHook;
+}

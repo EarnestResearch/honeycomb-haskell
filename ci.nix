@@ -1,0 +1,3 @@
+with (import ./. {});
+
+honeycomb.checks
