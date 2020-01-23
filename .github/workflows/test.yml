@@ -8,4 +8,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - uses: cachix/install-nix-action@v6
-    - run: nix-build ./ci.nix
+    - uses: cachix/cachix-action@v3
+      with:
+        name: nix-tools
+        file: ci.nix
