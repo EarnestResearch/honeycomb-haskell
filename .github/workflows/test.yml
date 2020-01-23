@@ -10,5 +10,6 @@ jobs:
     - uses: cachix/install-nix-action@v6
     - uses: cachix/cachix-action@v3
       with:
-        name: nix-tools
+        name: earnestresearch-oss
+        signingKey: '${{ secrets.OSS_CACHIX_SIGNING_KEY }}'
         file: ci.nix
