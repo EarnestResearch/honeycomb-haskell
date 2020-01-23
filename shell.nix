@@ -5,15 +5,8 @@ let
 in
 
 hsPkgs.shellFor {
-  packages = ps: with ps; [
-    honeycomb
-  ];
-
-  buildInputs = with pkgs; [
-    cabal-install
-    hlint
-    ormolu
-  ];
+  buildInputs = [ pkgs.cabal-install ];
+  exactDeps = true;
 
   inherit (pkgs.earnestresearch.pre-commit-check) shellHook;
 }
