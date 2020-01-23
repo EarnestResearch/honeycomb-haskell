@@ -2,9 +2,13 @@ name: Test
 
 on: [pull_request, push]
 
+
 jobs:
   tests:
-    runs-on: [macos-latest, ubuntu-latest]
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v1
     - uses: cachix/install-nix-action@v6
