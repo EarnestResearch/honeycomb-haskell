@@ -16,7 +16,6 @@ import Honeycomb.Api.Events (sendEvents)
 import Honeycomb.Api.Types
 import Honeycomb.Core.Types
 import Lens.Micro ((^.))
-import qualified Network.HTTP.Client as Client
 import UnliftIO
 
 newTransport ::
@@ -52,8 +51,8 @@ readQueue :: forall m. MonadUnliftIO m => HoneyServerOptions m -> TransportState
 readQueue honeyServerOptions transportState closeQ = do
   (shouldStop, events) <- readFromQueueOrWait
   if shouldStop
-    then splitEvents honeyServerOptions events
-    else splitEvents honeyServerOptions events >> readQueue honeyServerOptions transportState closeQ
+    then sendEventsAndRespond honeyServerOptions events
+    else sendEventsAndRespond honeyServerOptions events >> readQueue honeyServerOptions transportState closeQ
   where
     readFromQueueOrWaitSTM :: TVar Bool -> STM (Bool, [(RequestOptions, Event)])
     readFromQueueOrWaitSTM timeoutAfter = do
@@ -75,25 +74,52 @@ readQueue honeyServerOptions transportState closeQ = do
       delay <- registerDelay $ (honeyServerOptions ^. sendFrequencyL) * 1000
       atomically $ readFromQueueOrWaitSTM delay
 
-sendGroup :: forall m. MonadUnliftIO m => HoneyServerOptions m -> RequestOptions -> [Event] -> m ()
-sendGroup honeyServerOptions requestOptions events = do
-  sendResult <- tryAny $ sendEvents (honeyServerOptions ^. httpLbsL) requestOptions events
-  respond sendResult
+-- | Sends a set of events, which have been grouped by `RequestOptions`.
+--
+-- For simplicity, if this fails to send all messages due to max size limits,
+-- it will keep trying until messages are sent
+sendEventGroupAndRespond ::
+  forall m.
+  MonadUnliftIO m =>
+  HoneyServerOptions m ->
+  RequestOptions ->
+  [Event] ->
+  m ()
+sendEventGroupAndRespond honeyServerOptions requestOptions reversedEvents =
+  if List.null reversedEvents
+    then pure ()
+    else sendEventGroupAndRespond' (List.reverse reversedEvents)
   where
-    -- [todo] dummy code
-    respond :: Either SomeException (Client.Response (Maybe [Integer])) -> m ()
-    respond (Left _) = pure ()
-    respond (Right _) = pure ()
+    sendEventGroupAndRespond' :: [Event] -> m ()
+    sendEventGroupAndRespond' events = do
+      sendResult <- tryAny $ sendEvents (honeyServerOptions ^. httpLbsL) requestOptions events
+      respondToEvents events sendResult
+      sendUnsentEvents $ unsentEvents <$> sendResult
+    respondToEvents :: [Event] -> Either SomeException SendEventsResponse -> m ()
+    respondToEvents _ _ = pure ()
+    sendUnsentEvents :: Either SomeException [Event] -> m ()
+    sendUnsentEvents (Right unsent) | List.null unsent = pure ()
+    sendUnsentEvents (Right unsent) = sendEventGroupAndRespond' unsent
+    sendUnsentEvents (Left _) = pure ()
 
-sendGroups :: MonadUnliftIO m => HoneyServerOptions m -> HM.HashMap RequestOptions [Event] -> m ()
-sendGroups honeyServerOptions groups = sequence_ $ HM.mapWithKey (sendGroup honeyServerOptions) groups
-
-splitEvents :: MonadUnliftIO m => HoneyServerOptions m -> [(RequestOptions, Event)] -> m ()
-splitEvents honeyServerOptions events =
-  sendGroups honeyServerOptions $ HM.fromListWith (++) (fmap toEntry events)
+-- | Send all events and return event status to status channel
+--
+-- This takes all events, and attempts to send them. For every event, a status
+-- message will be sent back to the status channel.
+sendEventsAndRespond ::
+  forall m.
+  MonadUnliftIO m =>
+  HoneyServerOptions m ->
+  -- | The list of events to be sent
+  [(RequestOptions, Event)] ->
+  m ()
+sendEventsAndRespond honeyServerOptions events =
+  sendEventGroupsAndRespond $ HM.fromListWith (flip (++)) (fmap toEntry events)
   where
+    sendEventGroupsAndRespond ::
+      HM.HashMap RequestOptions [Event] ->
+      m ()
+    sendEventGroupsAndRespond groups =
+      sequence_ $ HM.mapWithKey (sendEventGroupAndRespond honeyServerOptions) groups
     toEntry :: (RequestOptions, Event) -> (RequestOptions, [Event])
-    toEntry evt =
-      ( fst evt,
-        [snd evt]
-      )
+    toEntry evt = (fst evt, [snd evt])

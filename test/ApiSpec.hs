@@ -45,7 +45,7 @@ spec =
         jsons <- readIORef jsonsRef
         List.all isJust jsons `shouldBe` True
   where
-    sendEventsAndCheckJSON :: IORef [Maybe [Event]] -> [Event] -> IO (Client.Response (Maybe [Integer]))
+    sendEventsAndCheckJSON :: IORef [Maybe [Event]] -> [Event] -> IO SendEventsResponse
     sendEventsAndCheckJSON requestsRef =
       sendEvents (httpLbsJSONRequests requestsRef) requestOptions
     requestOptions :: RequestOptions
@@ -59,6 +59,8 @@ spec =
     httpLbsJSONRequests :: IORef [Maybe [Event]] -> Client.Request -> IO (Client.Response LBS.ByteString)
     httpLbsJSONRequests ref req = do
       case Client.requestBody req of
-        Client.RequestBodyLBS b -> modifyIORef ref (<> [JSON.decode b :: Maybe [Event]]) -- O(N^2) I know
-        _ -> pure ()
+        Client.RequestBodyLBS b ->
+          modifyIORef ref (<> [JSON.decode b :: Maybe [Event]])
+        _ ->
+          pure ()
       pure undefined

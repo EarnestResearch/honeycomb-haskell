@@ -77,6 +77,8 @@ library
       Honeycomb.Api.Types.HoneyObject
       Honeycomb.Api.Types.HoneyValue
       Honeycomb.Api.Types.RequestOptions
+      Honeycomb.Api.Types.SendEventsResponse
+      Honeycomb.Api.Types.SendEventsServerReply
       Honeycomb.Trace
       Honeycomb.Trace.Types
       Honeycomb.Trace.Types.ServiceName

@@ -6,6 +6,8 @@ module Honeycomb.Api.Types
     module Honeycomb.Api.Types.HoneyObject,
     module Honeycomb.Api.Types.HoneyValue,
     module Honeycomb.Api.Types.RequestOptions,
+    module Honeycomb.Api.Types.SendEventsResponse,
+    module Honeycomb.Api.Types.SendEventsServerReply,
   )
 where
 
@@ -16,3 +18,5 @@ import Honeycomb.Api.Types.Event
 import Honeycomb.Api.Types.HoneyObject
 import Honeycomb.Api.Types.HoneyValue
 import Honeycomb.Api.Types.RequestOptions
+import Honeycomb.Api.Types.SendEventsResponse
+import Honeycomb.Api.Types.SendEventsServerReply
