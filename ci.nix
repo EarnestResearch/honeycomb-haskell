@@ -1,3 +1,4 @@
 with (import ./. {});
 
-honeycomb.checks
+# TODO: Add tests, for now just build the library
+honeycomb.components.library
