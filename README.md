@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/EarnestResearch/libhoney-hs.svg?branch=master)](https://travis-ci.org/EarnestResearch/libhoney-hs)
+[![Build Status](https://github.com/EarnestResearch/honeycomb-haskell/workflows/Test/badge.svg)
 
 # libhoney-hs
 Honeycomb client library for Haskell
