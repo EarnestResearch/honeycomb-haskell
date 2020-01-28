@@ -19,7 +19,6 @@ data TransportState
         transportResponseQueue :: !(TBQueue HoneyResponse),
         transportFlushQueue :: !(TBQueue (TMVar ())) -- do not expect a reply if library has shut down
       }
-  deriving (Eq)
 
 transportSendQueueL :: Lens' TransportState (TBQueue (Api.RequestOptions, Api.Event))
 transportSendQueueL = lens transportSendQueue (\x y -> x {transportSendQueue = y})
@@ -30,7 +29,7 @@ transportResponseQueueL = lens transportResponseQueue (\x y -> x {transportRespo
 transportFlushQueueL :: Lens' TransportState (TBQueue (TMVar ()))
 transportFlushQueueL = lens transportFlushQueue (\x y -> x {transportFlushQueue = y})
 
-mkTransportState :: MonadIO m => Natural -> Natural -> m TransportState
+mkTransportState :: MonadUnliftIO m => Natural -> Natural -> m TransportState
 mkTransportState maxSendQueueSize maxResponseQueueSize =
   TransportState
     <$> newTBQueueIO maxSendQueueSize

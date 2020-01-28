@@ -17,7 +17,7 @@ data Honey
       { honeyOptions :: !HoneyOptions,
         honeyTransportState :: !TransportState
       }
-  deriving (Eq, Show)
+  deriving (Show)
 
 honeyOptionsL :: Lens' Honey HoneyOptions
 honeyOptionsL = lens honeyOptions (\x y -> x {honeyOptions = y})

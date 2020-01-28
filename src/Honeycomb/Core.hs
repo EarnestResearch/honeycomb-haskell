@@ -63,10 +63,9 @@ newHoney ::
   ( MonadUnliftIO n,
     MonadIO m
   ) =>
-  -- | Options for how event handling is performed
-  HoneyServerOptions ->
   n (Honey, m ())
-newHoney honeyServerOptions = do
+newHoney = do
+  honeyServerOptions <- defaultHoneyServerOptions
   honeyOptions <- honeyOptionsFromEnv
   (transportState, shutdown) <- newTransport honeyServerOptions
   pure (mkHoney honeyOptions transportState, shutdown)
@@ -81,7 +80,7 @@ newHoney' ::
     MonadIO m
   ) =>
   -- | Options for how event handling is performed
-  HoneyServerOptions ->
+  HoneyServerOptions n ->
   -- | Options for client library behaviour
   HoneyOptions ->
   n (Honey, m ())
@@ -98,14 +97,12 @@ newHoney' honeyServerOptions honeyOptions = do
 -- options manually, use {{withHoney'}} or {{withHoneyOptions}}
 withHoney ::
   MonadUnliftIO m =>
-  -- | Options for how event handling is performed
-  HoneyServerOptions ->
   -- | The program to run
   (Honey -> m a) ->
   m a
-withHoney honeyServerOptions inner = withRunInIO $ \run ->
+withHoney inner = withRunInIO $ \run ->
   bracket
-    (newHoney honeyServerOptions)
+    newHoney
     snd
     (run . inner . fst)
 
@@ -116,17 +113,17 @@ withHoney honeyServerOptions inner = withRunInIO $ \run ->
 withHoney' ::
   MonadUnliftIO m =>
   -- | Options for how event handling is performed
-  HoneyServerOptions ->
+  HoneyServerOptions m ->
   -- | Options for client library behaviour
   HoneyOptions ->
   -- | The program to run
   (Honey -> m a) ->
   m a
-withHoney' honeyServerOptions honeyOptions inner = withRunInIO $ \run ->
+withHoney' honeyServerOptions honeyOptions inner =
   bracket
     (newHoney' honeyServerOptions honeyOptions)
     snd
-    (run . inner . fst)
+    (inner . fst)
 
 -- | Modifies the HoneyOptions value for the provided program.
 --

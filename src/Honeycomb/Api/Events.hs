@@ -7,6 +7,7 @@ where
 
 import Control.Monad.Reader (MonadIO, liftIO)
 import qualified Data.Aeson as JSON
+import qualified Data.ByteString.Lazy as LBS
 import Data.Coerce (coerce)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
@@ -18,13 +19,13 @@ import Network.URI (normalizeEscape)
 
 sendEvents ::
   MonadIO m =>
-  Client.Manager ->
+  (Client.Request -> m (Client.Response LBS.ByteString)) ->
   RequestOptions ->
   [Event] ->
   m (Client.Response (Maybe [Integer]))
-sendEvents manager requestOptions events = do
+sendEvents httpLbs requestOptions events = do
   initReq <- liftIO $ Client.parseRequest batchUri
-  response <- liftIO $ Client.httpLbs (newReq initReq) manager
+  response <- httpLbs $ newReq initReq
   pure $ JSON.decode' <$> response
   where
     newReq :: Client.Request -> Client.Request
