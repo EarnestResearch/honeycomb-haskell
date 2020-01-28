@@ -1,4 +1,4 @@
-cabal-version:  1.12
+cabal-version:  2.2
 
 name:           honeycomb
 version:        0.1.0.0
@@ -19,7 +19,52 @@ source-repository head
   type: git
   location: https://github.com/EarnestResearch/honeycomb-haskell
 
+common shared-properties
+  default-language: Haskell2010
+  build-depends:
+      base == 4.*
+  ghc-options:
+      -Wall
+      -Wcompat
+      -Widentities
+      -Wincomplete-record-updates
+      -Wincomplete-uni-patterns
+      -Wpartial-fields
+      -Wredundant-constraints
+      -fhide-source-paths
+  other-extensions:
+      FlexibleInstances
+      GeneralizedNewtypeDeriving
+      NamedFieldPuns
+      OverloadedStrings
+      ScopedTypeVariables
+      DeriveGeneric
+      DeriveAnyClass
+      TupleSections
+  build-depends:
+      aeson
+    , base >=4.11 && <10
+    , bytestring
+    , hashable
+    , http-client
+    , http-client-tls
+    , http-types
+    , microlens
+    , microlens-mtl
+    , mtl
+    , network-uri
+    , random
+    , scientific
+    , stm
+    , text
+    , time
+    , unliftio
+    , unordered-containers
+    , uuid
+
 library
+  import:
+      shared-properties
   exposed-modules:
       Honeycomb
       Honeycomb.Api
@@ -54,27 +99,14 @@ library
       Paths_honeycomb
   hs-source-dirs:
       src
-  other-extensions:
-      FlexibleInstances GeneralizedNewtypeDeriving NamedFieldPuns OverloadedStrings ScopedTypeVariables DeriveGeneric DeriveAnyClass TupleSections
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wpartial-fields -Wredundant-constraints -fhide-source-paths
+
+test-suite tests
+  import: shared-properties
+  type: exitcode-stdio-1.0
+  main-is:
+      Main.hs
   build-depends:
-      aeson
-    , base >=4.11 && <10
-    , bytestring
-    , hashable
-    , http-client
-    , http-client-tls
-    , http-types
-    , microlens
-    , microlens-mtl
-    , mtl
-    , network-uri
-    , random
-    , scientific
-    , stm
-    , text
-    , time
-    , unliftio
-    , unordered-containers
-    , uuid
-  default-language: Haskell2010
+      honeycomb
+  hs-source-dirs:
+      test
+
