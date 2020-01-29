@@ -41,7 +41,7 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
   {
     flags = {};
     package = {
-      specVersion = "1.12";
+      specVersion = "2.2";
       identifier = { name = "honeycomb"; version = "0.1.0.0"; };
       license = "Apache-2.0";
       copyright = "2019 Earnest Research";
@@ -64,6 +64,7 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
     components = {
       "library" = {
         depends = [
+          (hsPkgs."base" or (buildDepError "base"))
           (hsPkgs."aeson" or (buildDepError "aeson"))
           (hsPkgs."base" or (buildDepError "base"))
           (hsPkgs."bytestring" or (buildDepError "bytestring"))
@@ -118,6 +119,42 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
           "Honeycomb/Core/Types/TransportState"
           ];
         hsSourceDirs = [ "src" ];
+        };
+      tests = {
+        "tests" = {
+          depends = [
+            (hsPkgs."base" or (buildDepError "base"))
+            (hsPkgs."aeson" or (buildDepError "aeson"))
+            (hsPkgs."base" or (buildDepError "base"))
+            (hsPkgs."bytestring" or (buildDepError "bytestring"))
+            (hsPkgs."hashable" or (buildDepError "hashable"))
+            (hsPkgs."http-client" or (buildDepError "http-client"))
+            (hsPkgs."http-client-tls" or (buildDepError "http-client-tls"))
+            (hsPkgs."http-types" or (buildDepError "http-types"))
+            (hsPkgs."microlens" or (buildDepError "microlens"))
+            (hsPkgs."microlens-mtl" or (buildDepError "microlens-mtl"))
+            (hsPkgs."mtl" or (buildDepError "mtl"))
+            (hsPkgs."network-uri" or (buildDepError "network-uri"))
+            (hsPkgs."random" or (buildDepError "random"))
+            (hsPkgs."scientific" or (buildDepError "scientific"))
+            (hsPkgs."stm" or (buildDepError "stm"))
+            (hsPkgs."text" or (buildDepError "text"))
+            (hsPkgs."time" or (buildDepError "time"))
+            (hsPkgs."unliftio" or (buildDepError "unliftio"))
+            (hsPkgs."unordered-containers" or (buildDepError "unordered-containers"))
+            (hsPkgs."uuid" or (buildDepError "uuid"))
+            (hsPkgs."honeycomb" or (buildDepError "honeycomb"))
+            (hsPkgs."hspec" or (buildDepError "hspec"))
+            (hsPkgs."hspec-discover" or (buildDepError "hspec-discover"))
+            ];
+          build-tools = [
+            (hsPkgs.buildPackages.hspec-discover or (pkgs.buildPackages.hspec-discover or (buildToolDepError "hspec-discover")))
+            ];
+          buildable = true;
+          modules = [ "ApiSpec" ];
+          hsSourceDirs = [ "test" ];
+          mainPath = [ "Spec.hs" ];
+          };
         };
       };
     } // rec { src = (pkgs.lib).mkDefault ../.; }

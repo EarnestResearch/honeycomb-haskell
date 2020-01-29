@@ -9,7 +9,7 @@ module Honeycomb.Api.Types.Event
   )
 where
 
-import Data.Aeson ((.=))
+import Data.Aeson ((.:), (.=))
 import qualified Data.Aeson as JSON
 import Data.Time (UTCTime)
 import Honeycomb.Api.Types.HoneyObject
@@ -43,3 +43,10 @@ instance JSON.ToJSON Event where
         "time" .= (event ^. eventTimestampL),
         "samplerate" .= (event ^. eventSampleRateL)
       ]
+
+instance JSON.FromJSON Event where
+  parseJSON = JSON.withObject "Event" $ \v ->
+    Event
+      <$> v .: "data"
+      <*> v .: "time"
+      <*> v .: "samplerate"
