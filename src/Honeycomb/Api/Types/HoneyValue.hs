@@ -8,6 +8,7 @@ module Honeycomb.Api.Types.HoneyValue
 where
 
 import qualified Data.Aeson as JSON
+import Data.Aeson.Types (prependFailure, typeMismatch)
 import Data.Scientific (Scientific, fromFloatDigits)
 import Data.String (IsString, fromString)
 import qualified Data.Text as T
@@ -69,3 +70,13 @@ instance JSON.ToJSON HoneyValue where
   toJSON (HoneyString s) = JSON.String s
   toJSON (HoneyNumber n) = JSON.Number n
   toJSON (HoneyBool b) = JSON.Bool b
+
+instance JSON.FromJSON HoneyValue where
+  parseJSON JSON.Null = pure HoneyNull
+  parseJSON (JSON.String s) = pure $ HoneyString s
+  parseJSON (JSON.Number n) = pure $ HoneyNumber n
+  parseJSON (JSON.Bool b) = pure $ HoneyBool b
+  parseJSON invalid@(JSON.Array _) =
+    prependFailure "parsing HoneyValue failed, " (typeMismatch "Array" invalid)
+  parseJSON invalid@(JSON.Object _) =
+    prependFailure "parsing HoneyValue failed, " (typeMismatch "Object" invalid)

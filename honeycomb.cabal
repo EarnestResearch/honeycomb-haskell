@@ -104,9 +104,15 @@ test-suite tests
   import: shared-properties
   type: exitcode-stdio-1.0
   main-is:
-      Main.hs
+      Spec.hs
   build-depends:
       honeycomb
+    , hspec
+    , hspec-discover
+  build-tool-depends:
+      hspec-discover:hspec-discover
+  other-modules:
+      ApiSpec
   hs-source-dirs:
       test
 
