@@ -7,6 +7,6 @@ pkgs.haskell-nix.cabalProject {
   index-state = "2020-01-15T00:00:00Z";
 
   # update everything below if cabal plan changes
-  #plan-sha256 = "1sxq32damvz5r0kn40nwzibh82y12b9165q39yg5q2rkayql7szj";
-  #materialized = ./materialized;
+  plan-sha256 = "1sxq32damvz5r0kn40nwzibh82y12b9165q39yg5q2rkayql7szj";
+  materialized = ./materialized;
 }
