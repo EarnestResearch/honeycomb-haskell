@@ -4,13 +4,14 @@ module ApiSpec where
 
 import qualified Data.Aeson as JSON
 import qualified Data.ByteString.Lazy as LBS
+import Data.Either (isLeft, isRight)
 import qualified Data.HashMap.Strict as HM
-import Data.IORef
 import qualified Data.List as List
 import Data.Maybe (isJust)
 import Honeycomb.Api
 import qualified Network.HTTP.Client as Client
 import Test.Hspec
+import UnliftIO
 
 spec :: Spec
 spec =
@@ -44,6 +45,32 @@ spec =
         _ <- sendEventsAndCheckJSON jsonsRef [newEvent, newEvent]
         jsons <- readIORef jsonsRef
         List.all isJust jsons `shouldBe` True
+    context "when request always results in response timeout"
+      $ it "makes two calls before failure"
+      $ do
+        numCallsRef <- newIORef (0 :: Int)
+        result <-
+          tryAny $
+            sendEvents
+              (httpLbsCallCountOnError numCallsRef (\_ req -> Left $ Client.HttpExceptionRequest req Client.ResponseTimeout))
+              requestOptions
+              [newEvent]
+        numCalls <- readIORef numCallsRef
+        numCalls `shouldBe` 2
+        isLeft result `shouldBe` True
+    context "when request results in response timeout first time"
+      $ it "makes two calls before success"
+      $ do
+        numCallsRef <- newIORef (0 :: Int)
+        result <-
+          tryAny $
+            sendEvents
+              (httpLbsCallCountOnError numCallsRef (\num req -> if num == 1 then Left $ Client.HttpExceptionRequest req Client.ResponseTimeout else Right undefined))
+              requestOptions
+              [newEvent]
+        numCalls <- readIORef numCallsRef
+        numCalls `shouldBe` 2
+        isRight result `shouldBe` True
   where
     sendEventsAndCheckJSON :: IORef [Maybe [Event]] -> [Event] -> IO SendEventsResponse
     sendEventsAndCheckJSON requestsRef =
@@ -52,6 +79,12 @@ spec =
     requestOptions = mkRequestOptions (ApiHost "https://api.honeycomb.io/") (Dataset "") (ApiKey "")
     newEvent :: Event
     newEvent = mkEvent (HM.singleton "key" "value") Nothing Nothing
+    httpLbsCallCountOnError :: IORef Int -> (Int -> Client.Request -> Either Client.HttpException (Client.Response LBS.ByteString)) -> Client.Request -> IO (Client.Response LBS.ByteString)
+    httpLbsCallCountOnError ref makeResponse req = do
+      modifyIORef ref (+ 1)
+      curVal <- readIORef ref
+      let result = makeResponse curVal req
+      either throwIO pure result
     httpLbsCallCount :: IORef Int -> Client.Request -> IO (Client.Response LBS.ByteString)
     httpLbsCallCount ref _ = do
       modifyIORef ref (+ 1)
