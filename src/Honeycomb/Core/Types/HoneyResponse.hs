@@ -1,35 +1,30 @@
+{-# LANGUAGE RankNTypes #-}
+
 module Honeycomb.Core.Types.HoneyResponse
   ( HoneyResponse (..),
+    honeyResponseMetadataL,
     honeyResponseStatusCodeL,
-    honeyResponseBodyL,
-    honeyResponseDurationL,
     honeyResponseErrorL,
   )
 where
 
-import qualified Data.ByteString as BS
+import Data.Dynamic (Dynamic)
 import qualified Data.Text as T
-import Data.Time.Clock (NominalDiffTime)
 import Lens.Micro (Lens', lens)
 
 data HoneyResponse
   = HoneyResponse
-      { honeyResponseMetadata :: (),
-        honeyResponseStatusCode :: !Int,
-        honeyResponseBody :: !BS.ByteString,
-        honeyResponseDuration :: !NominalDiffTime,
+      { honeyResponseMetadata :: !(Maybe Dynamic),
+        honeyResponseStatusCode :: !(Maybe Int),
         honeyResponseError :: !(Maybe T.Text)
       }
-  deriving (Eq, Show)
+  deriving (Show)
 
-honeyResponseStatusCodeL :: Lens' HoneyResponse Int
+honeyResponseMetadataL :: Lens' HoneyResponse (Maybe Dynamic)
+honeyResponseMetadataL = lens honeyResponseMetadata (\x y -> x {honeyResponseMetadata = y})
+
+honeyResponseStatusCodeL :: Lens' HoneyResponse (Maybe Int)
 honeyResponseStatusCodeL = lens honeyResponseStatusCode (\x y -> x {honeyResponseStatusCode = y})
-
-honeyResponseBodyL :: Lens' HoneyResponse BS.ByteString
-honeyResponseBodyL = lens honeyResponseBody (\x y -> x {honeyResponseBody = y})
-
-honeyResponseDurationL :: Lens' HoneyResponse NominalDiffTime
-honeyResponseDurationL = lens honeyResponseDuration (\x y -> x {honeyResponseDuration = y})
 
 honeyResponseErrorL :: Lens' HoneyResponse (Maybe T.Text)
 honeyResponseErrorL = lens honeyResponseError (\x y -> x {honeyResponseError = y})

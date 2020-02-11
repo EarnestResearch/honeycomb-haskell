@@ -31,7 +31,9 @@ instance Monoid HoneyObject where
 instance Semigroup HoneyObject where
   (<>) m1 m2 = HoneyObject $ HM.union (coerce m1) (coerce m2)
 
+-- | Instances of this class represent the ability to turn values of the corresponding type into Honeycomb objects.
 class ToHoneyObject a where
+  -- | Converts the value into a "HoneyObject" Honeycomb object.
   toHoneyObject :: a -> HoneyObject
 
 instance ToHoneyObject HoneyObject where

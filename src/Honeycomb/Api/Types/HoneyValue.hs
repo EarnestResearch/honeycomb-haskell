@@ -30,7 +30,13 @@ data HoneyValue
   | HoneyBool !Bool
   deriving (Eq, Show)
 
+-- | Converter for creating a "HoneyValue" value out of other types
+--
+-- If a typeclass exists for a particular type, the implementation
+-- will define how to convert that type into a "HoneyValue", a
+-- value supported by Honeycomb.
 class ToHoneyValue a where
+  -- | Converts the value into a "HoneyValue" Honeycomb value.
   toHoneyValue :: a -> HoneyValue
 
 instance ToHoneyValue HoneyValue where

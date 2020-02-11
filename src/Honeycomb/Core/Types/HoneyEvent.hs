@@ -5,12 +5,14 @@ module Honeycomb.Core.Types.HoneyEvent
     mkHoneyEvent,
     mkHoneyEvent',
     eventTimestampL,
+    eventMetadataL,
     eventFieldsL,
     eventOptionsL,
   )
 where
 
 import Control.Monad.Reader (MonadIO, liftIO)
+import Data.Dynamic (Dynamic)
 import Data.Time.Clock (UTCTime, getCurrentTime)
 import qualified Honeycomb.Api as Api
 import Honeycomb.Core.Types.HoneyOptions
@@ -21,15 +23,18 @@ data HoneyEvent
   = HoneyEvent
       { eventTimestamp :: !UTCTime,
         eventOptions :: !HoneyOptions,
+        eventMetadata :: !(Maybe Dynamic),
         eventFields :: !(TVar Api.HoneyObject)
       }
-  deriving (Eq)
 
 eventTimestampL :: Lens' HoneyEvent UTCTime
 eventTimestampL = lens eventTimestamp (\x y -> x {eventTimestamp = y})
 
 eventOptionsL :: Lens' HoneyEvent HoneyOptions
 eventOptionsL = lens eventOptions (\x y -> x {eventOptions = y})
+
+eventMetadataL :: Lens' HoneyEvent (Maybe Dynamic)
+eventMetadataL = lens eventMetadata (\x y -> x {eventMetadata = y})
 
 eventFieldsL :: Lens' HoneyEvent (TVar Api.HoneyObject)
 eventFieldsL = lens eventFields (\x y -> x {eventFields = y})
@@ -45,6 +50,7 @@ mkHoneyEvent' eventTimestamp eventOptions = do
   pure HoneyEvent
     { eventTimestamp,
       eventOptions,
+      eventMetadata = Nothing,
       eventFields
     }
 
@@ -55,5 +61,6 @@ instance Show HoneyEvent where
       ++ show (eventTimestamp e)
       ++ ", eventOptions = "
       ++ show (eventOptions e)
+      ++ ", eventMetadata = {Metadata}"
       ++ ", eventFields = <TVar HoneyFields>"
       ++ "}"

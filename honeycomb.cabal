@@ -93,7 +93,8 @@ library
         Honeycomb.Core.Types.HoneyOptions
         Honeycomb.Core.Types.HoneyResponse
         Honeycomb.Core.Types.HoneyServerOptions
-        Honeycomb.Core.Types.TransportState
+        Honeycomb.Core.Internal.Types.TransportState
+        Honeycomb.Core.Internal.Types
         Honeycomb.Trace.Types
         Honeycomb.Trace.Types.ServiceName
         Honeycomb.Trace.Types.SpanContext
@@ -108,13 +109,18 @@ library
 
 test-suite tests
     import: shared-properties
+    ghc-options: -threaded
     type: exitcode-stdio-1.0
     main-is:
         Spec.hs
     build-depends:
         honeycomb
       , hspec
+      , rio >= 0.1.12.0
     other-modules:
+        Clients
         ApiSpec
+        HoneycombSpec
+        TraceSpec
     hs-source-dirs:
         test
