@@ -5,7 +5,6 @@ module Honeycomb.Api.Events
   )
 where
 
-import Control.Monad.Reader (MonadIO, liftIO)
 import qualified Data.Aeson as JSON
 import qualified Data.ByteString.Lazy as LBS
 import Data.Coerce (coerce)
@@ -17,6 +16,7 @@ import Lens.Micro ((^.))
 import qualified Network.HTTP.Client as Client
 import Network.HTTP.Types.Header (RequestHeaders)
 import Network.URI (normalizeEscape)
+import UnliftIO
 
 maxEntryLength :: Int64
 maxEntryLength = 100000
@@ -25,15 +25,21 @@ maxBodyLength :: Int64
 maxBodyLength = 5000000
 
 sendEvents ::
-  MonadIO m =>
+  MonadUnliftIO m =>
   (Client.Request -> m (Client.Response LBS.ByteString)) ->
   RequestOptions ->
   [Event] ->
   m SendEventsResponse
 sendEvents httpLbs requestOptions events = do
-  initReq <- liftIO $ Client.parseRequest batchUri
+  req <- liftIO $ newReq <$> Client.parseRequest batchUri
   let (unsent, dropped, body) = createBodyFromEvents True events [] "[" 1
-  response <- httpLbs $ newReq initReq $ body <> "]"
+      reqWithBody = req body
+  responseOrError <- try $ httpLbs reqWithBody
+  response <- case responseOrError of
+    Left (Client.HttpExceptionRequest _ Client.ConnectionTimeout) -> httpLbs reqWithBody
+    Left (Client.HttpExceptionRequest _ Client.ResponseTimeout) -> httpLbs reqWithBody
+    Left e -> throwIO e
+    Right result -> pure result
   pure SendEventsResponse
     { unsentEvents = unsent,
       oversizedEvents = dropped,
@@ -43,7 +49,7 @@ sendEvents httpLbs requestOptions events = do
     createBodyFromEvents :: Bool -> [Event] -> [Event] -> LBS.ByteString -> Int64 -> ([Event], [Event], LBS.ByteString)
     createBodyFromEvents isFirst toSend dropped bs bsLength =
       case toSend of
-        [] -> ([], dropped, bs)
+        [] -> ([], dropped, bs <> "]")
         l@(hd : tl) ->
           let newEncoded = JSON.encode hd
               newEncodedLength = LBS.length newEncoded
@@ -59,7 +65,7 @@ sendEvents httpLbs requestOptions events = do
                 then createBodyFromEvents isFirst tl (hd : dropped) bs bsLength
                 else
                   if newBSLength + 1 >= maxBodyLength
-                    then (l, dropped, bs)
+                    then (l, dropped, bs <> "]")
                     else createBodyFromEvents False tl dropped newBS newBSLength
     newReq :: Client.Request -> LBS.ByteString -> Client.Request
     newReq initReq body =
