@@ -38,8 +38,8 @@ module Honeycomb
 where
 
 import Control.Monad.Reader (MonadReader)
+import Data.Coerce (coerce)
 import qualified Data.HashMap.Strict as HM
-import qualified Data.List as List
 import qualified Data.Text as T
 import qualified Honeycomb.Api as Api
 import Honeycomb.Core
@@ -118,7 +118,7 @@ addField ::
   HoneyEvent ->
   m ()
 addField k v evt =
-  atomically $ modifyTVar' (evt ^. eventFieldsL) $ HM.insert k (toHoneyValue v)
+  atomically $ modifyTVar' (evt ^. eventFieldsL) $ \e -> coerce $ HM.insert k (toHoneyValue v) $ coerce e
 
 -- | Adds multiple fields to the event.
 --
@@ -136,7 +136,7 @@ add ::
   HoneyEvent ->
   m ()
 add fields evt =
-  atomically $ modifyTVar' (evt ^. eventFieldsL) (toHoneyObject fields `HM.union`)
+  atomically $ modifyTVar' (evt ^. eventFieldsL) (toHoneyObject fields <>)
 
 -- | Queues the event for sending to the Honeycomb service.
 --
@@ -153,7 +153,7 @@ send ::
   -- | The event to be sent
   HoneyEvent ->
   m ()
-send = send' (HM.empty :: HoneyObject)
+send = send' (mempty :: HoneyObject)
 
 -- | Queues the event for sending to the Honeycomb service.
 --
@@ -196,7 +196,7 @@ send' extraFields event = do
     toApiEvent :: m Api.Event
     toApiEvent = do
       eventFields <- readTVarIO (event ^. eventFieldsL)
-      let finalFields = HM.union (toHoneyObject extraFields) eventFields
+      let finalFields = toHoneyObject extraFields <> eventFields
       pure $
         Api.mkEvent
           finalFields
@@ -204,7 +204,7 @@ send' extraFields event = do
           (event ^. eventOptionsL . sampleRateL . to Just)
     sendApiEvent :: Bool -> RequestOptions -> Api.Event -> m ()
     sendApiEvent shouldSample requestOpts apiEvent = do
-      if List.null $ apiEvent ^. Api.eventFieldsL
+      if HM.null (coerce (apiEvent ^. Api.eventFieldsL) :: HM.HashMap T.Text HoneyValue)
         then throwIO EmptyEventData
         else pure ()
       ctx <- view honeyL

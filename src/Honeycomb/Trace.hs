@@ -25,6 +25,7 @@ module Honeycomb.Trace
 where
 
 import Control.Monad.Reader (MonadIO, MonadReader, ask, local)
+import Data.Coerce (coerce)
 import qualified Data.HashMap.Strict as HM
 import qualified Data.HashSet as HS
 import Data.Maybe (catMaybes, fromJust)
@@ -84,17 +85,19 @@ finishTrace f inner = do
       start = event ^. eventTimestampL
       duration = toHoneyValue $ diffUTCTime end start
       extraFields =
-        HM.fromList
-          ( catMaybes
-              [ Just ("duration_ms", toHoneyValue duration),
-                Just ("service_name", toHoneyValue $ ctx ^. serviceNameL),
-                Just ("trace.trace_id", toHoneyValue $ getTraceId ctx),
-                Just ("trace.span_id", toHoneyValue $ getSpanId ctx),
-                (\e -> ("trace.parent_id", toHoneyValue e)) <$> parentSpanId ctx,
-                Just ("name", toHoneyValue $ spanName ctx)
-              ]
+        HoneyObject
+          ( HM.fromList
+              ( catMaybes
+                  [ Just ("duration_ms", toHoneyValue duration),
+                    Just ("service_name", toHoneyValue $ ctx ^. serviceNameL),
+                    Just ("trace.trace_id", toHoneyValue $ getTraceId ctx),
+                    Just ("trace.span_id", toHoneyValue $ getSpanId ctx),
+                    (\e -> ("trace.parent_id", toHoneyValue e)) <$> parentSpanId ctx,
+                    Just ("name", toHoneyValue $ spanName ctx)
+                  ]
+              )
           )
-          `HM.union` f result
+          <> f result
   send' extraFields event >> fromEither result
 
 localTrace ::
@@ -134,7 +137,7 @@ withNewRootSpan ::
 withNewRootSpan serviceName spanName parentSpanRef f inner =
   case parentSpanRef of
     Just parentSpan -> do
-      newContext <- createChildSpanContext parentSpan serviceName spanName HS.empty HM.empty
+      newContext <- createChildSpanContext parentSpan serviceName spanName HS.empty mempty
       localTrace newContext f inner
     Nothing -> do
       newContext <- createRootSpanContext serviceName spanName
@@ -188,10 +191,12 @@ withNewSpan spanName f inner = do
           serviceName = oldCtx ^. serviceNameL
       inheritedFields <-
         if HS.null inheritableFields
-          then pure HM.empty
+          then pure mempty
           else
-            HM.filterWithKey (\k _ -> HS.member k inheritableFields)
-              <$> readTVarIO (oldCtx ^. spanEventL . eventFieldsL)
+            HoneyObject
+              <$> ( HM.filterWithKey (\k _ -> HS.member k inheritableFields)
+                      <$> (coerce <$> readTVarIO (oldCtx ^. spanEventL . eventFieldsL))
+                  )
       newContext <- createChildSpanContext spanReference serviceName spanName inheritableFields inheritedFields
       localTrace newContext f inner
 

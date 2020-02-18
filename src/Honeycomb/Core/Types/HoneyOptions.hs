@@ -13,7 +13,6 @@ module Honeycomb.Core.Types.HoneyOptions
   )
 where
 
-import qualified Data.HashMap.Strict as HM
 import Honeycomb.Api.Types.ApiHost
 import Honeycomb.Api.Types.ApiKey
 import Honeycomb.Api.Types.Dataset
@@ -60,7 +59,7 @@ defaultHoneyOptions = HoneyOptions
     dataset = Nothing,
     sampleRate = 1,
     apiHost = "https://api.honeycomb.io/",
-    defaultFields = HM.empty,
+    defaultFields = mempty,
     blockOnSend = False,
     disabled = False
   }
