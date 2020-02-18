@@ -74,6 +74,15 @@ import UnliftIO
 -- >
 -- > instance HC.HasHoney App where
 -- >     HC.honeyL = lens appHoney (\x y -> x { appHoney = y })
+--
+-- It is less obvious how to give a general example for creating
+-- spans, because it depends on the kind of code you are integrating
+-- with.
+--
+-- For a HTTP service, you will usually put a 'withNewRootSpan'
+-- or 'withNewRootSpan'' call in a place where it will be invoked on
+-- every call into the service, and will encompass the vast majority
+-- of time spent working on the call.
 
 finishTrace ::
   ( MonadUnliftIO m,
@@ -120,10 +129,14 @@ localTrace ::
 localTrace context f inner =
   finishTrace f inner & local (over spanContextL (const $ Just context))
 
--- | Starts a new root span.
+-- | Starts a new root span (reporting on results or error).
 --
--- This runs the supplied program in a new root span (i.e. no parent span). If an existing
--- span exists, it will be ignored.
+-- This runs the supplied program in a new root span (i.e. no parent span wihin the current
+-- process). If an existing span exists, it will be ignored. This call may cause a new trace to
+-- be created, or it may continue an existing trace from a different service.
+--
+-- There is also a function which can cause additional fields to be added to the reported event,
+-- which depends on the exception or result of the call.
 withNewRootSpan ::
   ( MonadUnliftIO m,
     MonadReader env m,
@@ -150,6 +163,11 @@ withNewRootSpan serviceName spanName parentSpanRef f inner =
       newContext <- createRootSpanContext serviceName spanName
       localTrace newContext f inner
 
+-- | Starts a new root span (without reporting on results or error).
+--
+-- This runs the supplied program in a new root span (i.e. no parent span wihin the current
+-- process). If an existing span exists, it will be ignored. This call may cause a new trace to
+-- be created, or it may continue an existing trace from a different service.
 withNewRootSpan' ::
   ( MonadUnliftIO m,
     MonadReader env m,
@@ -168,13 +186,16 @@ withNewRootSpan' ::
 withNewRootSpan' serviceName spanName spanRef =
   withNewRootSpan serviceName spanName spanRef (const mempty)
 
--- | Starts a new child span.
+-- | Starts a new child span (reporting on results or error).
 --
 -- This runs the supplied program in a new child span.
 -- If an existing span exists, that will be marked as
 -- the new span's parent. If there is no existing span, the
 -- program is unchanged (i.e creating a trace must be
 -- explicit).
+--
+-- There is also a function which can cause additional fields to be added to the reported event,
+-- which depends on the exception or result of the call.
 withNewSpan ::
   ( MonadUnliftIO m,
     MonadReader env m,
@@ -207,6 +228,13 @@ withNewSpan spanName f inner = do
       newContext <- createChildSpanContext spanReference serviceName spanName inheritableFields inheritedFields
       localTrace newContext f inner
 
+-- | Starts a new child span (without reporting on results or error).
+--
+-- This runs the supplied program in a new child span.
+-- If an existing span exists, that will be marked as
+-- the new span's parent. If there is no existing span, the
+-- program is unchanged (i.e creating a trace must be
+-- explicit).
 withNewSpan' ::
   ( MonadUnliftIO m,
     MonadReader env m,
