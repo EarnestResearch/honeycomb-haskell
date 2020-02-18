@@ -2,10 +2,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Honeycomb.Trace
-  ( module Honeycomb.Core,
-
-    -- ** Trace types
-    module Honeycomb.Trace.Types,
+  ( -- * Library initialization
+    --
+    -- $libraryInitialization
+    module Honeycomb.Core,
 
     -- * Creating spans
     withNewSpan,
@@ -21,6 +21,14 @@ module Honeycomb.Trace
     --
     -- $modifyingSpans
     withInheritableFields,
+
+    -- * Datatypes
+
+    -- ** Trace types
+    module Honeycomb.Trace.Types,
+
+    -- ** Core types
+    module Honeycomb.Core.Types,
   )
 where
 
@@ -34,10 +42,38 @@ import Data.Time.Clock (diffUTCTime, getCurrentTime)
 import Honeycomb (newEvent, send')
 import qualified Honeycomb as HC (add, addField)
 import Honeycomb.Core
+import Honeycomb.Core.Types
 import Honeycomb.Trace.Types
 import Lens.Micro ((&), (^.), _Just, over)
 import Lens.Micro.Mtl (preview, view)
 import UnliftIO
+
+-- $libraryInitialization
+-- To initialize the library, a `MonadReader` environment should be initialized, with
+-- the `HasHoney` typeclass defined to say how to access the Honeycomb library.
+--
+-- For example (using the RIO monad):
+--
+-- > import qualified Honeycomb as HC
+-- > import Lens.Micro
+-- > import RIO
+-- >
+-- > main :: IO ()
+-- > main = HC.withHoney $ \honey ->
+-- >   let app = App
+-- >     { -- include other app context/settings
+-- >     , appHoney = honey
+-- >     }
+-- >   in runRIO app run
+-- >
+-- > data App =
+-- >   App
+-- >     { -- include other app context/settings
+-- >     , appHoney :: !HC.Honey
+-- >     }
+-- >
+-- > instance HC.HasHoney App where
+-- >     HC.honeyL = lens appHoney (\x y -> x { appHoney = y })
 
 finishTrace ::
   ( MonadUnliftIO m,
