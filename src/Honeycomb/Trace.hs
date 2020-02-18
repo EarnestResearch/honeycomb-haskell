@@ -50,7 +50,9 @@ import UnliftIO
 
 -- $libraryInitialization
 -- To initialize the library, a `MonadReader` environment should be initialized, with
--- the `HasHoney` typeclass defined to say how to access the Honeycomb library.
+-- the "HasHoney" typeclass defined to say how to access the Honeycomb library. In
+-- addition, the "HasSpanContext" typeclass needs a defined instance; this provides
+-- context on the current trace and span being executed.
 --
 -- For example (using the RIO monad):
 --
