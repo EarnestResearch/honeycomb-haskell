@@ -6,6 +6,11 @@ import qualified Data.Aeson as JSON
 import Data.Aeson ((.:))
 import qualified Data.Text as T
 
+-- | Raw response
+--
+-- This represents the raw response to each event sent by the
+-- 'Honeycomb.Api.sendEvents' call. There should be one of these structures
+-- for each event sent in the batch call.
 data SendEventsServerReply
   = SendEventsServerReply
       { serverReplyStatus :: !Int,

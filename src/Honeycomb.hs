@@ -47,37 +47,6 @@ import Lens.Micro ((^.), to)
 import Lens.Micro.Mtl (view)
 import UnliftIO
 
--- $libraryInitialization
--- To initialize the library, a `MonadReader` environment should be initialized, with
--- the `HasHoney` typeclass defined to say how to access the Honeycomb library.
---
--- For example (using the RIO monad):
---
--- > import qualified Honeycomb as HC
--- > import Lens.Micro
--- > import RIO
---
--- > do
--- >     let ho = HC.defaultHoneyOptions
--- >           & HC.apiKeyL ?~ "12345678"
--- >           & HC.datasetL ?~ "test-dataset"
--- >     hso <- HC.defaultHoneyServerOptions
--- >     HC.withHoney hso ho $ \appHoney ->
--- >         let app = App
--- >               { -- include other app context/settings
--- >               , appHoney
--- >               }
--- >         in runRIO app run
---
--- > data App =
--- >   App
--- >     { -- include other app context/settings
--- >     , appHoney :: !HC.Honey
--- >     }
---
--- > instance HC.HasHoney App where
--- >     HC.honeyL = lens appHoney (\x y -> x { appHoney = y })
-
 -- | Creates a new Honeycomb event with no extra fields added.
 newEvent ::
   ( MonadIO m,

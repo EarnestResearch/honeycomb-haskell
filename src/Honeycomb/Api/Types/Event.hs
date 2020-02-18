@@ -16,6 +16,10 @@ import Honeycomb.Api.Types.HoneyObject
 import Lens.Micro (Lens', (^.), lens)
 import Numeric.Natural (Natural)
 
+-- | Honeycomb Event
+--
+-- Represents the data which is sent to Honeycomb services for
+-- each event (unless dropped or sampled).
 data Event
   = Event
       { eventFields :: !HoneyObject,

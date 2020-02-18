@@ -39,35 +39,6 @@ import Lens.Micro ((&), (^.), _Just, over)
 import Lens.Micro.Mtl (preview, view)
 import UnliftIO
 
--- $libraryInitialization
---
--- The tracing library is set up by creating @HasSpanContext@
--- typeclass instance for a @MonadReader@ environment.
--- This should point to a value of @Maybe SpanContext@ in the
--- environment; this can be initialized to @Nothing@ at
--- startup.
---
--- It also expects the base Honeycomb library to be configured
--- and available. For example:
---
--- > do
--- >     let ho = defaultHoneyOptions
--- >           & apiKeyL ?~ "12345678"
--- >           & datasetL ?~ "test-dataset"
--- >     withHoney defaultHoneyServerOptions ho mempty $ \appHoney ->
--- >         let app = App
--- >               { -- include other app context/settings
--- >               , appHoney
--- >               , appSpanContext = Nothing
--- >               }
--- >         in runRIO app run
---
--- > instance HasHoney App where
--- >     honeyL = lens appHoney (\x y -> x { appHoney = y })
--- >
--- > instance HasSpanContext App where
--- >     spanContextL = lens spanContextL (\x y -> x { spanContextL = y })
-
 finishTrace ::
   ( MonadUnliftIO m,
     MonadReader env m,

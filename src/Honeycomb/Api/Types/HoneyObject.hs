@@ -16,6 +16,11 @@ import qualified Data.HashMap.Strict as HM
 import qualified Data.Text as T
 import Honeycomb.Api.Types.HoneyValue
 
+-- | Honeycomb Object
+--
+-- A set of keys and corresponding values that are considered
+-- to be valid pieces of data to be sent to Honeycomb for each
+-- event.
 newtype HoneyObject
   = HoneyObject (HM.HashMap T.Text HoneyValue)
   deriving (Eq, Show, JSON.ToJSON, JSON.FromJSON)

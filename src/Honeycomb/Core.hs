@@ -31,6 +31,33 @@ import Lens.Micro.Mtl (view)
 import System.Environment (lookupEnv)
 import UnliftIO
 
+-- $libraryInitialization
+-- To initialize the library, a `MonadReader` environment should be initialized, with
+-- the `HasHoney` typeclass defined to say how to access the Honeycomb library.
+--
+-- For example (using the RIO monad):
+--
+-- > import qualified Honeycomb as HC
+-- > import Lens.Micro
+-- > import RIO
+-- >
+-- > main :: IO ()
+-- > main = HC.withHoney $ \honey ->
+-- >   let app = App
+-- >     { -- include other app context/settings
+-- >     , appHoney = honey
+-- >     }
+-- >   in runRIO app run
+-- >
+-- > data App =
+-- >   App
+-- >     { -- include other app context/settings
+-- >     , appHoney :: !HC.Honey
+-- >     }
+-- >
+-- > instance HC.HasHoney App where
+-- >     HC.honeyL = lens appHoney (\x y -> x { appHoney = y })
+
 -- | Waits until all currently sent events have been dequeued and processed.
 --
 -- This may be useful in a system which suspends processing when idle; the user
@@ -59,8 +86,8 @@ flush timeout_us = do
 -- need to be sent. On shutdown, the event queue is shut down, and
 -- the background thread stops once all messages are processed.
 --
--- Discovers Honey options from the environment; if you wish to set the
--- options manually, use 'newHoney''
+-- Discovers Honey options from the environment, using 'honeyOptionsFromEnv';
+-- if you wish to set the options manually, use 'newHoney''
 newHoney ::
   ( MonadUnliftIO n,
     MonadIO m
@@ -142,13 +169,21 @@ withHoneyOptions ::
   m a
 withHoneyOptions f = local (over (honeyL . honeyOptionsL) f)
 
+-- | Gets options for the library from the process environment.
+--
+-- This reads the default API Key from @HONEYCOMB_API_KEY@.
+--
+-- It reads the default dataset from @HONEYCOMB_DATASET@.
+--
+-- In addition, if @HONEYCOMB_DISABLED@ is set to any value, no
+-- Honeycomb events are queued or sent (but no errors are raised).
 honeyOptionsFromEnv ::
   MonadIO m =>
   m HoneyOptions
 honeyOptionsFromEnv = do
   apiKeyEnv <- liftIO $ fmap (ApiKey . T.pack) <$> lookupEnv "HONEYCOMB_API_KEY"
   datasetEnv <- liftIO $ fmap (Dataset . T.pack) <$> lookupEnv "HONEYCOMB_DATASET"
-  disabledEnv <- liftIO $ fmap (Dataset . T.pack) <$> lookupEnv "HONEYCOMB_DISABLED"
+  disabledEnv <- liftIO $ lookupEnv "HONEYCOMB_DISABLED"
   pure $
     defaultHoneyOptions
       & apiKeyL .~ apiKeyEnv

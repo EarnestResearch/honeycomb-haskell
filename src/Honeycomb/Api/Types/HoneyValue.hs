@@ -16,6 +16,13 @@ import Data.Time.Clock (NominalDiffTime, UTCTime)
 import Data.Time.Format (defaultTimeLocale, formatTime)
 import Numeric.Natural (Natural)
 
+-- | Honeycomb Underlying Datatypes
+--
+-- Honeycomb supports the following types in the event
+-- payloads.
+-- The server side can also (optionally) expand nested
+-- JSON objects, but this library author thinks this is
+-- better handled inside your client code.
 data HoneyValue
   = HoneyNull
   | HoneyString !T.Text

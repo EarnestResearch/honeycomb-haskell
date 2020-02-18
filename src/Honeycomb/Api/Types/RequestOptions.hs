@@ -17,6 +17,12 @@ import Honeycomb.Api.Types.ApiKey
 import Honeycomb.Api.Types.Dataset
 import Lens.Micro (Lens', lens)
 
+-- | Request Options
+--
+-- These parameters represent the set of options used as keys when
+-- partitioning data to be forwarded to Honeycomb servers.
+--
+-- /Note:/ This should probably not be in the public API.
 data RequestOptions
   = RequestOptions
       { requestApiHost :: !ApiHost,

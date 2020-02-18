@@ -24,6 +24,13 @@ maxEntryLength = 100000
 maxBodyLength :: Int64
 maxBodyLength = 5000000
 
+-- | Send a batch of events to Honeycomb servers.
+--
+-- Given an implementation of the HTTP call made (which for production
+-- service, should be the implementation from "Network.HTTP.Client"), this
+-- will attempt to send a set of events to Honeycomb's servers. If only
+-- some of the events were sent, it will loop around resending until all
+-- events have completed sending (or are dropped due to size issues).
 sendEvents ::
   MonadUnliftIO m =>
   (Client.Request -> m (Client.Response LBS.ByteString)) ->
