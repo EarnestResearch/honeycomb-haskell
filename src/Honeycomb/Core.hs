@@ -11,10 +11,12 @@ module Honeycomb.Core
     newHoney',
     withHoneyOptions,
 
-    -- * Events
-
-    -- ** Creating and sending
+    -- * Forcing event sending
     flush,
+
+    -- * Datatypes
+
+    -- ** Core types
     module Honeycomb.Core.Types,
   )
 where
@@ -58,7 +60,7 @@ flush timeout_us = do
 -- the background thread stops once all messages are processed.
 --
 -- Discovers Honey options from the environment; if you wish to set the
--- options manually, use {{newHoney'}}
+-- options manually, use 'newHoney''
 newHoney ::
   ( MonadUnliftIO n,
     MonadIO m
@@ -94,7 +96,7 @@ newHoney' honeyServerOptions honeyOptions = do
 -- down afterwards.
 --
 -- Discovers Honey options from the environment; if you wish to set the
--- options manually, use {{withHoney'}} or {{withHoneyOptions}}
+-- options manually, use 'withHoney'' or 'withHoneyOptions'
 withHoney ::
   MonadUnliftIO m =>
   -- | The program to run

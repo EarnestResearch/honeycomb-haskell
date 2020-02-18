@@ -2,9 +2,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Honeycomb.Trace
-  ( -- * Library initialization
-    --
-    -- $libraryInitialization
+  ( module Honeycomb.Core,
+
+    -- ** Trace types
+    module Honeycomb.Trace.Types,
 
     -- * Creating spans
     withNewSpan,
@@ -20,12 +21,6 @@ module Honeycomb.Trace
     --
     -- $modifyingSpans
     withInheritableFields,
-
-    -- * Types
-    module Honeycomb.Trace.Types,
-
-    -- * Imported from Honeycomb
-    module Honeycomb.Core,
   )
 where
 

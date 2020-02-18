@@ -3,16 +3,26 @@
 -- |
 -- Module      : Honeycomb
 -- Description : Client library for @honeycomb.io@
--- Copyright   : (c) Gary Coady, 2019
+-- Copyright   : (c) 2019-2020 Earnest Research
 -- License     : Apache-2
 -- Maintainer  : gcoady@earnestresearch.com
--- Stability   : experimental
+-- Stability   : alpha
 -- Portability : POSIX
 --
--- Honeycomb is a SAAS monitoring system based around reporting of
--- events, with support for high-cardinality attributes.
+-- The "Honeycomb" module provides an interface to allow users to
+-- initialize the library, and manually create and submit events to be
+-- sent to the service.
+--
+-- If you are interested in a tracing API, which handles timing of blocks
+-- of code, along with the creation of /traces/ and /spans/, you should
+-- look at the "Honeycomb.Trace" module.
+-- If you want a very low-level interface for submitting data to the HTTP
+-- interface of the Honeycomb service, then you should look at the
+-- "Honeycomb.Api" module.
 module Honeycomb
-  ( -- * Events
+  ( module Honeycomb.Core,
+
+    -- * Events
 
     -- ** Creating and sending
     newEvent,
@@ -24,7 +34,6 @@ module Honeycomb
     -- $addingFields
     addField,
     add,
-    module Honeycomb.Core,
   )
 where
 
@@ -42,21 +51,32 @@ import UnliftIO
 -- To initialize the library, a `MonadReader` environment should be initialized, with
 -- the `HasHoney` typeclass defined to say how to access the Honeycomb library.
 --
--- For example:
+-- For example (using the RIO monad):
+--
+-- > import qualified Honeycomb as HC
+-- > import Lens.Micro
+-- > import RIO
 --
 -- > do
--- >     let ho = defaultHoneyOptions
--- >           & apiKeyL ?~ "12345678"
--- >           & datasetL ?~ "test-dataset"
--- >     withHoney defaultHoneyServerOptions ho $ \appHoney ->
+-- >     let ho = HC.defaultHoneyOptions
+-- >           & HC.apiKeyL ?~ "12345678"
+-- >           & HC.datasetL ?~ "test-dataset"
+-- >     hso <- HC.defaultHoneyServerOptions
+-- >     HC.withHoney hso ho $ \appHoney ->
 -- >         let app = App
 -- >               { -- include other app context/settings
 -- >               , appHoney
 -- >               }
 -- >         in runRIO app run
 --
--- > instance HasHoney App where
--- >     honeyL = lens appHoney (\x y -> x { appHoney = y })
+-- > data App =
+-- >   App
+-- >     { -- include other app context/settings
+-- >     , appHoney :: !HC.Honey
+-- >     }
+--
+-- > instance HC.HasHoney App where
+-- >     HC.honeyL = lens appHoney (\x y -> x { appHoney = y })
 
 -- | Creates a new Honeycomb event with no extra fields added.
 newEvent ::
@@ -69,7 +89,7 @@ newEvent = view (honeyL . honeyOptionsL) >>= mkHoneyEvent
 
 -- $addingFields
 --
--- The @HoneyEvent@ allows fields to be added at any point between
+-- The 'HoneyEvent' allows fields to be added at any point between
 -- when the event was created, and when the event is sent.
 --
 -- In order to support field addition across threads, the list of
