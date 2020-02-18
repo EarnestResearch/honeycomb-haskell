@@ -63,6 +63,7 @@ import UnliftIO
 -- >   let app = App
 -- >     { -- include other app context/settings
 -- >     , appHoney = honey
+-- >     , appSpanContext = Nothing
 -- >     }
 -- >   in runRIO app run
 -- >
@@ -70,10 +71,14 @@ import UnliftIO
 -- >   App
 -- >     { -- include other app context/settings
 -- >     , appHoney :: !HC.Honey
+-- >     , appSpanContext :: !(Maybe HC.SpanContext)
 -- >     }
 -- >
 -- > instance HC.HasHoney App where
 -- >     HC.honeyL = lens appHoney (\x y -> x { appHoney = y })
+-- >
+-- > instance HC.HasSpanContext App where
+-- >     HC.spanContextL = lens appSpanContext (\x y -> x { appSpanContext = y })
 --
 -- It is less obvious how to give a general example for creating
 -- spans, because it depends on the kind of code you are integrating
