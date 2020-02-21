@@ -32,7 +32,7 @@ data SpanContext
         spanEvent :: !HoneyEvent,
         inheritableFields :: !(HS.HashSet T.Text)
       }
-  deriving (Eq, Show)
+  deriving (Show)
 
 spanReferenceL :: Lens' SpanContext SpanReference
 spanReferenceL = lens spanReference (\x y -> x {spanReference = y})

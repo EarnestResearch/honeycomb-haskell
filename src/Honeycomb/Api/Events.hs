@@ -53,7 +53,13 @@ sendEvents httpLbs requestOptions events = do
       serviceResponse = JSON.decode <$> response
     }
   where
-    createBodyFromEvents :: Bool -> [Event] -> [Event] -> LBS.ByteString -> Int64 -> ([Event], [Event], LBS.ByteString)
+    createBodyFromEvents ::
+      Bool ->
+      [Event] ->
+      [Event] ->
+      LBS.ByteString ->
+      Int64 ->
+      ([Event], [Event], LBS.ByteString)
     createBodyFromEvents isFirst toSend dropped bs bsLength =
       case toSend of
         [] -> ([], dropped, bs <> "]")

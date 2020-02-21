@@ -7,6 +7,7 @@ module Honeycomb.Core.Types.HoneyServerOptions
     pendingWorkCapacityL,
     httpLbsL,
     defaultHoneyServerOptions,
+    defaultHoneyTestServerOptions,
   )
 where
 
@@ -71,4 +72,15 @@ defaultHoneyServerOptions = do
       maxConcurrentBatches = defaultMaxConcurrentBatches,
       pendingWorkCapacity = defaultPendingWorkCapacity,
       httpLbs = liftIO . flip Client.httpLbs manager
+    }
+
+defaultHoneyTestServerOptions :: (Client.Request -> m (Client.Response LBS.ByteString)) -> HoneyServerOptions m
+defaultHoneyTestServerOptions httpFn =
+  HoneyServerOptions
+    { blockOnResponse = False,
+      maxBatchSize = defaultMaxBatchSize,
+      sendFrequency = defaultBatchTimeout,
+      maxConcurrentBatches = defaultMaxConcurrentBatches,
+      pendingWorkCapacity = defaultPendingWorkCapacity,
+      httpLbs = httpFn
     }

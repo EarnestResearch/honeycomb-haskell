@@ -1,4 +1,4 @@
-module Honeycomb.Core.Types.TransportState
+module Honeycomb.Core.Internal.Types.TransportState
   ( TransportState,
     transportSendQueueL,
     transportResponseQueueL,
@@ -7,7 +7,7 @@ module Honeycomb.Core.Types.TransportState
   )
 where
 
-import qualified Honeycomb.Api.Types as Api
+import qualified Honeycomb.Api as Api
 import Honeycomb.Core.Types.HoneyResponse
 import Lens.Micro (Lens', lens)
 import Numeric.Natural (Natural)

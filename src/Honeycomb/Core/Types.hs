@@ -10,7 +10,6 @@ module Honeycomb.Core.Types
     module Honeycomb.Core.Types.HoneyOptions,
     module Honeycomb.Core.Types.HoneyResponse,
     module Honeycomb.Core.Types.HoneyServerOptions,
-    module Honeycomb.Core.Types.TransportState,
   )
 where
 
@@ -25,4 +24,3 @@ import Honeycomb.Core.Types.HoneyException
 import Honeycomb.Core.Types.HoneyOptions
 import Honeycomb.Core.Types.HoneyResponse
 import Honeycomb.Core.Types.HoneyServerOptions
-import Honeycomb.Core.Types.TransportState

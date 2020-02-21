@@ -16,6 +16,7 @@ where
 import Control.Monad.Reader (MonadReader, local, void)
 import Data.Maybe (isJust)
 import qualified Data.Text as T
+import Honeycomb.Core.Internal.Types
 import Honeycomb.Core.Types
 import Honeycomb.Transport
 import Lens.Micro ((&), (.~), over)

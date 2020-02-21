@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 -- |
@@ -29,6 +30,7 @@ module Honeycomb
 
     -- ** Creating and sending
     newEvent,
+    newEventWithMetadata,
     send,
     send',
 
@@ -47,12 +49,14 @@ where
 
 import Control.Monad.Reader (MonadReader)
 import Data.Coerce (coerce)
+import Data.Dynamic (toDyn)
 import qualified Data.HashMap.Strict as HM
 import qualified Data.Text as T
 import qualified Honeycomb.Api as Api
 import Honeycomb.Core
+import Honeycomb.Core.Internal.Types
 import Honeycomb.Core.Types
-import Lens.Micro ((^.), to)
+import Lens.Micro
 import Lens.Micro.Mtl (view)
 import UnliftIO
 
@@ -91,6 +95,18 @@ newEvent ::
   ) =>
   m HoneyEvent
 newEvent = view (honeyL . honeyOptionsL) >>= mkHoneyEvent
+
+newEventWithMetadata ::
+  forall m env a.
+  ( MonadIO m,
+    MonadReader env m,
+    HasHoney env,
+    Typeable a
+  ) =>
+  a ->
+  m HoneyEvent
+newEventWithMetadata metadata =
+  (eventMetadataL ?~ toDyn metadata) <$> newEvent
 
 -- $addingFields
 --
@@ -203,11 +219,15 @@ send' extraFields event = do
       eventFields <- readTVarIO (event ^. eventFieldsL)
       let finalFields = toHoneyObject extraFields <> eventFields
       pure $
-        Api.mkEvent
-          finalFields
-          (event ^. eventTimestampL . to Just)
-          (event ^. eventOptionsL . sampleRateL . to Just)
-    sendApiEvent :: Bool -> RequestOptions -> Api.Event -> m ()
+        Api.mkEvent finalFields
+          & Api.eventTimestampL ?~ event ^. eventTimestampL
+          & Api.eventSampleRateL ?~ event ^. eventOptionsL . sampleRateL
+          & Api.eventMetadataL .~ event ^. eventMetadataL
+    sendApiEvent ::
+      Bool ->
+      RequestOptions ->
+      Api.Event ->
+      m ()
     sendApiEvent shouldSample requestOpts apiEvent = do
       if HM.null (coerce (apiEvent ^. Api.eventFieldsL) :: HM.HashMap T.Text HoneyValue)
         then throwIO EmptyEventData
@@ -216,14 +236,24 @@ send' extraFields event = do
       let sendQ = ctx ^. honeyTransportStateL . transportSendQueueL
           opts = ctx ^. honeyOptionsL
           shouldBlock = opts ^. blockOnSendL
-      if shouldSample
-        then
-          atomically $
-            if shouldBlock
-              then writeTBQueue sendQ (requestOpts, apiEvent)
-              else do
-                full <- isFullTBQueue sendQ
-                if full
-                  then pure () -- [todo] add reporting of queue overflow
-                  else writeTBQueue sendQ (requestOpts, apiEvent)
-        else pure ()
+          responseQueue = ctx ^. honeyTransportStateL . transportResponseQueueL
+      atomically $
+        case (shouldSample, shouldBlock) of
+          (True, True) ->
+            writeTBQueue sendQ (requestOpts, apiEvent)
+          (True, False) ->
+            do
+              full <- isFullTBQueue sendQ
+              if full
+                then writeTBQueue responseQueue $ HoneyResponse
+                  { honeyResponseMetadata = apiEvent ^. Api.eventMetadataL,
+                    honeyResponseStatusCode = Nothing,
+                    honeyResponseError = Just "Event dropped due to queue overflow"
+                  }
+                else writeTBQueue sendQ (requestOpts, apiEvent)
+          (False, _) ->
+            writeTBQueue responseQueue $ HoneyResponse
+              { honeyResponseMetadata = apiEvent ^. Api.eventMetadataL,
+                honeyResponseStatusCode = Nothing,
+                honeyResponseError = Just "Event dropped due to client-side sampling"
+              }

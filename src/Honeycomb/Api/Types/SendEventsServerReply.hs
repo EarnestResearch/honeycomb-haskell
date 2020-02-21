@@ -3,7 +3,7 @@
 module Honeycomb.Api.Types.SendEventsServerReply where
 
 import qualified Data.Aeson as JSON
-import Data.Aeson ((.:))
+import Data.Aeson ((.:), (.=))
 import qualified Data.Text as T
 
 -- | Raw response
@@ -17,6 +17,13 @@ data SendEventsServerReply
         serverReplyError :: !(Maybe T.Text)
       }
   deriving (Show)
+
+instance JSON.ToJSON SendEventsServerReply where
+  toJSON reply =
+    JSON.object
+      [ "status" .= serverReplyStatus reply,
+        "error" .= serverReplyError reply
+      ]
 
 instance JSON.FromJSON SendEventsServerReply where
   parseJSON = JSON.withObject "SendEventsServerReply" $ \v ->
