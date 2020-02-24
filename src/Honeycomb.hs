@@ -20,6 +20,8 @@
 -- If you want a very low-level interface for submitting data to the HTTP
 -- interface of the Honeycomb service, then you should look at the
 -- "Honeycomb.Api" module.
+--
+-- Test
 module Honeycomb
   ( -- * Library initialization
     --
