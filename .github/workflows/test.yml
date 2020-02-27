@@ -11,7 +11,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - uses: cachix/install-nix-action@releases/v7
-    - uses: cachix/cachix-action@v3
+    - uses: cachix/cachix-action@v4
       with:
         name: earnestresearch-oss
         signingKey: '${{ secrets.OSS_CACHIX_SIGNING_KEY }}'
