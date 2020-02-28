@@ -10,7 +10,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v1
-    - uses: cachix/install-nix-action@releases/v7
+    - uses: cachix/install-nix-action@v7
     - uses: cachix/cachix-action@v4
       with:
         name: earnestresearch-oss
