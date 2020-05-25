@@ -1,1 +1,7 @@
-cradle: {cabal: {component: "test:tests"}}
+cradle:
+  cabal:
+    - path: "src"
+      component: "lib:honeycomb"
+
+    - path: "test"
+      component: "honeycomb:test:tests"
