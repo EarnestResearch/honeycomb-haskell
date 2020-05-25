@@ -5,6 +5,11 @@ let
 in
 
 hsPkgs.shellFor {
+  tools = {
+    cabal = "3.2.0.0";
+    ghcide = "object-code";
+  };
+
   exactDeps = true;
 
   inherit (pkgs.earnestresearch.pre-commit-check) shellHook;
