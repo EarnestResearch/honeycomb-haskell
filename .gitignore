@@ -15,7 +15,8 @@ cabal.sandbox.config
 *.aux
 *.hp
 *.eventlog
-.pre-commit-config.yaml
+/.pre-commit-config.yaml
+/.vscode
 cabal.project.local
 cabal.project.local~
 .HTF/
