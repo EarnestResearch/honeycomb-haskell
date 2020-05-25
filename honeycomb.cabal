@@ -35,7 +35,12 @@ common shared-properties
         -Wincomplete-uni-patterns
         -Wpartial-fields
         -Wredundant-constraints
-        -fhide-source-paths
+    if impl(ghc >= 8.2.0)
+        ghc-options:
+            -fhide-source-paths
+    if impl(ghc >= 8.8.0)
+        ghc-options:
+            -fwrite-ide-info
     other-extensions:
         FlexibleInstances
         GeneralizedNewtypeDeriving
