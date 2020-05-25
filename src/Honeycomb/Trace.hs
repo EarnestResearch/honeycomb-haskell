@@ -32,7 +32,7 @@ module Honeycomb.Trace
   )
 where
 
-import Control.Monad.Reader (MonadIO, MonadReader, ask, local)
+import Control.Monad.Reader (MonadReader, ask, local)
 import Data.Coerce (coerce)
 import qualified Data.HashMap.Strict as HM
 import qualified Data.HashSet as HS
@@ -327,14 +327,15 @@ createChildSpanContext parentSpanRef serviceName spanName inheritableFields inhe
   spanEvent <- newEvent
   HC.add inheritedFields spanEvent
   spanId <- mkSpanId
-  pure SpanContext
-    { spanReference = SpanReference (getTraceId parentSpanRef) spanId,
-      parentSpanId = Just $ getSpanId parentSpanRef,
-      serviceName = serviceName,
-      spanName,
-      spanEvent,
-      inheritableFields
-    }
+  pure
+    SpanContext
+      { spanReference = SpanReference (getTraceId parentSpanRef) spanId,
+        parentSpanId = Just $ getSpanId parentSpanRef,
+        serviceName = serviceName,
+        spanName,
+        spanEvent,
+        inheritableFields
+      }
 
 createRootSpanContext ::
   ( MonadIO m,
@@ -348,11 +349,12 @@ createRootSpanContext serviceName spanName = do
   spanEvent <- newEvent
   threadId <- mkTraceId
   spanId <- mkSpanId
-  pure SpanContext
-    { spanReference = SpanReference threadId spanId,
-      parentSpanId = Nothing,
-      serviceName,
-      spanName,
-      spanEvent,
-      inheritableFields = HS.empty
-    }
+  pure
+    SpanContext
+      { spanReference = SpanReference threadId spanId,
+        parentSpanId = Nothing,
+        serviceName,
+        spanName,
+        spanEvent,
+        inheritableFields = HS.empty
+      }
