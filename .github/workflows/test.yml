@@ -9,10 +9,10 @@ jobs:
         os: [ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v1
-    - uses: cachix/install-nix-action@v7
-    - uses: cachix/cachix-action@v5
+    - uses: actions/checkout@v2
+    - uses: cachix/install-nix-action@v8
+    - uses: cachix/cachix-action@v6
       with:
         name: earnestresearch-public
         signingKey: '${{ secrets.EARNESTRESEARCH_PUBLIC_CACHIX_SIGNING_KEY }}'
-        file: ci.nix
+    - run: nix-build ci.nix
