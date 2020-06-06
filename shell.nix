@@ -7,7 +7,7 @@ in
 hsPkgs.shellFor {
   tools = {
     cabal = "3.2.0.0";
-    ghcide = "object-code";
+    ghcide = "0.2.0";
   };
 
   exactDeps = true;
