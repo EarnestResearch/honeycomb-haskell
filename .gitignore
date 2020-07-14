@@ -1,6 +1,7 @@
 dist
 dist-*
 cabal-dev
+.direnv/
 *.o
 *.hi
 *.chi

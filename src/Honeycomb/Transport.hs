@@ -122,17 +122,19 @@ sendEventGroupAndRespond honeyServerOptions transportState requestOptions revers
       sendResponses $ getResponsesForEvents events sendResult
       sendUnsentEvents $ Api.unsentEvents <$> sendResult
     getTransmitErrorForEvent :: SomeException -> Api.Event -> HoneyResponse
-    getTransmitErrorForEvent exc event = HoneyResponse
-      { honeyResponseMetadata = event ^. Api.eventMetadataL,
-        honeyResponseStatusCode = Nothing,
-        honeyResponseError = Just . T.pack $ show exc
-      }
+    getTransmitErrorForEvent exc event =
+      HoneyResponse
+        { honeyResponseMetadata = event ^. Api.eventMetadataL,
+          honeyResponseStatusCode = Nothing,
+          honeyResponseError = Just . T.pack $ show exc
+        }
     getOversizedErrorForEvent :: Api.Event -> HoneyResponse
-    getOversizedErrorForEvent event = HoneyResponse
-      { honeyResponseMetadata = event ^. Api.eventMetadataL,
-        honeyResponseStatusCode = Nothing,
-        honeyResponseError = Just "Oversized event sent to API"
-      }
+    getOversizedErrorForEvent event =
+      HoneyResponse
+        { honeyResponseMetadata = event ^. Api.eventMetadataL,
+          honeyResponseStatusCode = Nothing,
+          honeyResponseError = Just "Oversized event sent to API"
+        }
     getResponseDataForEvent :: Int -> [Api.Event] -> Client.Response (Maybe [Api.SendEventsServerReply]) -> [HoneyResponse]
     getResponseDataForEvent numSentEvents events response =
       case Client.responseBody response of
@@ -143,27 +145,30 @@ sendEventGroupAndRespond honeyServerOptions transportState requestOptions revers
             else getSingleErrorMessage <$> events `zip` eventReplies
       where
         getSingleErrorMessage :: (Api.Event, Api.SendEventsServerReply) -> HoneyResponse
-        getSingleErrorMessage (meta, reply) = HoneyResponse
-          { honeyResponseMetadata = meta ^. Api.eventMetadataL,
-            honeyResponseStatusCode = Just $ Api.serverReplyStatus reply,
-            honeyResponseError = Api.serverReplyError reply
-          }
+        getSingleErrorMessage (meta, reply) =
+          HoneyResponse
+            { honeyResponseMetadata = meta ^. Api.eventMetadataL,
+              honeyResponseStatusCode = Just $ Api.serverReplyStatus reply,
+              honeyResponseError = Api.serverReplyError reply
+            }
         getInvalidBodyForEvents :: [HoneyResponse]
         getInvalidBodyForEvents =
-          ( \meta -> HoneyResponse
-              { honeyResponseMetadata = meta ^. Api.eventMetadataL,
-                honeyResponseStatusCode = Just $ HTTP.statusCode (Client.responseStatus response),
-                honeyResponseError = Just "Events batch endpoint returned invalid body"
-              }
+          ( \meta ->
+              HoneyResponse
+                { honeyResponseMetadata = meta ^. Api.eventMetadataL,
+                  honeyResponseStatusCode = Just $ HTTP.statusCode (Client.responseStatus response),
+                  honeyResponseError = Just "Events batch endpoint returned invalid body"
+                }
           )
             <$> events
         getInvalidResultLength :: [HoneyResponse]
         getInvalidResultLength =
-          ( \meta -> HoneyResponse
-              { honeyResponseMetadata = meta ^. Api.eventMetadataL,
-                honeyResponseStatusCode = Nothing,
-                honeyResponseError = Just "Events batch endpoint returned incorrect length array"
-              }
+          ( \meta ->
+              HoneyResponse
+                { honeyResponseMetadata = meta ^. Api.eventMetadataL,
+                  honeyResponseStatusCode = Nothing,
+                  honeyResponseError = Just "Events batch endpoint returned incorrect length array"
+                }
           )
             <$> events
     sendResponses :: [HoneyResponse] -> m ()

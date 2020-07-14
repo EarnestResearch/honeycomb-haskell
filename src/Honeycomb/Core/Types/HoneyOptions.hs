@@ -54,12 +54,13 @@ disabledL :: Lens' HoneyOptions Bool
 disabledL = lens disabled (\x y -> x {disabled = y})
 
 defaultHoneyOptions :: HoneyOptions
-defaultHoneyOptions = HoneyOptions
-  { apiKey = Nothing,
-    dataset = Nothing,
-    sampleRate = 1,
-    apiHost = "https://api.honeycomb.io/",
-    defaultFields = mempty,
-    blockOnSend = False,
-    disabled = False
-  }
+defaultHoneyOptions =
+  HoneyOptions
+    { apiKey = Nothing,
+      dataset = Nothing,
+      sampleRate = 1,
+      apiHost = "https://api.honeycomb.io/",
+      defaultFields = mempty,
+      blockOnSend = False,
+      disabled = False
+    }

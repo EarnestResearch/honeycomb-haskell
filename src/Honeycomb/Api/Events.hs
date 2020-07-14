@@ -47,11 +47,12 @@ sendEvents httpLbs requestOptions events = do
     Left (Client.HttpExceptionRequest _ Client.ResponseTimeout) -> httpLbs reqWithBody
     Left e -> throwIO e
     Right result -> pure result
-  pure SendEventsResponse
-    { unsentEvents = unsent,
-      oversizedEvents = dropped,
-      serviceResponse = JSON.decode <$> response
-    }
+  pure
+    SendEventsResponse
+      { unsentEvents = unsent,
+        oversizedEvents = dropped,
+        serviceResponse = JSON.decode <$> response
+      }
   where
     createBodyFromEvents ::
       Bool ->

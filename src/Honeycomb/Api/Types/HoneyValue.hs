@@ -9,9 +9,12 @@ where
 
 import qualified Data.Aeson as JSON
 import Data.Aeson.Types (modifyFailure, typeMismatch)
+import Data.ByteString (ByteString)
 import Data.Scientific (Scientific, fromFloatDigits)
 import Data.String (IsString, fromString)
 import qualified Data.Text as T
+import Data.Text.Encoding (decodeUtf8With)
+import Data.Text.Encoding.Error (lenientDecode)
 import Data.Time.Clock (NominalDiffTime, UTCTime)
 import Data.Time.Format (defaultTimeLocale, formatTime)
 import Numeric.Natural (Natural)
@@ -74,6 +77,13 @@ instance ToHoneyValue T.Text where
 
 instance ToHoneyValue [Char] where
   toHoneyValue = HoneyString . T.pack
+
+instance ToHoneyValue ByteString where
+  toHoneyValue bs = HoneyString (decodeUtf8With lenientDecode bs)
+
+instance ToHoneyValue a => ToHoneyValue (Maybe a) where
+  toHoneyValue Nothing = HoneyNull
+  toHoneyValue (Just a) = toHoneyValue a
 
 instance IsString HoneyValue where
   fromString = HoneyString . T.pack

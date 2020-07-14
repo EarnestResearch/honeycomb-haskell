@@ -3,5 +3,11 @@ cradle:
     - path: "src"
       component: "lib:honeycomb"
 
+    - path: "servant/src"
+      component: "lib:servant-honeycomb"
+
+    - path: "servant/test"
+      component: "honeycomb:test:servant-honeycomb-tests"
+
     - path: "test"
       component: "honeycomb:test:tests"

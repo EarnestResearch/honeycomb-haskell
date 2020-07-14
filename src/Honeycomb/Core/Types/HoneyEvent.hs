@@ -47,12 +47,13 @@ mkHoneyEvent honeyOptions = do
 mkHoneyEvent' :: MonadIO m => UTCTime -> HoneyOptions -> m HoneyEvent
 mkHoneyEvent' eventTimestamp eventOptions = do
   eventFields <- newTVarIO $ eventOptions ^. defaultFieldsL
-  pure HoneyEvent
-    { eventTimestamp,
-      eventOptions,
-      eventMetadata = Nothing,
-      eventFields
-    }
+  pure
+    HoneyEvent
+      { eventTimestamp,
+        eventOptions,
+        eventMetadata = Nothing,
+        eventFields
+      }
 
 instance Show HoneyEvent where
   show e =

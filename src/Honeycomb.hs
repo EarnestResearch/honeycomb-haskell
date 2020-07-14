@@ -245,15 +245,18 @@ send' extraFields event = do
             do
               full <- isFullTBQueue sendQ
               if full
-                then writeTBQueue responseQueue $ HoneyResponse
-                  { honeyResponseMetadata = apiEvent ^. Api.eventMetadataL,
-                    honeyResponseStatusCode = Nothing,
-                    honeyResponseError = Just "Event dropped due to queue overflow"
-                  }
+                then
+                  writeTBQueue responseQueue $
+                    HoneyResponse
+                      { honeyResponseMetadata = apiEvent ^. Api.eventMetadataL,
+                        honeyResponseStatusCode = Nothing,
+                        honeyResponseError = Just "Event dropped due to queue overflow"
+                      }
                 else writeTBQueue sendQ (requestOpts, apiEvent)
           (False, _) ->
-            writeTBQueue responseQueue $ HoneyResponse
-              { honeyResponseMetadata = apiEvent ^. Api.eventMetadataL,
-                honeyResponseStatusCode = Nothing,
-                honeyResponseError = Just "Event dropped due to client-side sampling"
-              }
+            writeTBQueue responseQueue $
+              HoneyResponse
+                { honeyResponseMetadata = apiEvent ^. Api.eventMetadataL,
+                  honeyResponseStatusCode = Nothing,
+                  honeyResponseError = Just "Event dropped due to client-side sampling"
+                }

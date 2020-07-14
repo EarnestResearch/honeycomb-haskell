@@ -6,10 +6,8 @@ module ApiSpec where
 import Clients
 import qualified Data.Aeson as JSON
 import qualified Data.ByteString.Lazy as LBS
-import Data.Either (isLeft, isRight)
 import qualified Data.HashMap.Strict as HM
 import qualified Data.List as List
-import Data.Maybe (isJust)
 import qualified Data.Text as T
 import Honeycomb.Api
 import qualified Network.HTTP.Client.Internal as Client

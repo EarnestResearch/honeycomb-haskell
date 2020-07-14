@@ -65,14 +65,15 @@ defaultPendingWorkCapacity = 10000
 defaultHoneyServerOptions :: MonadUnliftIO m => m (HoneyServerOptions m)
 defaultHoneyServerOptions = do
   manager <- liftIO $ Client.newManager tlsManagerSettings
-  pure $ HoneyServerOptions
-    { blockOnResponse = False,
-      maxBatchSize = defaultMaxBatchSize,
-      sendFrequency = defaultBatchTimeout,
-      maxConcurrentBatches = defaultMaxConcurrentBatches,
-      pendingWorkCapacity = defaultPendingWorkCapacity,
-      httpLbs = liftIO . flip Client.httpLbs manager
-    }
+  pure $
+    HoneyServerOptions
+      { blockOnResponse = False,
+        maxBatchSize = defaultMaxBatchSize,
+        sendFrequency = defaultBatchTimeout,
+        maxConcurrentBatches = defaultMaxConcurrentBatches,
+        pendingWorkCapacity = defaultPendingWorkCapacity,
+        httpLbs = liftIO . flip Client.httpLbs manager
+      }
 
 defaultHoneyTestServerOptions :: (Client.Request -> m (Client.Response LBS.ByteString)) -> HoneyServerOptions m
 defaultHoneyTestServerOptions httpFn =

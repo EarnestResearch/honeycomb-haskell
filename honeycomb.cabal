@@ -1,4 +1,4 @@
-cabal-version:  2.4
+cabal-version:  3.0
 
 name:           honeycomb
 version:        0.1.0.0
@@ -74,6 +74,7 @@ common shared-properties
 library
     import:
         shared-properties
+    hs-source-dirs: src
     exposed-modules:
         Honeycomb
         Honeycomb.Api
@@ -109,11 +110,39 @@ library
         Honeycomb.Trace.Types.TraceId
         Honeycomb.Transport
         Paths_honeycomb
-    hs-source-dirs:
-        src
+
+library servant-honeycomb
+    import: shared-properties
+    visibility: public
+    hs-source-dirs: servant/src
+    exposed-modules:
+        Servant.Honeycomb
+    build-depends:
+        honeycomb
+      , containers
+      , servant
+      , servant-server
+      , wai
+
+test-suite servant-honeycomb-tests
+    import: shared-properties
+    hs-source-dirs: servant/test
+    type: exitcode-stdio-1.0
+    main-is:
+        Spec.hs
+    build-depends:
+        servant-honeycomb
+      , servant
+      , servant-server
+      , hspec
+      , rio >= 0.1.12.0
+      , wai
+    other-modules:
+      ServantSpec
 
 test-suite tests
     import: shared-properties
+    hs-source-dirs: test
     ghc-options: -threaded
     type: exitcode-stdio-1.0
     main-is:
@@ -127,5 +156,3 @@ test-suite tests
         ApiSpec
         HoneycombSpec
         TraceSpec
-    hs-source-dirs:
-        test
