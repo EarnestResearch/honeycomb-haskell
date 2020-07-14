@@ -1,3 +1,4 @@
+{-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -13,21 +14,23 @@ module Servant.Honeycomb
   ( Honeycomb,
     RequestInfo (..),
     getRequestInfo,
+    runTraceHandler,
   )
 where
 
 import Control.Monad (MonadPlus (mplus))
+import Control.Monad.Reader (MonadReader)
 import Data.Bifunctor (bimap)
 import qualified Data.HashMap.Strict as HM
 import Data.Kind (Type)
 import qualified Data.Text as T
-import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
 import GHC.TypeLits (KnownSymbol, Symbol, symbolVal)
 import qualified Honeycomb.Trace as HC
 import qualified Network.Wai as Wai
 import Servant
 import Servant.Server.Internal (passToServer)
+import UnliftIO
 
 data RequestInfo
   = RequestInfo
@@ -36,6 +39,15 @@ data RequestInfo
         queryParameters :: [(T.Text, T.Text)]
       }
   deriving (Eq, Show, Generic)
+
+runTraceHandler :: (MonadUnliftIO m, MonadReader env m, HC.HasHoney env, HC.HasSpanContext env) => (HC.HoneyObject, Maybe HC.SpanReference) -> m a -> m a
+runTraceHandler (ho, spanRef) inner =
+  HC.withNewRootSpan' "infra-app" (HC.SpanName "span") spanRef $ do
+    _ <- HC.add ho
+    inner `catchAny` reportErrorStatus <* HC.addField "response.status_code" (200 :: Int)
+  where
+    reportErrorStatus :: (MonadUnliftIO m, MonadReader env m, HC.HasSpanContext env) => SomeException -> m a
+    reportErrorStatus e = HC.addField "response.status_code" (500 :: Int) >> throwIO e
 
 fillData :: Maybe RequestInfo -> Wai.Request -> (HC.HoneyObject, Maybe HC.SpanReference)
 fillData info req =
