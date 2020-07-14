@@ -1,6 +1,6 @@
 cabal-version:  3.0
 
-name:           honeycomb
+name:           honeycomb-servant
 version:        0.1.0.0
 synopsis:       Client library for the Honeycomb observability service
 description:
@@ -72,58 +72,30 @@ common shared-properties
       , uuid
 
 library
-    import:
-        shared-properties
+    import: shared-properties
     hs-source-dirs: src
     exposed-modules:
-        Honeycomb
-        Honeycomb.Api
-        Honeycomb.Trace
-    other-modules:
-        Honeycomb.Api.Events
-        Honeycomb.Api.Types
-        Honeycomb.Api.Types.ApiHost
-        Honeycomb.Api.Types.ApiKey
-        Honeycomb.Api.Types.Dataset
-        Honeycomb.Api.Types.Event
-        Honeycomb.Api.Types.HoneyObject
-        Honeycomb.Api.Types.HoneyValue
-        Honeycomb.Api.Types.RequestOptions
-        Honeycomb.Api.Types.SendEventsResponse
-        Honeycomb.Api.Types.SendEventsServerReply
-        Honeycomb.Core
-        Honeycomb.Core.Types
-        Honeycomb.Core.Types.Honey
-        Honeycomb.Core.Types.HoneyEvent
-        Honeycomb.Core.Types.HoneyException
-        Honeycomb.Core.Types.HoneyOptions
-        Honeycomb.Core.Types.HoneyResponse
-        Honeycomb.Core.Types.HoneyServerOptions
-        Honeycomb.Core.Internal.Types.TransportState
-        Honeycomb.Core.Internal.Types
-        Honeycomb.Trace.Types
-        Honeycomb.Trace.Types.ServiceName
-        Honeycomb.Trace.Types.SpanContext
-        Honeycomb.Trace.Types.SpanId
-        Honeycomb.Trace.Types.SpanName
-        Honeycomb.Trace.Types.SpanReference
-        Honeycomb.Trace.Types.TraceId
-        Honeycomb.Transport
-        Paths_honeycomb
+        Servant.Honeycomb
+    build-depends:
+        honeycomb
+      , honeycomb-wai
+      , containers
+      , servant
+      , servant-server
+      , wai
 
 test-suite tests
     import: shared-properties
     hs-source-dirs: test
-    ghc-options: -threaded
     type: exitcode-stdio-1.0
     main-is:
         Spec.hs
     build-depends:
-        honeycomb
+        honeycomb-servant
+      , servant
+      , servant-server
       , hspec
       , rio >= 0.1.12.0
+      , wai
     other-modules:
-        Clients
-        ApiSpec
-        HoneycombSpec
-        TraceSpec
+      ServantSpec

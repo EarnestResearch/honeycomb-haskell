@@ -12,5 +12,7 @@ hsPkgs.shellFor {
 
   exactDeps = true;
 
-  inherit (pkgs.earnestresearch.pre-commit-check) shellHook;
+  shellHook = ''
+    ${hsPkgs.pre-commit-check.shellHook}
+  '';
 }

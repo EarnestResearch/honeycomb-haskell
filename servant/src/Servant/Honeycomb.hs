@@ -18,10 +18,9 @@ module Servant.Honeycomb
   )
 where
 
-import Control.Monad (MonadPlus (mplus))
+import Control.Monad (mplus)
 import Control.Monad.Reader (MonadReader)
 import Data.Bifunctor (bimap)
-import qualified Data.HashMap.Strict as HM
 import Data.Kind (Type)
 import qualified Data.Text as T
 import GHC.Generics (Generic)
@@ -29,7 +28,7 @@ import GHC.TypeLits (KnownSymbol, Symbol, symbolVal)
 import qualified Honeycomb.Trace as HC
 import qualified Network.Wai as Wai
 import Servant
-import Servant.Server.Internal (passToServer)
+import Servant.Server.Internal.Delayed (passToServer)
 import UnliftIO
 
 data RequestInfo
@@ -40,39 +39,27 @@ data RequestInfo
       }
   deriving (Eq, Show, Generic)
 
-runTraceHandler :: (MonadUnliftIO m, MonadReader env m, HC.HasHoney env, HC.HasSpanContext env) => (HC.HoneyObject, Maybe HC.SpanReference) -> m a -> m a
-runTraceHandler (ho, spanRef) inner =
-  HC.withNewRootSpan' "infra-app" (HC.SpanName "span") spanRef $ do
-    _ <- HC.add ho
-    inner `catchAny` reportErrorStatus <* HC.addField "response.status_code" (200 :: Int)
-  where
-    reportErrorStatus :: (MonadUnliftIO m, MonadReader env m, HC.HasSpanContext env) => SomeException -> m a
-    reportErrorStatus e = HC.addField "response.status_code" (500 :: Int) >> throwIO e
+data TraceHandlerData = TraceHandlerData HC.HoneyObject (Maybe HC.SpanReference)
 
-fillData :: Maybe RequestInfo -> Wai.Request -> (HC.HoneyObject, Maybe HC.SpanReference)
-fillData info req =
+runTraceHandler :: (MonadUnliftIO m, MonadReader env m, HC.HasHoney env, HC.HasSpanContext env) => TraceHandlerData -> m a -> m a
+runTraceHandler (TraceHandlerData ho spanRef) inner =
+  HC.withNewRootSpan' "infra-app" (HC.SpanName "span") spanRef $ HC.add ho >> inner
+
+fillData :: Maybe RequestInfo -> TraceHandlerData
+fillData info =
   let path = T.intercalate "/" . pathSegments <$> info
       pathParams = bimap ("request.path_param." <>) HC.toHoneyValue <$> maybe [] capturedPathValues info
-   in ( HC.HoneyObject . HM.fromList $
-          [ ("request.http_version", HC.toHoneyValue . show $ Wai.httpVersion req),
-            ("request.method", HC.toHoneyValue $ Wai.requestMethod req),
-            ("request.header.user_agent", HC.toHoneyValue $ Wai.requestHeaderUserAgent req),
-            ("request.path", HC.toHoneyValue path),
-            ("request.host", HC.toHoneyValue $ Wai.requestHeaderHost req),
-            ("request.scheme", HC.HoneyString $ if Wai.isSecure req then "https" else "http"),
-            ("request.secure", HC.toHoneyValue $ Wai.isSecure req)
-          ]
-            <> pathParams,
+   in TraceHandlerData
+        (HC.toHoneyObject $ ("request.path", HC.toHoneyValue path) : pathParams)
         Nothing
-      )
 
 data Honeycomb deriving (Typeable)
 
 instance (HasRequestInfo api, HasServer api context) => HasServer (Honeycomb :> api) context where
-  type ServerT (Honeycomb :> api) m = (HC.HoneyObject, Maybe HC.SpanReference) -> ServerT api m
+  type ServerT (Honeycomb :> api) m = TraceHandlerData -> ServerT api m
 
   route Proxy context subserver =
-    route (Proxy :: Proxy api) context (passToServer subserver (\req -> fillData (getRequestInfo (Proxy :: Proxy api) req) req))
+    route (Proxy :: Proxy api) context $ passToServer subserver $ fillData . getRequestInfo (Proxy :: Proxy api)
 
   hoistServerWithContext _ pc nt s =
     hoistServerWithContext (Proxy :: Proxy api) pc nt . s
