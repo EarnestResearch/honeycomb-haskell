@@ -2,3 +2,4 @@ packages:
   core/
   servant/
   wai/
+  example/

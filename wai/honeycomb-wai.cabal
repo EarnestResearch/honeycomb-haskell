@@ -20,6 +20,7 @@ source-repository head
 library
   exposed-modules:
     Network.Wai.Honeycomb
+    Network.Wai.UnliftIO
 
   other-modules:
     Paths_honeycomb_wai
@@ -36,10 +37,13 @@ library
     , bytestring
     , honeycomb
     , http-types
+    , microlens
+    , microlens-mtl
     , mtl
     , text
     , unliftio
     , unordered-containers
+    , vault
     , wai
 
   -- Directories containing source files.

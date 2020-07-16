@@ -70,6 +70,7 @@ common shared-properties
       , unliftio
       , unordered-containers
       , uuid
+      , vault
 
 library
     import: shared-properties

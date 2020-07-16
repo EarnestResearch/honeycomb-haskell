@@ -5,6 +5,8 @@ let
 in
 
 hsPkgs.shellFor {
+  buildInputs = [ pkgs.git ];
+
   tools = {
     cabal = "3.2.0.0";
     ghcide = "0.2.0";

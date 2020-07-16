@@ -1,35 +1,41 @@
-{-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PolyKinds #-}
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 
 module Servant.Honeycomb
   ( Honeycomb,
+    TraceHandlerData (..),
     RequestInfo (..),
     getRequestInfo,
-    runTraceHandler,
+    hoistHoneycombServer,
+    hoistHoneycombServerWithContext,
   )
 where
 
 import Control.Monad (mplus)
-import Control.Monad.Reader (MonadReader)
-import Data.Bifunctor (bimap)
+import Control.Monad.Reader (MonadReader, local)
 import Data.Kind (Type)
 import qualified Data.Text as T
+import qualified Data.Vault.Lazy as V
 import GHC.Generics (Generic)
 import GHC.TypeLits (KnownSymbol, Symbol, symbolVal)
 import qualified Honeycomb.Trace as HC
+import Lens.Micro (over)
 import qualified Network.Wai as Wai
+import Network.Wai.Honeycomb (spanContextKey)
 import Servant
 import Servant.Server.Internal.Delayed (passToServer)
-import UnliftIO
+import UnliftIO hiding (Handler)
 
 data RequestInfo
   = RequestInfo
@@ -39,19 +45,7 @@ data RequestInfo
       }
   deriving (Eq, Show, Generic)
 
-data TraceHandlerData = TraceHandlerData HC.HoneyObject (Maybe HC.SpanReference)
-
-runTraceHandler :: (MonadUnliftIO m, MonadReader env m, HC.HasHoney env, HC.HasSpanContext env) => TraceHandlerData -> m a -> m a
-runTraceHandler (TraceHandlerData ho spanRef) inner =
-  HC.withNewRootSpan' "infra-app" (HC.SpanName "span") spanRef $ HC.add ho >> inner
-
-fillData :: Maybe RequestInfo -> TraceHandlerData
-fillData info =
-  let path = T.intercalate "/" . pathSegments <$> info
-      pathParams = bimap ("request.path_param." <>) HC.toHoneyValue <$> maybe [] capturedPathValues info
-   in TraceHandlerData
-        (HC.toHoneyObject $ ("request.path", HC.toHoneyValue path) : pathParams)
-        Nothing
+data TraceHandlerData = TraceHandlerData Wai.Request (Maybe RequestInfo)
 
 data Honeycomb deriving (Typeable)
 
@@ -59,10 +53,39 @@ instance (HasRequestInfo api, HasServer api context) => HasServer (Honeycomb :> 
   type ServerT (Honeycomb :> api) m = TraceHandlerData -> ServerT api m
 
   route Proxy context subserver =
-    route (Proxy :: Proxy api) context $ passToServer subserver $ fillData . getRequestInfo (Proxy :: Proxy api)
+    route (Proxy :: Proxy api) context (passToServer subserver (\req -> TraceHandlerData req $ getRequestInfo (Proxy :: Proxy api) req))
+  hoistServerWithContext _ pc nt s = hoistServerWithContext (Proxy :: Proxy api) pc nt . s
 
-  hoistServerWithContext _ pc nt s =
-    hoistServerWithContext (Proxy :: Proxy api) pc nt . s
+hoistHoneycombServer ::
+  (MonadIO n, MonadReader env n, HC.HasSpanContext env, HasServer api '[]) =>
+  Proxy api ->
+  (forall x. m x -> n x) ->
+  ServerT api m ->
+  ServerT (Honeycomb :> api) n
+hoistHoneycombServer proxy =
+  hoistHoneycombServerWithContext proxy (Proxy :: Proxy '[])
+
+hoistHoneycombServerWithContext ::
+  forall m n env api context.
+  ( MonadIO n,
+    MonadReader env n,
+    HC.HasSpanContext env,
+    HasServer api context
+  ) =>
+  Proxy api ->
+  Proxy context ->
+  (forall x. m x -> n x) ->
+  ServerT api m ->
+  TraceHandlerData ->
+  ServerT api n
+hoistHoneycombServerWithContext proxy proxycxt f server thd =
+  hoistServerWithContext proxy proxycxt (updateTraceData thd . f) server
+  where
+    updateTraceData :: TraceHandlerData -> n x -> n x
+    updateTraceData (TraceHandlerData req _) inner = do
+      let spanContextRef = V.lookup spanContextKey (Wai.vault req)
+      spanContext <- maybe (pure Nothing) readIORef spanContextRef
+      local (over HC.spanContextL (const spanContext)) inner
 
 class HasRequestInfo a where
   getRequestInfo :: Proxy a -> Wai.Request -> Maybe RequestInfo

@@ -1,9 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Network.Wai.Honeycomb where
+module Network.Wai.Honeycomb
+  ( spanContextKey,
+    traceApplicationT,
+  )
+where
 
-import Control.Monad.Reader (MonadReader)
+import Control.Monad.Reader (MonadReader, local)
 import Data.ByteString (ByteString)
 import qualified Data.HashMap.Strict as HM
 import qualified Data.List as List
@@ -11,39 +15,18 @@ import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 import Data.Text.Encoding (decodeUtf8With)
 import Data.Text.Encoding.Error (lenientDecode)
+import qualified Data.Vault.Lazy as V
 import Honeycomb.Trace
+import Lens.Micro (over)
+import Lens.Micro.Mtl (view)
 import Network.HTTP.Types.Status (statusCode)
 import Network.Wai
+import Network.Wai.UnliftIO (MiddlewareT)
+import System.IO.Unsafe
 import UnliftIO
 
 decodeUtf8Lenient :: ByteString -> T.Text
 decodeUtf8Lenient = decodeUtf8With lenientDecode
-
-type ApplicationT m = Request -> (Response -> m ResponseReceived) -> m ResponseReceived
-
-type MiddlewareT m = ApplicationT m -> ApplicationT m
-
-liftApplication :: MonadUnliftIO m => Application -> ApplicationT m
-liftApplication app req respond =
-  withRunInIO $ \runInIO -> liftIO $ app req (runInIO . respond)
-
-liftMiddleware :: MonadUnliftIO m => Middleware -> MiddlewareT m
-liftMiddleware mid app req respond = do
-  app' <- runApplicationT app
-  withRunInIO $ \runInIO -> mid app' req (runInIO . respond)
-
-runApplicationT :: MonadUnliftIO m => ApplicationT m -> m Application
-runApplicationT app =
-  withRunInIO $ \runInIO ->
-    pure $ \req respond ->
-      runInIO $ app req (liftIO . respond)
-
-runMiddlewareT :: MonadUnliftIO m => MiddlewareT m -> m Middleware
-runMiddlewareT mid =
-  withRunInIO $ \runInIO ->
-    pure $ \app req respond -> do
-      app' <- runInIO . runApplicationT . mid $ liftApplication app
-      app' req respond
 
 traceApplicationT ::
   forall m env.
@@ -79,6 +62,10 @@ traceApplicationT service sp =
         then Just $ T.drop 2 t
         else Nothing
 
+spanContextKey :: V.Key (IORef (Maybe SpanContext))
+spanContextKey = unsafePerformIO V.newKey
+{-# NOINLINE spanContextKey #-}
+
 traceApplicationT' ::
   forall m env.
   ( MonadUnliftIO m,
@@ -92,26 +79,30 @@ traceApplicationT' ::
   MiddlewareT m
 traceApplicationT' service sp parentSpanRef app req inner =
   withNewRootSpan' service sp (parentSpanRef req) $ do
+    spanContext <- view spanContextL
+    spanContextRef <- newIORef spanContext
     add getRequestFields
     (\x y -> app x y `catchAny` reportErrorStatus)
-      req
+      req {vault = V.insert spanContextKey spanContextRef (vault req)}
       ( \response -> do
-          add (getResponseFields response)
-          inner response
+          newSpanContext <- readIORef spanContextRef
+          local (over spanContextL (const newSpanContext)) $ do
+            add (getResponseFields response)
+            inner response
       )
   where
     getRequestFields :: HoneyObject
     getRequestFields =
       HoneyObject $
         HM.fromList
-          [ ("request.http_version", HoneyString . T.pack . show $ httpVersion req),
-            ("request.method", HoneyString . decodeUtf8Lenient $ requestMethod req),
-            ("request.header.user_agent", maybe HoneyNull (HoneyString . decodeUtf8Lenient) (requestHeaderUserAgent req)),
-            ("request.host", maybe HoneyNull (HoneyString . decodeUtf8Lenient) (requestHeaderHost req)),
-            ("request.path", HoneyString . decodeUtf8Lenient $ rawPathInfo req),
-            ("request.query", HoneyString . (\t -> fromMaybe t $ T.stripPrefix "?" t) . decodeUtf8Lenient $ rawQueryString req),
+          [ ("request.http_version", toHoneyValue . T.pack . show $ httpVersion req),
+            ("request.method", toHoneyValue $ requestMethod req),
+            ("request.header.user_agent", toHoneyValue $ requestHeaderUserAgent req),
+            ("request.host", toHoneyValue $ requestHeaderHost req),
+            ("request.path", toHoneyValue $ rawPathInfo req),
+            ("request.query", toHoneyValue . (\t -> fromMaybe t $ T.stripPrefix "?" t) . decodeUtf8Lenient $ rawQueryString req),
             ("request.scheme", HoneyString $ if isSecure req then "https" else "http"),
-            ("request.secure", HoneyBool $ isSecure req)
+            ("request.secure", toHoneyValue $ isSecure req)
           ]
     reportErrorStatus :: SomeException -> m a
     reportErrorStatus e = addField "response.status_code" (500 :: Int) >> throwIO e
