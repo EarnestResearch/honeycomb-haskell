@@ -1,25 +1,48 @@
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
 module Main where
 
-import RIO
-import Servant
-import qualified Prelude as P
+import qualified Honeycomb.Trace as HC
+import Network.Wai.Handler.Warp (run)
+import RIO hiding (Handler)
+import Servant.API
+import Servant.Honeycomb.RIO
 
-type Api = "hello" :> Capture "int" Int :> GetNoContent
+type Api = "hello" :> Capture "int" Int :> Get '[JSON] Text
 
-helloHandler :: Int -> IO ()
-helloHandler _ = pure ()
+appServer :: Int -> RIO AppEnv Text
+appServer i = do
+  ctx <- view HC.spanContextL
+  pure $ "hello " <> tshow i <> " " <> tshow ctx
 
-api :: Proxy Api
-api = Proxy
+data AppEnv
+  = AppEnv
+      { spanContext :: Maybe HC.SpanContext,
+        honey :: HC.Honey,
+        port :: Int
+      }
 
-app = hoistServer api id helloHandler
+instance HC.HasHoney AppEnv where
+  honeyL = lens honey (\x y -> x {honey = y})
 
-app = serve @Api Proxy helloHandler
+instance HC.HasSpanContext AppEnv where
+  spanContextL = lens spanContext (\x y -> x {spanContext = y})
 
 main :: IO ()
-main = P.putStrLn "Hello, Haskell!"
+main =
+  HC.withHoney $ \honey -> do
+    let appEnv =
+          AppEnv
+            { spanContext = Nothing,
+              honey = honey,
+              port = 3000
+            }
+    app <- runRIO appEnv $ traceHoneycombRIO "infra-service" (Proxy @Api) appServer
+    run (port appEnv) app

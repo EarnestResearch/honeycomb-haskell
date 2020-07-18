@@ -1,0 +1,25 @@
+cradle:
+  cabal:
+    - path: "core/src"
+      component: "lib:honeycomb"
+
+    - path: "core/test"
+      component: "honeycomb:test:tests"
+
+    - path: "example/src/Main.hs"
+      component: "example:exe:example"
+
+    - path: "servant/src"
+      component: "lib:honeycomb-servant"
+
+    - path: "servant/test"
+      component: "honeycomb-servant:test:tests"
+
+    - path: "servant-rio/src"
+      component: "lib:honeycomb-servant-rio"
+
+    - path: "wai/src"
+      component: "lib:honeycomb-wai"
+
+    - path: "unliftio-wai/src"
+      component: "lib:unliftio-wai"

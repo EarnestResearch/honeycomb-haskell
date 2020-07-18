@@ -1,0 +1,53 @@
+cabal-version:       3.0
+name:                unliftio-wai
+version:             0.1.0.0
+synopsis:            WAI integration for Honeycomb monitoring client
+description:         WAI integration for Honeycomb monitoring client
+homepage:            https://github.com/EarnestResearch/honeycomb-wai-haskell
+bug-reports:         https://github.com/EarnestResearch/honeycomb-wai-haskell/issues
+license:             Apache-2.0
+license-file:        LICENSE
+author:              Gary Coady
+maintainer:          gcoady@earnestresearch.com
+copyright:           Copyright (c) 2019 Earnest Research
+category:            Monitoring
+extra-source-files:  CHANGELOG.md
+
+source-repository head
+  type:     git
+  location: git://github.com/EarnestResearch/honeycomb-wai-haskell.git
+
+library
+  exposed-modules:
+    UnliftIO.Wai
+
+  other-modules:
+    Paths_unliftio_wai
+
+  -- LANGUAGE extensions used by modules in this package.
+  other-extensions:
+    OverloadedStrings ScopedTypeVariables
+  ghc-options:
+    -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wpartial-fields -Wredundant-constraints
+    -fhide-source-paths
+
+  build-depends:
+    , base                  >= 4.10    && < 10
+    , bytestring
+    , honeycomb
+    , http-types
+    , microlens
+    , microlens-mtl
+    , mtl
+    , text
+    , unliftio
+    , unordered-containers
+    , vault
+    , wai
+
+  -- Directories containing source files.
+  hs-source-dirs:      src
+
+  -- Base language which the package is written in.
+  default-language:    Haskell2010
+

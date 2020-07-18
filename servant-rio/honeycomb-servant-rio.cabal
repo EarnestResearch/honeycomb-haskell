@@ -1,6 +1,6 @@
 cabal-version:  3.0
 
-name:           honeycomb-servant
+name:           honeycomb-servant-rio
 version:        0.1.0.0
 synopsis:       Client library for the Honeycomb observability service
 description:
@@ -25,7 +25,7 @@ source-repository head
     type: git
     location: git://github.com/EarnestResearch/honeycomb-haskell.git
 
-common shared-properties
+library
     default-language: Haskell2010
     ghc-options:
         -Wall
@@ -42,62 +42,16 @@ common shared-properties
         ghc-options:
             -fwrite-ide-info
     other-extensions:
-        FlexibleInstances
-        GeneralizedNewtypeDeriving
-        NamedFieldPuns
-        OverloadedStrings
-        ScopedTypeVariables
-        DeriveGeneric
-        DeriveAnyClass
-        TupleSections
-    build-depends:
-        aeson
-      , base >=4.11 && <10
-      , bytestring
-      , hashable
-      , http-client
-      , http-client-tls
-      , http-types
-      , microlens
-      , microlens-mtl
-      , mtl
-      , network-uri
-      , random
-      , scientific
-      , stm
-      , text
-      , time
-      , unliftio
-      , unordered-containers
-      , uuid
-      , vault
-
-library
-    import: shared-properties
+        DataKinds
+        FlexibleContexts
+        RankNTypes
+        NoImplicitPrelude
     hs-source-dirs: src
     exposed-modules:
-        Network.Wai.Honeycomb.Servant
-        Servant.Honeycomb
+        Servant.Honeycomb.RIO
     build-depends:
-        honeycomb
-      , honeycomb-wai
-      , containers
-      , servant
+        base
+      , honeycomb
+      , honeycomb-servant
+      , rio
       , servant-server
-      , wai
-
-test-suite tests
-    import: shared-properties
-    hs-source-dirs: test
-    type: exitcode-stdio-1.0
-    main-is:
-        Spec.hs
-    build-depends:
-        honeycomb-servant
-      , servant
-      , servant-server
-      , hspec
-      , rio >= 0.1.12.0
-      , wai
-    other-modules:
-      ServantSpec

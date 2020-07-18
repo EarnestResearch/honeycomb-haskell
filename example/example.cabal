@@ -12,11 +12,15 @@ extra-source-files:  CHANGELOG.md
 
 executable example
   main-is:             Main.hs
+  ghc-options:         -threaded
   -- other-modules:
   -- other-extensions:
   build-depends:
       base >=4.13 && <4.14
+    , honeycomb
+    , honeycomb-servant-rio
     , rio
-    , servant-server
+    , servant
+    , warp
   hs-source-dirs:      src
   default-language:    Haskell2010
