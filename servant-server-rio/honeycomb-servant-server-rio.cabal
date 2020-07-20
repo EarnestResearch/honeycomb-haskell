@@ -56,4 +56,6 @@ library
       , honeycomb-servant-server
       , mtl
       , rio
+      , servant
       , servant-server
+      , unliftio-wai

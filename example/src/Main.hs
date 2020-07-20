@@ -1,11 +1,11 @@
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
@@ -15,20 +15,26 @@ import qualified Honeycomb.Trace as HC
 import Network.Wai.Handler.Warp (run)
 import RIO hiding (Handler)
 import Servant
+import Servant.API.Generic
+import Servant.Server.Generic
 import Servant.Server.Honeycomb.RIO
 
-type Api =
-  "hello" :> Capture "name" Text :> Get '[JSON] Text
-    :<|> "goodbye" :> Capture "neverknewyou" Text :> Get '[PlainText] Text
+data Routes route
+  = Routes
+      { _hello :: route :- "hello" :> Capture "name" Text :> Get '[JSON] Text,
+        _goodbye :: route :- "goodbye" :> Capture "neverknewyou" Text :> Get '[PlainText] Text
+      }
+  deriving (Generic)
 
-helloName :: Text -> RIO env Text
-helloName name = pure $ "hello " <> name
+api :: Proxy (ToServantApi Routes)
+api = genericApi (Proxy :: Proxy Routes)
 
-goodbyeWhoever :: Text -> RIO env Text
-goodbyeWhoever whoever = pure $ "goodbye " <> whoever
-
-appServer :: ServerT Api (RIO env)
-appServer = helloName :<|> goodbyeWhoever
+serverImpl :: Routes (AsServerT (RIO AppEnv))
+serverImpl =
+  Routes
+    { _hello = \name -> pure $ "hello " <> name,
+      _goodbye = \name -> pure $ "goodbye " <> name
+    }
 
 data AppEnv
   = AppEnv
@@ -52,5 +58,5 @@ main =
               aeHoney = honey,
               aePort = 3000
             }
-    app <- runRIO appEnv $ traceServerRIO "infra-service" "http-handler" (Proxy @Api) appServer
+    app <- runRIO appEnv $ genericTraceServerRIO "infra-service" "http-handler" api serverImpl
     run (aePort appEnv) app
