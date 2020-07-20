@@ -20,7 +20,6 @@ source-repository head
 library
   exposed-modules:
     Network.Wai.Honeycomb
-    Network.Wai.UnliftIO
 
   other-modules:
     Paths_honeycomb_wai
@@ -29,19 +28,31 @@ library
   other-extensions:
     OverloadedStrings ScopedTypeVariables
   ghc-options:
-    -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wpartial-fields -Wredundant-constraints
-    -fhide-source-paths
-
+    -Wall
+    -Wcompat
+    -Widentities
+    -Wincomplete-record-updates
+    -Wincomplete-uni-patterns
+    -Wpartial-fields
+    -Wredundant-constraints
+  if impl(ghc >= 8.2.0)
+      ghc-options:
+          -fhide-source-paths
+  if impl(ghc >= 8.8.0)
+      ghc-options:
+          -fwrite-ide-info
   build-depends:
     , base                  >= 4.10    && < 10
     , bytestring
     , honeycomb
     , http-types
+    , iproute
     , microlens
     , microlens-mtl
     , mtl
     , text
     , unliftio
+    , unliftio-wai
     , unordered-containers
     , vault
     , wai

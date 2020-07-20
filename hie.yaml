@@ -6,7 +6,7 @@ cradle:
     - path: "core/test"
       component: "honeycomb:test:tests"
 
-    - path: "example/src/Main.hs"
+    - path: "example/src"
       component: "example:exe:example"
 
     - path: "servant/src"
@@ -15,11 +15,23 @@ cradle:
     - path: "servant/test"
       component: "honeycomb-servant:test:tests"
 
-    - path: "servant-rio/src"
-      component: "lib:honeycomb-servant-rio"
+    - path: "servant-client/src"
+      component: "lib:honeycomb-servant-client"
 
-    - path: "wai/src"
-      component: "lib:honeycomb-wai"
+    - path: "servant-client/test"
+      component: "honeycomb-servant-client:test:tests"
+
+    - path: "servant-server/src"
+      component: "lib:honeycomb-servant-server"
+
+    - path: "servant-server/test"
+      component: "honeycomb-servant-server:test:tests"
+
+    - path: "servant-server-rio/src"
+      component: "lib:honeycomb-servant-server-rio"
 
     - path: "unliftio-wai/src"
       component: "lib:unliftio-wai"
+
+    - path: "wai/src"
+      component: "lib:honeycomb-wai"

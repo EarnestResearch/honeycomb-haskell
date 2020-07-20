@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
@@ -15,6 +16,7 @@ where
 import Control.Monad.Reader (MonadReader)
 import Data.ByteString (ByteString)
 import qualified Data.HashMap.Strict as HM
+import Data.IP
 import qualified Data.List as List
 import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
@@ -25,9 +27,9 @@ import qualified Honeycomb.Trace as HC
 import Lens.Micro.Mtl (view)
 import Network.HTTP.Types.Status (statusCode)
 import Network.Wai
-import Network.Wai.UnliftIO (MiddlewareT)
 import System.IO.Unsafe
 import UnliftIO
+import UnliftIO.Wai
 
 decodeUtf8Lenient :: ByteString -> T.Text
 decodeUtf8Lenient = decodeUtf8With lenientDecode
@@ -43,11 +45,10 @@ readTraceHeader req = do
   pure $ HC.SpanReference (HC.TraceId $ T.intercalate "=" tid) (HC.SpanId $ T.intercalate "=" sid)
 
 getVal :: T.Text -> [T.Text] -> Bool
-getVal header values =
-  case values of
-    [] -> False
-    [_] -> False
-    h : _ -> h == header
+getVal header = \case
+  [] -> False
+  [_] -> False
+  h : _ -> h == header
 
 getV1 :: T.Text -> Maybe T.Text
 getV1 t =
@@ -74,17 +75,29 @@ spanContextKey = unsafePerformIO V.newKey
 
 getRequestFields :: Request -> HC.HoneyObject
 getRequestFields req =
-  HC.HoneyObject $
-    HM.fromList
-      [ ("request.http_version", HC.toHoneyValue . T.pack . show $ httpVersion req),
-        ("request.method", HC.toHoneyValue $ requestMethod req),
+  HC.HoneyObject
+    . HM.fromList
+    $ [ ("request.content_length", HC.toHoneyValue . bodyLength $ requestBodyLength req),
         ("request.header.user_agent", HC.toHoneyValue $ requestHeaderUserAgent req),
         ("request.host", HC.toHoneyValue $ requestHeaderHost req),
+        ("request.http_version", HC.toHoneyValue . T.pack . show $ httpVersion req),
+        ("request.method", HC.toHoneyValue $ requestMethod req),
         ("request.path", HC.toHoneyValue $ rawPathInfo req),
         ("request.query", HC.toHoneyValue . (\t -> fromMaybe t $ T.stripPrefix "?" t) . decodeUtf8Lenient $ rawQueryString req),
+        ("request.remote_addr", HC.toHoneyValue . reqAddr . fromSockAddr $ remoteHost req),
         ("request.scheme", HC.HoneyString $ if isSecure req then "https" else "http"),
-        ("request.secure", HC.toHoneyValue $ isSecure req)
+        ("request.secure", HC.toHoneyValue $ isSecure req),
+        ("type", "http_server")
       ]
+      <> fmap (\(name, value) -> ("http.query_param." <> decodeUtf8Lenient name, HC.toHoneyValue value)) (queryString req)
+  where
+    bodyLength = \case
+      ChunkedBody -> Nothing
+      KnownLength len | len > 0 -> Just $ toInteger len
+      KnownLength _ -> Nothing
+    reqAddr = \case
+      Just (ip, _) -> Just $ show ip
+      Nothing -> Nothing
 
 reportErrorStatus :: (MonadIO m, MonadReader env m, HC.HasSpanContext env) => SomeException -> m a
 reportErrorStatus e = HC.addField "response.status_code" (500 :: Int) >> throwIO e

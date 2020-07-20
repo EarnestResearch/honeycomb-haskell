@@ -1,6 +1,6 @@
 cabal-version:  3.0
 
-name:           honeycomb-servant
+name:           honeycomb-servant-client
 version:        0.1.0.0
 synopsis:       Client library for the Honeycomb observability service
 description:
@@ -76,14 +76,15 @@ library
     import: shared-properties
     hs-source-dirs: src
     exposed-modules:
-        Servant.Honeycomb
+        Servant.Client.Honeycomb
     build-depends:
         honeycomb
+      , honeycomb-servant
       , honeycomb-wai
       , unliftio-wai
       , containers
       , servant
-      , servant-server
+      , servant-client
       , wai
 
 test-suite tests

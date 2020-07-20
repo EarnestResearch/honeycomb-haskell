@@ -1,6 +1,6 @@
 cabal-version:  3.0
 
-name:           honeycomb-servant-rio
+name:           honeycomb-servant-server-rio
 version:        0.1.0.0
 synopsis:       Client library for the Honeycomb observability service
 description:
@@ -48,10 +48,12 @@ library
         NoImplicitPrelude
     hs-source-dirs: src
     exposed-modules:
-        Servant.Honeycomb.RIO
+        Servant.Server.Honeycomb.RIO
     build-depends:
         base
       , honeycomb
       , honeycomb-servant
+      , honeycomb-servant-server
+      , mtl
       , rio
       , servant-server
