@@ -28,6 +28,7 @@ import Data.Kind (Type)
 import qualified Data.Vault.Lazy as V
 import qualified Honeycomb.Trace as HC
 import Lens.Micro (over)
+import Lens.Micro.Mtl (view)
 import qualified Network.Wai as Wai
 import Network.Wai.Honeycomb.Servant
 import Servant
@@ -146,14 +147,13 @@ genericTraceServer ::
   HC.ServiceName ->
   HC.SpanName ->
   routes (AsServerT m) ->
-  (forall x. env -> m x -> Handler x) ->
+  (forall x. m x -> Handler x) ->
   m Application
-genericTraceServer service spanName routes f = do
-  env <- ask
+genericTraceServer service spanName routes f =
   runApplicationT
-    $ traceApplicationT service spanName (Proxy :: Proxy api)
-    $ liftApplication
-    $ genericServeT (f env) routes
+    . traceApplicationT service spanName (Proxy :: Proxy api)
+    . liftApplication
+    $ genericServeT f routes
 
 genericTraceServerWithContext ::
   forall (routes :: Type -> Type) (m :: Type -> Type) (ctx :: [Type]) (env :: Type) (api :: Type).
@@ -171,11 +171,10 @@ genericTraceServerWithContext ::
   HC.ServiceName ->
   HC.SpanName ->
   routes (AsServerT m) ->
-  (forall x. env -> m x -> Handler x) ->
+  (forall x. m x -> Handler x) ->
   m Application
-genericTraceServerWithContext context service spanName routes f = do
-  env <- ask
+genericTraceServerWithContext context service spanName routes f =
   runApplicationT
-    $ traceApplicationT service spanName (Proxy :: Proxy api)
-    $ liftApplication
-    $ genericServeTWithContext (f env) routes context
+    . traceApplicationT service spanName (Proxy :: Proxy api)
+    . liftApplication
+    $ genericServeTWithContext f routes context

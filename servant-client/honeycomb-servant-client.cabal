@@ -78,13 +78,16 @@ library
     exposed-modules:
         Servant.Client.Honeycomb
     build-depends:
-        honeycomb
+        exceptions
+      , honeycomb
       , honeycomb-servant
       , honeycomb-wai
       , unliftio-wai
       , containers
+      , semigroupoids
       , servant
       , servant-client
+      , servant-client-core
       , wai
 
 test-suite tests

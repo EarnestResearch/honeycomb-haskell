@@ -28,6 +28,7 @@ source-repository head
 common shared-properties
     default-language: Haskell2010
     ghc-options:
+        -haddock
         -Wall
         -Wcompat
         -Widentities
