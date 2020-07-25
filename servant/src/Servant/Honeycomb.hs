@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -119,6 +120,7 @@ instance ReflectMethod method => HasRequestInfo (Verb method status cts a) where
     where
       method = reflectMethod (Proxy :: Proxy method)
 
+#if MIN_VERSION_servant(0,17,0)
 instance ReflectMethod method => HasRequestInfo (NoContentVerb method) where
   getRequestInfo _ req =
     case Wai.pathInfo req of
@@ -126,6 +128,7 @@ instance ReflectMethod method => HasRequestInfo (NoContentVerb method) where
       _ -> Nothing
     where
       method = reflectMethod (Proxy :: Proxy method)
+#endif
 
 instance ReflectMethod method => HasRequestInfo (Stream method status framing ct a) where
   getRequestInfo _ req =
