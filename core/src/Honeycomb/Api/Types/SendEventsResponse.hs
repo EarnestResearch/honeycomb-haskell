@@ -12,9 +12,8 @@ import qualified Network.HTTP.Client as Client
 --
 -- This response returns both of those types of object, as well as the
 -- response details from Honeycomb servers.
-data SendEventsResponse
-  = SendEventsResponse
-      { unsentEvents :: ![Event],
-        oversizedEvents :: ![Event],
-        serviceResponse :: !(Client.Response (Maybe [SendEventsServerReply]))
-      }
+data SendEventsResponse = SendEventsResponse
+  { unsentEvents :: ![Event],
+    oversizedEvents :: ![Event],
+    serviceResponse :: !(Client.Response (Maybe [SendEventsServerReply]))
+  }

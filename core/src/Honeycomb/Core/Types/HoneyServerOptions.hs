@@ -18,16 +18,15 @@ import Network.HTTP.Client.TLS (tlsManagerSettings)
 import Numeric.Natural (Natural)
 import UnliftIO
 
-data HoneyServerOptions m
-  = HoneyServerOptions
-      { blockOnResponse :: !Bool,
-        maxBatchSize :: !Natural,
-        -- | Frequency of batch sending in milliseconds
-        sendFrequency :: !Int,
-        maxConcurrentBatches :: !Natural,
-        pendingWorkCapacity :: !Natural,
-        httpLbs :: Client.Request -> m (Client.Response LBS.ByteString)
-      }
+data HoneyServerOptions m = HoneyServerOptions
+  { blockOnResponse :: !Bool,
+    maxBatchSize :: !Natural,
+    -- | Frequency of batch sending in milliseconds
+    sendFrequency :: !Int,
+    maxConcurrentBatches :: !Natural,
+    pendingWorkCapacity :: !Natural,
+    httpLbs :: Client.Request -> m (Client.Response LBS.ByteString)
+  }
 
 instance Show (HoneyServerOptions m) where
   show _ = "HoneyServerOptions {...}"

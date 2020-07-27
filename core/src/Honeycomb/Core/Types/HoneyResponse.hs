@@ -12,12 +12,11 @@ import Data.Dynamic (Dynamic)
 import qualified Data.Text as T
 import Lens.Micro (Lens', lens)
 
-data HoneyResponse
-  = HoneyResponse
-      { honeyResponseMetadata :: !(Maybe Dynamic),
-        honeyResponseStatusCode :: !(Maybe Int),
-        honeyResponseError :: !(Maybe T.Text)
-      }
+data HoneyResponse = HoneyResponse
+  { honeyResponseMetadata :: !(Maybe Dynamic),
+    honeyResponseStatusCode :: !(Maybe Int),
+    honeyResponseError :: !(Maybe T.Text)
+  }
   deriving (Show)
 
 honeyResponseMetadataL :: Lens' HoneyResponse (Maybe Dynamic)

@@ -22,6 +22,7 @@
 -- "Honeycomb.Api" module.
 module Honeycomb
   ( -- * Library initialization
+
     --
     -- $libraryInitialization
     module Honeycomb.Core,
@@ -36,6 +37,7 @@ module Honeycomb
 
     -- ** Adding fields
     --
+
     -- $addingFields
     addField,
     add,

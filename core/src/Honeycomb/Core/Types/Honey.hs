@@ -20,11 +20,10 @@ import UnliftIO
 -- This contains all the state and settings for the basic Honeycomb library to
 -- operate. Generally, this will be placed in a "MonadReader" environment, and then
 -- accessed through the "HasHoney" typeclass.
-data Honey
-  = Honey
-      { honeyOptions :: !HoneyOptions,
-        honeyTransportState :: !TransportState
-      }
+data Honey = Honey
+  { honeyOptions :: !HoneyOptions,
+    honeyTransportState :: !TransportState
+  }
 
 instance Show Honey where
   show _ = "Honey {...}"

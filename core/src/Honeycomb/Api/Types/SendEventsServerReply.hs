@@ -11,11 +11,10 @@ import qualified Data.Text as T
 -- This represents the raw response to each event sent by the
 -- 'Honeycomb.Api.sendEvents' call. There should be one of these structures
 -- for each event sent in the batch call.
-data SendEventsServerReply
-  = SendEventsServerReply
-      { serverReplyStatus :: !Int,
-        serverReplyError :: !(Maybe T.Text)
-      }
+data SendEventsServerReply = SendEventsServerReply
+  { serverReplyStatus :: !Int,
+    serverReplyError :: !(Maybe T.Text)
+  }
   deriving (Show)
 
 instance JSON.ToJSON SendEventsServerReply where

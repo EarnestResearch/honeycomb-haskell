@@ -21,12 +21,11 @@ import Lens.Micro (Lens', lens)
 --
 -- These parameters represent the set of options used as keys when
 -- partitioning data to be forwarded to Honeycomb servers.
-data RequestOptions
-  = RequestOptions
-      { requestApiHost :: !ApiHost,
-        requestApiDataset :: !Dataset,
-        requestApiKey :: !ApiKey
-      }
+data RequestOptions = RequestOptions
+  { requestApiHost :: !ApiHost,
+    requestApiDataset :: !Dataset,
+    requestApiKey :: !ApiKey
+  }
   deriving (Eq, Generic, Hashable, Ord, Show)
 
 -- | Provide all the details needed to create a "RequestOptions" value.

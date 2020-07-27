@@ -19,7 +19,7 @@ import qualified Data.Text as T
 import Honeycomb.Core.Internal.Types
 import Honeycomb.Core.Types
 import Honeycomb.Transport
-import Lens.Micro ((&), (.~), over)
+import Lens.Micro (over, (&), (.~))
 import Lens.Micro.Mtl (view)
 import System.Environment (lookupEnv)
 import UnliftIO

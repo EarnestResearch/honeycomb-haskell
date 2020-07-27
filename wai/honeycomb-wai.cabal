@@ -1,48 +1,45 @@
-cabal-version:       3.0
-name:                honeycomb-wai
-version:             0.1.0.0
-synopsis:            WAI integration for Honeycomb monitoring client
-description:         WAI integration for Honeycomb monitoring client
-homepage:            https://github.com/EarnestResearch/honeycomb-wai-haskell
-bug-reports:         https://github.com/EarnestResearch/honeycomb-wai-haskell/issues
-license:             Apache-2.0
-license-file:        LICENSE
-author:              Gary Coady
-maintainer:          gcoady@earnestresearch.com
-copyright:           Copyright (c) 2019 Earnest Research
-category:            Monitoring
-extra-source-files:  CHANGELOG.md
+cabal-version:      3.0
+name:               honeycomb-wai
+version:            0.1.0.0
+synopsis:           WAI integration for Honeycomb monitoring client
+description:        WAI integration for Honeycomb monitoring client
+homepage:           https://github.com/EarnestResearch/honeycomb-wai-haskell
+bug-reports:
+  https://github.com/EarnestResearch/honeycomb-wai-haskell/issues
+
+license:            Apache-2.0
+license-file:       LICENSE
+author:             Gary Coady
+maintainer:         gcoady@earnestresearch.com
+copyright:          Copyright (c) 2019 Earnest Research
+category:           Monitoring
+extra-source-files: CHANGELOG.md
 
 source-repository head
   type:     git
   location: git://github.com/EarnestResearch/honeycomb-wai-haskell.git
 
 library
-  exposed-modules:
-    Network.Wai.Honeycomb
-
-  other-modules:
-    Paths_honeycomb_wai
+  exposed-modules:  Network.Wai.Honeycomb
+  other-modules:    Paths_honeycomb_wai
 
   -- LANGUAGE extensions used by modules in this package.
   other-extensions:
-    OverloadedStrings ScopedTypeVariables
+    OverloadedStrings
+    ScopedTypeVariables
+
   ghc-options:
-    -Wall
-    -Wcompat
-    -Widentities
-    -Wincomplete-record-updates
-    -Wincomplete-uni-patterns
-    -Wpartial-fields
-    -Wredundant-constraints
-  if impl(ghc >= 8.2.0)
-      ghc-options:
-          -fhide-source-paths
-  if impl(ghc >= 8.8.0)
-      ghc-options:
-          -fwrite-ide-info
+    -Wall -Wcompat -Widentities -Wincomplete-record-updates
+    -Wincomplete-uni-patterns -Wpartial-fields -Wredundant-constraints
+
+  if impl(ghc >=8.2.0)
+    ghc-options: -fhide-source-paths
+
+  if impl(ghc >=8.8.0)
+    ghc-options: -fwrite-ide-info
+
   build-depends:
-    , base                  >= 4.10    && < 10
+    , base                  >=4.10 && <10
     , bytestring
     , honeycomb
     , http-types
@@ -58,8 +55,7 @@ library
     , wai-unliftio
 
   -- Directories containing source files.
-  hs-source-dirs:      src
+  hs-source-dirs:   src
 
   -- Base language which the package is written in.
-  default-language:    Haskell2010
-
+  default-language: Haskell2010

@@ -13,12 +13,11 @@ import Lens.Micro (Lens', lens)
 import Numeric.Natural (Natural)
 import UnliftIO
 
-data TransportState
-  = TransportState
-      { transportSendQueue :: !(TBQueue (Api.RequestOptions, Api.Event)),
-        transportResponseQueue :: !(TBQueue HoneyResponse),
-        transportFlushQueue :: !(TBQueue (TMVar ())) -- do not expect a reply if library has shut down
-      }
+data TransportState = TransportState
+  { transportSendQueue :: !(TBQueue (Api.RequestOptions, Api.Event)),
+    transportResponseQueue :: !(TBQueue HoneyResponse),
+    transportFlushQueue :: !(TBQueue (TMVar ())) -- do not expect a reply if library has shut down
+  }
 
 transportSendQueueL :: Lens' TransportState (TBQueue (Api.RequestOptions, Api.Event))
 transportSendQueueL = lens transportSendQueue (\x y -> x {transportSendQueue = y})

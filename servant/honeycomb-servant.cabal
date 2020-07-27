@@ -1,103 +1,98 @@
-cabal-version:  3.0
-
-name:           honeycomb-servant
-version:        0.1.0.0
-synopsis:       Client library for the Honeycomb observability service
+cabal-version:      3.0
+name:               honeycomb-servant
+version:            0.1.0.0
+synopsis:           Client library for the Honeycomb observability service
 description:
-    Honeycomb is a service which provides visibility over
-    high cardinality attributes, allowing deep insight into
-    the performance and behaviour of your applications. This
-    library offers a simple way of interacting with the service,
-    including a tracing API.
-category:       Monitoring
-homepage:       https://github.com/EarnestResearch/honeycomb-haskell#readme
-bug-reports:    https://github.com/EarnestResearch/honeycomb-haskell/issues
-author:         Gary Coady
-maintainer:     gcoady@earnestresearch.com
-copyright:      (c) 2019-2020 Earnest Research
-license:        Apache-2.0
-license-file:   LICENSE
+  Honeycomb is a service which provides visibility over
+  high cardinality attributes, allowing deep insight into
+  the performance and behaviour of your applications. This
+  library offers a simple way of interacting with the service,
+  including a tracing API.
+
+category:           Monitoring
+homepage:           https://github.com/EarnestResearch/honeycomb-haskell#readme
+bug-reports:        https://github.com/EarnestResearch/honeycomb-haskell/issues
+author:             Gary Coady
+maintainer:         gcoady@earnestresearch.com
+copyright:          (c) 2019-2020 Earnest Research
+license:            Apache-2.0
+license-file:       LICENSE
 extra-source-files:
-    README.md
-    ChangeLog.md
+  README.md
+  ChangeLog.md
 
 source-repository head
-    type: git
-    location: git://github.com/EarnestResearch/honeycomb-haskell.git
+  type:     git
+  location: git://github.com/EarnestResearch/honeycomb-haskell.git
 
 common shared-properties
-    default-language: Haskell2010
-    ghc-options:
-        -Wall
-        -Wcompat
-        -Widentities
-        -Wincomplete-record-updates
-        -Wincomplete-uni-patterns
-        -Wpartial-fields
-        -Wredundant-constraints
-    if impl(ghc >= 8.2.0)
-        ghc-options:
-            -fhide-source-paths
-    if impl(ghc >= 8.8.0)
-        ghc-options:
-            -fwrite-ide-info
-    other-extensions:
-        FlexibleInstances
-        GeneralizedNewtypeDeriving
-        NamedFieldPuns
-        OverloadedStrings
-        ScopedTypeVariables
-        DeriveGeneric
-        DeriveAnyClass
-        TupleSections
-    build-depends:
-        aeson
-      , base >=4.11 && <10
-      , bytestring
-      , hashable
-      , http-client
-      , http-client-tls
-      , http-types
-      , microlens
-      , microlens-mtl
-      , mtl
-      , network-uri
-      , random
-      , scientific
-      , stm
-      , text
-      , time
-      , unliftio
-      , unordered-containers
-      , uuid
-      , vault
+  default-language: Haskell2010
+  ghc-options:
+    -Wall -Wcompat -Widentities -Wincomplete-record-updates
+    -Wincomplete-uni-patterns -Wpartial-fields -Wredundant-constraints
+
+  if impl(ghc >=8.2.0)
+    ghc-options: -fhide-source-paths
+
+  if impl(ghc >=8.8.0)
+    ghc-options: -fwrite-ide-info
+
+  other-extensions:
+    DeriveAnyClass
+    DeriveGeneric
+    FlexibleInstances
+    GeneralizedNewtypeDeriving
+    NamedFieldPuns
+    OverloadedStrings
+    ScopedTypeVariables
+    TupleSections
+
+  build-depends:
+    , aeson
+    , base                  >=4.11 && <10
+    , bytestring
+    , hashable
+    , http-client
+    , http-client-tls
+    , http-types
+    , microlens
+    , microlens-mtl
+    , mtl
+    , network-uri
+    , random
+    , scientific
+    , stm
+    , text
+    , time
+    , unliftio
+    , unordered-containers
+    , uuid
+    , vault
 
 library
-    import: shared-properties
-    hs-source-dirs: src
-    exposed-modules:
-        Servant.Honeycomb
-    build-depends:
-        honeycomb
-      , honeycomb-wai
-      , containers
-      , servant
-      , servant-server
-      , wai
-      , wai-unliftio
+  import:          shared-properties
+  hs-source-dirs:  src
+  exposed-modules: Servant.Honeycomb
+  build-depends:
+    , containers
+    , honeycomb
+    , honeycomb-wai
+    , servant
+    , servant-server
+    , wai
+    , wai-unliftio
 
 test-suite tests
-    import: shared-properties
-    hs-source-dirs: test
-    type: exitcode-stdio-1.0
-    main-is:
-        Spec.hs
-    build-depends:
-        honeycomb-servant
-      , servant
-      , servant-server
-      , hspec
-      , rio >= 0.1.12.0
-      , wai
-    other-modules:
-      ServantSpec
+  import:         shared-properties
+  hs-source-dirs: test
+  type:           exitcode-stdio-1.0
+  main-is:        Spec.hs
+  build-depends:
+    , honeycomb-servant
+    , hspec
+    , rio                >=0.1.12.0
+    , servant
+    , servant-server
+    , wai
+
+  other-modules:  ServantSpec

@@ -1,129 +1,126 @@
-cabal-version:  3.0
-
-name:           honeycomb
-version:        0.1.0.0
-synopsis:       Client library for the Honeycomb observability service
+cabal-version:      3.0
+name:               honeycomb
+version:            0.1.0.0
+synopsis:           Client library for the Honeycomb observability service
 description:
-    Honeycomb is a service which provides visibility over
-    high cardinality attributes, allowing deep insight into
-    the performance and behaviour of your applications. This
-    library offers a simple way of interacting with the service,
-    including a tracing API.
-category:       Monitoring
-homepage:       https://github.com/EarnestResearch/honeycomb-haskell#readme
-bug-reports:    https://github.com/EarnestResearch/honeycomb-haskell/issues
-author:         Gary Coady
-maintainer:     gcoady@earnestresearch.com
-copyright:      (c) 2019-2020 Earnest Research
-license:        Apache-2.0
-license-file:   LICENSE
+  Honeycomb is a service which provides visibility over
+  high cardinality attributes, allowing deep insight into
+  the performance and behaviour of your applications. This
+  library offers a simple way of interacting with the service,
+  including a tracing API.
+
+category:           Monitoring
+homepage:           https://github.com/EarnestResearch/honeycomb-haskell#readme
+bug-reports:        https://github.com/EarnestResearch/honeycomb-haskell/issues
+author:             Gary Coady
+maintainer:         gcoady@earnestresearch.com
+copyright:          (c) 2019-2020 Earnest Research
+license:            Apache-2.0
+license-file:       LICENSE
 extra-source-files:
-    README.md
-    ChangeLog.md
+  README.md
+  ChangeLog.md
 
 source-repository head
-    type: git
-    location: git://github.com/EarnestResearch/honeycomb-haskell.git
+  type:     git
+  location: git://github.com/EarnestResearch/honeycomb-haskell.git
 
 common shared-properties
-    default-language: Haskell2010
-    ghc-options:
-        -Wall
-        -Wcompat
-        -Widentities
-        -Wincomplete-record-updates
-        -Wincomplete-uni-patterns
-        -Wpartial-fields
-        -Wredundant-constraints
-    if impl(ghc >= 8.2.0)
-        ghc-options:
-            -fhide-source-paths
-    if impl(ghc >= 8.8.0)
-        ghc-options:
-            -fwrite-ide-info
-    other-extensions:
-        FlexibleInstances
-        GeneralizedNewtypeDeriving
-        NamedFieldPuns
-        OverloadedStrings
-        ScopedTypeVariables
-        DeriveGeneric
-        DeriveAnyClass
-        TupleSections
-    build-depends:
-        aeson
-      , base >=4.11 && <10
-      , bytestring
-      , hashable
-      , http-client
-      , http-client-tls
-      , http-types
-      , microlens
-      , microlens-mtl
-      , mtl
-      , network-uri
-      , random
-      , scientific
-      , stm
-      , text
-      , time
-      , unliftio
-      , unordered-containers
-      , uuid
+  default-language: Haskell2010
+  ghc-options:
+    -Wall -Wcompat -Widentities -Wincomplete-record-updates
+    -Wincomplete-uni-patterns -Wpartial-fields -Wredundant-constraints
+
+  if impl(ghc >=8.2.0)
+    ghc-options: -fhide-source-paths
+
+  if impl(ghc >=8.8.0)
+    ghc-options: -fwrite-ide-info
+
+  other-extensions:
+    DeriveAnyClass
+    DeriveGeneric
+    FlexibleInstances
+    GeneralizedNewtypeDeriving
+    NamedFieldPuns
+    OverloadedStrings
+    ScopedTypeVariables
+    TupleSections
+
+  build-depends:
+    , aeson
+    , base                  >=4.11 && <10
+    , bytestring
+    , hashable
+    , http-client
+    , http-client-tls
+    , http-types
+    , microlens
+    , microlens-mtl
+    , mtl
+    , network-uri
+    , random
+    , scientific
+    , stm
+    , text
+    , time
+    , unliftio
+    , unordered-containers
+    , uuid
 
 library
-    import:
-        shared-properties
-    hs-source-dirs: src
-    exposed-modules:
-        Honeycomb
-        Honeycomb.Api
-        Honeycomb.Trace
-    other-modules:
-        Honeycomb.Api.Events
-        Honeycomb.Api.Types
-        Honeycomb.Api.Types.ApiHost
-        Honeycomb.Api.Types.ApiKey
-        Honeycomb.Api.Types.Dataset
-        Honeycomb.Api.Types.Event
-        Honeycomb.Api.Types.HoneyObject
-        Honeycomb.Api.Types.HoneyValue
-        Honeycomb.Api.Types.RequestOptions
-        Honeycomb.Api.Types.SendEventsResponse
-        Honeycomb.Api.Types.SendEventsServerReply
-        Honeycomb.Core
-        Honeycomb.Core.Types
-        Honeycomb.Core.Types.Honey
-        Honeycomb.Core.Types.HoneyEvent
-        Honeycomb.Core.Types.HoneyException
-        Honeycomb.Core.Types.HoneyOptions
-        Honeycomb.Core.Types.HoneyResponse
-        Honeycomb.Core.Types.HoneyServerOptions
-        Honeycomb.Core.Internal.Types.TransportState
-        Honeycomb.Core.Internal.Types
-        Honeycomb.Trace.Types
-        Honeycomb.Trace.Types.ServiceName
-        Honeycomb.Trace.Types.SpanContext
-        Honeycomb.Trace.Types.SpanId
-        Honeycomb.Trace.Types.SpanName
-        Honeycomb.Trace.Types.SpanReference
-        Honeycomb.Trace.Types.TraceId
-        Honeycomb.Transport
-        Paths_honeycomb
+  import:          shared-properties
+  hs-source-dirs:  src
+  exposed-modules:
+    Honeycomb
+    Honeycomb.Api
+    Honeycomb.Trace
+
+  other-modules:
+    Honeycomb.Api.Events
+    Honeycomb.Api.Types
+    Honeycomb.Api.Types.ApiHost
+    Honeycomb.Api.Types.ApiKey
+    Honeycomb.Api.Types.Dataset
+    Honeycomb.Api.Types.Event
+    Honeycomb.Api.Types.HoneyObject
+    Honeycomb.Api.Types.HoneyValue
+    Honeycomb.Api.Types.RequestOptions
+    Honeycomb.Api.Types.SendEventsResponse
+    Honeycomb.Api.Types.SendEventsServerReply
+    Honeycomb.Core
+    Honeycomb.Core.Internal.Types
+    Honeycomb.Core.Internal.Types.TransportState
+    Honeycomb.Core.Types
+    Honeycomb.Core.Types.Honey
+    Honeycomb.Core.Types.HoneyEvent
+    Honeycomb.Core.Types.HoneyException
+    Honeycomb.Core.Types.HoneyOptions
+    Honeycomb.Core.Types.HoneyResponse
+    Honeycomb.Core.Types.HoneyServerOptions
+    Honeycomb.Trace.Types
+    Honeycomb.Trace.Types.ServiceName
+    Honeycomb.Trace.Types.SpanContext
+    Honeycomb.Trace.Types.SpanId
+    Honeycomb.Trace.Types.SpanName
+    Honeycomb.Trace.Types.SpanReference
+    Honeycomb.Trace.Types.TraceId
+    Honeycomb.Transport
+    Paths_honeycomb
 
 test-suite tests
-    import: shared-properties
-    hs-source-dirs: test
-    ghc-options: -threaded
-    type: exitcode-stdio-1.0
-    main-is:
-        Spec.hs
-    build-depends:
-        honeycomb
-      , hspec
-      , rio >= 0.1.12.0
-    other-modules:
-        Clients
-        ApiSpec
-        HoneycombSpec
-        TraceSpec
+  import:         shared-properties
+  hs-source-dirs: test
+  ghc-options:    -threaded
+  type:           exitcode-stdio-1.0
+  main-is:        Spec.hs
+  build-depends:
+    , honeycomb
+    , hspec
+    , rio        >=0.1.12.0
+
+  other-modules:
+    ApiSpec
+    Clients
+    HoneycombSpec
+    TraceSpec

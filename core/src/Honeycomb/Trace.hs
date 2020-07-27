@@ -3,6 +3,7 @@
 
 module Honeycomb.Trace
   ( -- * Library initialization
+
     --
     -- $libraryInitialization
     module Honeycomb.Core,
@@ -19,6 +20,7 @@ module Honeycomb.Trace
 
     -- * Modifying child span behavior
     --
+
     -- $modifyingSpans
     withInheritableFields,
 
@@ -44,7 +46,7 @@ import qualified Honeycomb as HC (add, addField)
 import Honeycomb.Core
 import Honeycomb.Core.Types
 import Honeycomb.Trace.Types
-import Lens.Micro ((&), (^.), _Just, over)
+import Lens.Micro (over, (&), (^.), _Just)
 import Lens.Micro.Mtl (preview, view)
 import UnliftIO
 

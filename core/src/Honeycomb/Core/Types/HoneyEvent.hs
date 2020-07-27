@@ -16,16 +16,15 @@ import Data.Dynamic (Dynamic)
 import Data.Time.Clock (UTCTime, getCurrentTime)
 import qualified Honeycomb.Api as Api
 import Honeycomb.Core.Types.HoneyOptions
-import Lens.Micro (Lens', (^.), lens)
+import Lens.Micro (Lens', lens, (^.))
 import UnliftIO.STM (TVar, newTVarIO)
 
-data HoneyEvent
-  = HoneyEvent
-      { eventTimestamp :: !UTCTime,
-        eventOptions :: !HoneyOptions,
-        eventMetadata :: !(Maybe Dynamic),
-        eventFields :: !(TVar Api.HoneyObject)
-      }
+data HoneyEvent = HoneyEvent
+  { eventTimestamp :: !UTCTime,
+    eventOptions :: !HoneyOptions,
+    eventMetadata :: !(Maybe Dynamic),
+    eventFields :: !(TVar Api.HoneyObject)
+  }
 
 eventTimestampL :: Lens' HoneyEvent UTCTime
 eventTimestampL = lens eventTimestamp (\x y -> x {eventTimestamp = y})

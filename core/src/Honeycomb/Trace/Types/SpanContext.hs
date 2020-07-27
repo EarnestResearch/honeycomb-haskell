@@ -23,15 +23,14 @@ import Honeycomb.Trace.Types.SpanReference
 import Honeycomb.Trace.Types.TraceId
 import Lens.Micro (Lens', lens)
 
-data SpanContext
-  = SpanContext
-      { spanReference :: !SpanReference,
-        parentSpanId :: !(Maybe SpanId),
-        serviceName :: !ServiceName,
-        spanName :: !SpanName,
-        spanEvent :: !HoneyEvent,
-        inheritableFields :: !(HS.HashSet T.Text)
-      }
+data SpanContext = SpanContext
+  { spanReference :: !SpanReference,
+    parentSpanId :: !(Maybe SpanId),
+    serviceName :: !ServiceName,
+    spanName :: !SpanName,
+    spanEvent :: !HoneyEvent,
+    inheritableFields :: !(HS.HashSet T.Text)
+  }
   deriving (Show)
 
 spanReferenceL :: Lens' SpanContext SpanReference

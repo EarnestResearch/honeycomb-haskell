@@ -20,16 +20,15 @@ import Honeycomb.Api.Types.HoneyObject
 import Lens.Micro (Lens', lens)
 import Numeric.Natural (Natural)
 
-data HoneyOptions
-  = HoneyOptions
-      { apiKey :: !(Maybe ApiKey),
-        dataset :: !(Maybe Dataset),
-        sampleRate :: !Natural,
-        apiHost :: !ApiHost,
-        defaultFields :: !HoneyObject,
-        blockOnSend :: !Bool,
-        disabled :: !Bool
-      }
+data HoneyOptions = HoneyOptions
+  { apiKey :: !(Maybe ApiKey),
+    dataset :: !(Maybe Dataset),
+    sampleRate :: !Natural,
+    apiHost :: !ApiHost,
+    defaultFields :: !HoneyObject,
+    blockOnSend :: !Bool,
+    disabled :: !Bool
+  }
   deriving (Eq, Show)
 
 apiKeyL :: Lens' HoneyOptions (Maybe ApiKey)
