@@ -83,11 +83,11 @@ library
         honeycomb
       , honeycomb-wai
       , honeycomb-servant
-      , unliftio-wai
       , containers
       , servant
       , servant-server
       , wai
+      , wai-unliftio
 
 test-suite tests
     import: shared-properties

@@ -5,5 +5,5 @@ packages:
   servant-client/
   servant-server-rio/
   wai/
-  unliftio-wai/
+  wai-unliftio/
   example/

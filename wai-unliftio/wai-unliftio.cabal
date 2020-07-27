@@ -1,5 +1,5 @@
 cabal-version:       3.0
-name:                unliftio-wai
+name:                wai-unliftio
 version:             0.1.0.0
 synopsis:            WAI integration for Honeycomb monitoring client
 description:         WAI integration for Honeycomb monitoring client
@@ -19,10 +19,10 @@ source-repository head
 
 library
   exposed-modules:
-    UnliftIO.Wai
+    Network.Wai.UnliftIO
 
   other-modules:
-    Paths_unliftio_wai
+    Paths_wai_unliftio
 
   -- LANGUAGE extensions used by modules in this package.
   other-extensions:
@@ -44,7 +44,6 @@ library
   build-depends:
     , base                  >= 4.10    && < 10
     , bytestring
-    , honeycomb
     , http-types
     , microlens
     , microlens-mtl

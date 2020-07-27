@@ -82,13 +82,13 @@ library
       , honeycomb
       , honeycomb-servant
       , honeycomb-wai
-      , unliftio-wai
       , containers
       , semigroupoids
       , servant
       , servant-client
       , servant-client-core
       , wai
+      , wai-unliftio
 
 test-suite tests
     import: shared-properties

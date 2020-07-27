@@ -52,10 +52,10 @@ library
     , mtl
     , text
     , unliftio
-    , unliftio-wai
     , unordered-containers
     , vault
     , wai
+    , wai-unliftio
 
   -- Directories containing source files.
   hs-source-dirs:      src

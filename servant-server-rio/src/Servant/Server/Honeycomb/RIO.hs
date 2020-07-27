@@ -24,12 +24,12 @@ import Control.Monad.Except (ExceptT (..))
 import Data.Kind (Type)
 import qualified Honeycomb.Trace as HC
 import Network.Wai.Honeycomb.Servant
+import Network.Wai.UnliftIO (liftApplication, runApplicationT)
 import RIO hiding (Handler)
 import Servant
 import Servant.API.Generic (AsApi, GenericServant, ToServant, ToServantApi)
 import Servant.Server.Generic
 import Servant.Server.Honeycomb
-import UnliftIO.Wai (liftApplication, runApplicationT)
 
 -- | Trace a RIO-based Servant service with Honeycomb.
 --

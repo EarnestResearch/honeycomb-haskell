@@ -27,9 +27,9 @@ import qualified Honeycomb.Trace as HC
 import Lens.Micro.Mtl (view)
 import Network.HTTP.Types.Status (statusCode)
 import Network.Wai
+import Network.Wai.UnliftIO
 import System.IO.Unsafe
 import UnliftIO
-import UnliftIO.Wai
 
 decodeUtf8Lenient :: ByteString -> T.Text
 decodeUtf8Lenient = decodeUtf8With lenientDecode

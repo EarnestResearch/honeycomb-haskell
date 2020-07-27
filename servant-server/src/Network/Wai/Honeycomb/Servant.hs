@@ -23,11 +23,11 @@ import qualified Data.Vault.Lazy as V
 import qualified Honeycomb.Trace as HC
 import Lens.Micro.Mtl (view)
 import qualified Network.Wai as Wai
+import Network.Wai.UnliftIO
 import Network.Wai.Honeycomb hiding (traceApplicationT)
 import Servant
 import Servant.Honeycomb
 import UnliftIO
-import UnliftIO.Wai
 
 traceApplicationT ::
   forall m env (api :: Type).

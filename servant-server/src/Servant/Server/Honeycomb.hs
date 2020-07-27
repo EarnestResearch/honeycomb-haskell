@@ -31,12 +31,12 @@ import Lens.Micro (over)
 import Lens.Micro.Mtl (view)
 import qualified Network.Wai as Wai
 import Network.Wai.Honeycomb.Servant
+import Network.Wai.UnliftIO
 import Servant
 import Servant.API.Generic (AsApi, GenericServant, ToServant, ToServantApi)
 import Servant.Server.Generic (AsServerT, genericServeT, genericServeTWithContext)
 import Servant.Server.Internal.Delayed (passToServer)
 import UnliftIO hiding (Handler)
-import UnliftIO.Wai
 
 data TraceHandlerData = TraceHandlerData Wai.Request (Maybe RequestInfo)
 

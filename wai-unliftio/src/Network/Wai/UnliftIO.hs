@@ -1,4 +1,4 @@
-module UnliftIO.Wai where
+module Network.Wai.UnliftIO where
 
 import Network.Wai
 import UnliftIO

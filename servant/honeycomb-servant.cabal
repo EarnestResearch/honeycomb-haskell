@@ -80,11 +80,11 @@ library
     build-depends:
         honeycomb
       , honeycomb-wai
-      , unliftio-wai
       , containers
       , servant
       , servant-server
       , wai
+      , wai-unliftio
 
 test-suite tests
     import: shared-properties
