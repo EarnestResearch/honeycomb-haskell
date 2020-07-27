@@ -30,6 +30,7 @@ common shared-properties
   ghc-options:
     -Wall -Wcompat -Widentities -Wincomplete-record-updates
     -Wincomplete-uni-patterns -Wpartial-fields -Wredundant-constraints
+    -haddock
 
   if impl(ghc >=8.2.0)
     ghc-options: -fhide-source-paths
