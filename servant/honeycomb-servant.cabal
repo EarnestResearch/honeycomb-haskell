@@ -23,7 +23,8 @@ extra-source-files:
 
 source-repository head
   type:     git
-  location: git://github.com/EarnestResearch/honeycomb-haskell.git
+  location: https://github.com/EarnestResearch/honeycomb-haskell.git
+  subdir:   servant
 
 library
   build-depends:
