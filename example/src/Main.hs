@@ -15,23 +15,20 @@ import Network.HTTP.Client (defaultManagerSettings, newManager)
 import Network.Wai.Handler.Warp (run)
 import RIO hiding (Handler)
 import Servant
-import Servant.API.Generic
 import Servant.Client
-import Servant.Client.Generic (AsClientT, genericClientHoist)
 import Servant.Client.Honeycomb
-import Servant.Server.Generic
 import Servant.Server.Honeycomb.RIO
 
 type FibonacciApi = "fib" :> Capture "index" Int :> Get '[JSON] Int
 
 fibonacciServer :: ServerT FibonacciApi (RIO AppEnv)
-fibonacciServer index =
-  if index <= 2
-    then pure index
-    else do
-      v1 <- getFibonacci (index - 1)
-      v2 <- getFibonacci (index - 2)
-      pure (v1 + v2)
+fibonacciServer index
+  | index <= 0 = throwIO $ err400 {errBody = "Fibonacci index must be greater than zero"}
+  | index <= 2 = pure 1
+  | otherwise = do
+    f1 <- async . getFibonacci $ index - 1
+    f2 <- async . getFibonacci $ index - 2
+    uncurry (+) <$> waitBoth f1 f2
 
 fibonacciApi :: Proxy FibonacciApi
 fibonacciApi = Proxy
