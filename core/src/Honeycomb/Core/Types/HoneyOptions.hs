@@ -25,11 +25,28 @@ data HoneyOptions = HoneyOptions
     dataset :: !(Maybe Dataset),
     sampleRate :: !Natural,
     apiHost :: !ApiHost,
-    defaultFields :: !HoneyObject,
+    defaultFields :: !(IO HoneyObject),
     blockOnSend :: !Bool,
     disabled :: !Bool
   }
-  deriving (Eq, Show)
+
+instance Show HoneyOptions where
+  show e =
+    "HoneyOptions "
+      ++ "{ apiKey = "
+      ++ show (apiKey e)
+      ++ ", dataset = "
+      ++ show (dataset e)
+      ++ ", sampleRate = "
+      ++ show (sampleRate e)
+      ++ ", apiHost = "
+      ++ show (apiHost e)
+      ++ ", defaultFields = {HoneyObject}"
+      ++ ", blockOnSend = "
+      ++ show (blockOnSend e)
+      ++ ", disabled = "
+      ++ show (disabled e)
+      ++ "}"
 
 apiKeyL :: Lens' HoneyOptions (Maybe ApiKey)
 apiKeyL = lens apiKey (\x y -> x {apiKey = y})
@@ -43,7 +60,7 @@ sampleRateL = lens sampleRate (\x y -> x {sampleRate = y})
 apiHostL :: Lens' HoneyOptions ApiHost
 apiHostL = lens apiHost (\x y -> x {apiHost = y})
 
-defaultFieldsL :: Lens' HoneyOptions HoneyObject
+defaultFieldsL :: Lens' HoneyOptions (IO HoneyObject)
 defaultFieldsL = lens defaultFields (\x y -> x {defaultFields = y})
 
 blockOnSendL :: Lens' HoneyOptions Bool

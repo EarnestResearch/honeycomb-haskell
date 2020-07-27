@@ -30,6 +30,7 @@ executable example
     , honeycomb
     , honeycomb-servant-client-rio
     , honeycomb-servant-server-rio
+    , hostname
     , http-client
     , rio
     , servant

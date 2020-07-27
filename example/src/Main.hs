@@ -12,12 +12,15 @@ module Main where
 
 import qualified Honeycomb.Trace as HC
 import Network.HTTP.Client (defaultManagerSettings, newManager)
+import Network.HostName (getHostName)
 import Network.Wai.Handler.Warp (run)
 import RIO hiding (Handler)
 import Servant
 import Servant.Client
 import Servant.Client.Honeycomb.RIO
 import Servant.Server.Honeycomb.RIO
+import qualified RIO.HashMap as HM
+import qualified RIO.Text as T
 
 type FibonacciApi =
   "fib" :> Capture "index" Int :> Get '[JSON] Int
@@ -93,14 +96,19 @@ instance HC.HasHoney AppEnv where
 instance HC.HasSpanContext AppEnv where
   spanContextL = lens aeSpanContext (\x y -> x {aeSpanContext = y})
 
+defaultFieldsIO :: IO HC.HoneyObject
+defaultFieldsIO = fmap (\h -> HC.HoneyObject $ HM.fromList [ ("meta.local_hostname", h) ]) $ HC.toHoneyValue <$> getHostName
+
+
 main :: IO ()
 main = HC.withHoney $ \honey -> do
   clientManager <- newManager defaultManagerSettings
   clientBaseUrl <- parseBaseUrl "http://localhost:3000/"
+  defaultFields <- defaultFieldsIO
   let appEnv =
         AppEnv
           { aeSpanContext = Nothing,
-            aeHoney = honey,
+            aeHoney = honey & HC.honeyOptionsL . HC.defaultFieldsL .~ pure defaultFields,
             aeClientEnv = mkClientEnv clientManager clientBaseUrl,
             aePort = 3000
           }

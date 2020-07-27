@@ -29,6 +29,7 @@ import GHC.TypeLits (KnownSymbol, Symbol, symbolVal)
 import qualified Honeycomb.Trace as HC
 import qualified Network.Wai as Wai
 import Servant
+import Servant.Auth (Auth)
 
 data RequestInfo
   = RequestInfo
@@ -139,10 +140,13 @@ instance ReflectMethod method => HasRequestInfo (Stream method status framing ct
       method = reflectMethod (Proxy :: Proxy method)
 
 instance HasRequestInfo Raw where
-  getRequestInfo _ _ = Just (RequestInfo [] [])
+  getRequestInfo _ _ = Just (RequestInfo{pathSegments = ["RAW"], pathParameters = []})
 
 instance HasRequestInfo (sub :: Type) => HasRequestInfo (CaptureAll (h :: Symbol) a :> sub) where
   getRequestInfo _ = getRequestInfo (Proxy :: Proxy sub)
 
 instance HasRequestInfo (sub :: Type) => HasRequestInfo (BasicAuth (realm :: Symbol) a :> sub) where
+  getRequestInfo _ = getRequestInfo (Proxy :: Proxy sub)
+
+instance HasRequestInfo (sub :: Type) => HasRequestInfo (Auth auths v :> sub) where
   getRequestInfo _ = getRequestInfo (Proxy :: Proxy sub)

@@ -33,6 +33,7 @@ library
     , honeycomb
     , honeycomb-wai
     , servant
+    , servant-auth
     , servant-server
     , text
     , unordered-containers
