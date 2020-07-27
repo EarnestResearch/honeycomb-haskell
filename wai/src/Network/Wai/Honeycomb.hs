@@ -2,17 +2,14 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Network.Wai.Honeycomb
-  ( spanContextKey,
+  ( spanContextFromRequest,
     traceApplicationT,
-    readTraceHeader,
-    decodeUtf8Lenient,
-    getRequestFields,
-    reportErrorStatus,
-    getResponseFields,
+    traceApplicationT',
+    withSpanContextFromRequest
   )
 where
 
-import Control.Monad.Reader (MonadReader)
+import Control.Monad.Reader (local, MonadReader, join)
 import Data.ByteString (ByteString)
 import qualified Data.HashMap.Strict as HM
 import Data.IP
@@ -23,6 +20,7 @@ import Data.Text.Encoding (decodeUtf8With)
 import Data.Text.Encoding.Error (lenientDecode)
 import qualified Data.Vault.Lazy as V
 import qualified Honeycomb.Trace as HC
+import Lens.Micro (over)
 import Lens.Micro.Mtl (view)
 import Network.HTTP.Types.Status (statusCode)
 import Network.Wai
@@ -55,21 +53,15 @@ getV1 t =
     then Just $ T.drop 2 t
     else Nothing
 
-traceApplicationT ::
-  ( MonadUnliftIO m,
-    MonadReader env m,
-    HC.HasHoney env,
-    HC.HasSpanContext env
-  ) =>
-  HC.ServiceName ->
-  HC.SpanName ->
-  MiddlewareT m
-traceApplicationT service sp =
-  traceApplicationT' service sp readTraceHeader
-
 spanContextKey :: V.Key (Maybe HC.SpanContext)
 spanContextKey = unsafePerformIO V.newKey
 {-# NOINLINE spanContextKey #-}
+
+spanContextFromRequest :: Request -> Maybe HC.SpanContext
+spanContextFromRequest = join . V.lookup spanContextKey . vault
+
+withSpanContextFromRequest :: (HC.HasSpanContext env, MonadReader env m) => Request -> m a -> m a
+withSpanContextFromRequest req = local (over HC.spanContextL (const $ spanContextFromRequest req))
 
 getRequestFields :: Request -> HC.HoneyObject
 getRequestFields req =
@@ -107,6 +99,18 @@ getResponseFields response =
       [ ("response.status_code", HC.toHoneyValue . statusCode $ responseStatus response)
       ]
 
+traceApplicationT ::
+  ( MonadUnliftIO m,
+    MonadReader env m,
+    HC.HasHoney env,
+    HC.HasSpanContext env
+  ) =>
+  HC.ServiceName ->
+  HC.SpanName ->
+  MiddlewareT m
+traceApplicationT service sp =
+  traceApplicationT' service sp (const Nothing)
+
 traceApplicationT' ::
   ( MonadUnliftIO m,
     MonadReader env m,
@@ -115,15 +119,16 @@ traceApplicationT' ::
   ) =>
   HC.ServiceName ->
   HC.SpanName ->
-  (Request -> Maybe HC.SpanReference) ->
+  (Request -> Maybe HC.HoneyObject) ->
   MiddlewareT m
-traceApplicationT' service sp parentSpanRef app req inner =
-  HC.withNewRootSpan' service sp (parentSpanRef req) $ do
+traceApplicationT' service sp extraReqDetails app req inner =
+  HC.withNewRootSpan' service sp (readTraceHeader req) $ do
     spanContext <- view HC.spanContextL
     HC.add (getRequestFields req)
     (\x y -> app x y `catchAny` reportErrorStatus)
       req {vault = V.insert spanContextKey spanContext (vault req)}
       ( \response -> do
           HC.add (getResponseFields response)
+          maybe (pure ()) HC.add (extraReqDetails req)
           inner response
       )

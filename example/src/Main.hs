@@ -104,5 +104,5 @@ main = HC.withHoney $ \honey -> do
             aeClientEnv = mkClientEnv clientManager clientBaseUrl,
             aePort = 3000
           }
-  app <- runRIO appEnv $ traceServerRIO "infra-service" "http-handler" fibonacciApi fibonacciServer
+  app <- runRIO appEnv $ traceServerRIO fibonacciApi "infra-service" "http-handler" fibonacciServer
   run (aePort appEnv) app

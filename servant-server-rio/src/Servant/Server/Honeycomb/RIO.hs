@@ -30,6 +30,7 @@ import Servant
 import Servant.API.Generic (AsApi, GenericServant, ToServant, ToServantApi)
 import Servant.Server.Generic
 import Servant.Server.Honeycomb
+import Servant.Honeycomb (HasRequestInfo)
 
 -- | Trace a RIO-based Servant service with Honeycomb.
 --
@@ -43,16 +44,16 @@ traceServerRIO ::
     HasServer api '[],
     HasRequestInfo api
   ) =>
+  -- | Proxy representing Servant API
+  Proxy api ->
   -- | Honeycomb service name
   HC.ServiceName ->
   HC.SpanName ->
-  -- | Proxy representing Servant API
-  Proxy api ->
   -- | Implementation of service (in RIO monad)
   ServerT api (RIO env) ->
   RIO env Application
-traceServerRIO service spanName proxy app =
-  traceServer service spanName proxy app runService
+traceServerRIO proxy service spanName app =
+  traceServer proxy service spanName app runService
 
 traceServerRIOWithContext ::
   ( HC.HasHoney env,
@@ -61,16 +62,16 @@ traceServerRIOWithContext ::
     HasRequestInfo api
   ) =>
   Context context ->
+  -- | Proxy representing Servant API
+  Proxy api ->
   -- | Honeycomb service name
   HC.ServiceName ->
   HC.SpanName ->
-  -- | Proxy representing Servant API
-  Proxy api ->
   -- | Implementation of service (in RIO monad)
   ServerT api (RIO env) ->
   RIO env Application
-traceServerRIOWithContext context service spanName proxy app =
-  traceServerWithContext context service spanName proxy app runService
+traceServerRIOWithContext context proxy service spanName app =
+  traceServerWithContext context proxy service spanName app runService
 
 genericTraceServerRIO ::
   forall (routes :: Type -> Type) (env :: Type) (api :: Type).
@@ -82,15 +83,15 @@ genericTraceServerRIO ::
     HasServer (ToServantApi routes) '[],
     ServerT (ToServantApi routes) (RIO env) ~ ToServant routes (AsServerT (RIO env))
   ) =>
+  Proxy api ->
   HC.ServiceName ->
   HC.SpanName ->
-  Proxy api ->
   routes (AsServerT (RIO env)) ->
   RIO env Application
-genericTraceServerRIO service spanName api routes = do
+genericTraceServerRIO api service spanName routes = do
   env <- ask
   runApplicationT
-    . traceApplicationT service spanName api
+    . traceApplicationT api service spanName
     . liftApplication
     $ genericServeT (runService env) routes
 
@@ -105,15 +106,15 @@ genericTraceServerWithContextRIO ::
     ServerT (ToServantApi routes) (RIO env) ~ ToServant routes (AsServerT (RIO env))
   ) =>
   Context ctx ->
+  Proxy api ->
   HC.ServiceName ->
   HC.SpanName ->
-  Proxy api ->
   routes (AsServerT (RIO env)) ->
   RIO env Application
-genericTraceServerWithContextRIO context service spanName api routes = do
+genericTraceServerWithContextRIO context api service spanName routes = do
   env <- ask
   runApplicationT
-    . traceApplicationT service spanName api
+    . traceApplicationT api service spanName
     . liftApplication
     $ genericServeTWithContext (runService env) routes context
 

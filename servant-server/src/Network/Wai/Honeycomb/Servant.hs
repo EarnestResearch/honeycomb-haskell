@@ -1,4 +1,3 @@
-{-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -9,21 +8,16 @@
 
 module Network.Wai.Honeycomb.Servant
   ( traceApplicationT,
-    traceApplicationT',
-    RequestInfo (..),
-    HasRequestInfo,
-    getRequestInfo,
     module Network.Wai.Honeycomb,
   )
 where
 
 import Control.Monad.Reader (MonadReader)
 import Data.Kind (Type)
-import qualified Data.Vault.Lazy as V
 import qualified Honeycomb.Trace as HC
-import Lens.Micro.Mtl (view)
 import qualified Network.Wai as Wai
-import Network.Wai.Honeycomb hiding (traceApplicationT)
+import Network.Wai.Honeycomb hiding (traceApplicationT, traceApplicationT')
+import qualified Network.Wai.Honeycomb as HCWai
 import Network.Wai.UnliftIO
 import Servant
 import Servant.Honeycomb
@@ -37,34 +31,12 @@ traceApplicationT ::
     HC.HasSpanContext env,
     HasRequestInfo api
   ) =>
+  Proxy api ->
   HC.ServiceName ->
   HC.SpanName ->
-  Proxy api ->
   MiddlewareT m
-traceApplicationT service spanName proxy = traceApplicationT' service spanName proxy readTraceHeader
-
-traceApplicationT' ::
-  forall m env (api :: Type).
-  ( MonadUnliftIO m,
-    MonadReader env m,
-    HC.HasHoney env,
-    HC.HasSpanContext env,
-    HasRequestInfo api
-  ) =>
-  HC.ServiceName ->
-  HC.SpanName ->
-  Proxy api ->
-  (Wai.Request -> Maybe HC.SpanReference) ->
-  MiddlewareT m
-traceApplicationT' service spanName proxy parentSpanRef app req inner =
-  let info = getRequestInfo proxy req
-   in HC.withNewRootSpan' service spanName (parentSpanRef req) $ do
-        spanContext <- view HC.spanContextL
-        HC.add (getRequestFields req)
-        (\x y -> app x y `catchAny` reportErrorStatus)
-          req {Wai.vault = V.insert spanContextKey spanContext (Wai.vault req)}
-          ( \response -> do
-              HC.add (getResponseFields response)
-              maybe (pure ()) (HC.add . HC.toHoneyObject) info
-              inner response
-          )
+traceApplicationT proxy service spanName =
+  HCWai.traceApplicationT' service spanName extraReqDetails
+  where
+    extraReqDetails :: Wai.Request -> Maybe HC.HoneyObject
+    extraReqDetails r = HC.toHoneyObject <$> getRequestInfo proxy r

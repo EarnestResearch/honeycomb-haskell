@@ -12,7 +12,6 @@
 
 module Servant.Server.Honeycomb
   ( Honeycomb,
-    TraceHandlerData (..),
     hoistHoneycombServer,
     hoistHoneycombServerWithContext,
     traceServer,
@@ -22,14 +21,10 @@ module Servant.Server.Honeycomb
   )
 where
 
-import Control.Monad (join)
 import Control.Monad.Reader (MonadReader, ask, local)
 import Data.Kind (Type)
-import qualified Data.Vault.Lazy as V
 import qualified Honeycomb.Trace as HC
 import Lens.Micro (over)
-import Lens.Micro.Mtl (view)
-import qualified Network.Wai as Wai
 import Network.Wai.Honeycomb.Servant
 import Network.Wai.UnliftIO
 import Servant
@@ -37,8 +32,7 @@ import Servant.API.Generic (AsApi, GenericServant, ToServant, ToServantApi)
 import Servant.Server.Generic (AsServerT, genericServeT, genericServeTWithContext)
 import Servant.Server.Internal.Delayed (passToServer)
 import UnliftIO hiding (Handler)
-
-data TraceHandlerData = TraceHandlerData Wai.Request (Maybe RequestInfo)
+import Servant.Honeycomb (HasRequestInfo)
 
 data Honeycomb deriving (Typeable)
 
@@ -49,10 +43,7 @@ instance (HasServer api context) => HasServer (Honeycomb :> api) context where
     route
       (Proxy :: Proxy api)
       context
-      ( passToServer
-          subserver
-          (join . V.lookup spanContextKey . Wai.vault)
-      )
+      (passToServer subserver spanContextFromRequest)
   hoistServerWithContext _ pc nt s = hoistServerWithContext (Proxy :: Proxy api) pc nt . s
 
 hoistHoneycombServer ::
@@ -94,16 +85,16 @@ traceServer ::
     HasServer api '[],
     HasRequestInfo api
   ) =>
+  Proxy api ->
   HC.ServiceName ->
   HC.SpanName ->
-  Proxy api ->
   ServerT api m ->
   (forall x. env -> m x -> Handler x) ->
   m Application
-traceServer service spanName proxy app f = do
+traceServer proxy service spanName app f = do
   env <- ask
   runApplicationT
-    . traceApplicationT service spanName proxy
+    . traceApplicationT proxy service spanName
     . liftApplication
     . serve (Proxy :: Proxy (Honeycomb :> api))
     $ hoistHoneycombServer proxy (f env) app
@@ -118,16 +109,16 @@ traceServerWithContext ::
     HasRequestInfo api
   ) =>
   Context ctx ->
+  Proxy api ->
   HC.ServiceName ->
   HC.SpanName ->
-  Proxy api ->
   ServerT api m ->
   (forall x. env -> m x -> Handler x) ->
   m Application
-traceServerWithContext context service spanName proxy app f = do
+traceServerWithContext context proxy service spanName app f = do
   env <- ask
   runApplicationT
-    . traceApplicationT service spanName proxy
+    . traceApplicationT proxy service spanName
     . liftApplication
     . serveWithContext (Proxy :: Proxy (Honeycomb :> api)) context
     $ hoistHoneycombServerWithContext proxy (Proxy :: Proxy ctx) (f env) app
@@ -151,7 +142,7 @@ genericTraceServer ::
   m Application
 genericTraceServer service spanName routes f =
   runApplicationT
-    . traceApplicationT service spanName (Proxy :: Proxy api)
+    . traceApplicationT (Proxy :: Proxy api) service spanName
     . liftApplication
     $ genericServeT f routes
 
@@ -175,6 +166,6 @@ genericTraceServerWithContext ::
   m Application
 genericTraceServerWithContext context service spanName routes f =
   runApplicationT
-    . traceApplicationT service spanName (Proxy :: Proxy api)
+    . traceApplicationT (Proxy :: Proxy api) service spanName
     . liftApplication
     $ genericServeTWithContext f routes context
