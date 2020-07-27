@@ -3,6 +3,8 @@
 
 module Network.Wai.Honeycomb
   ( spanContextFromRequest,
+    traceApplication,
+    traceApplication',
     traceApplicationT,
     traceApplicationT',
     withSpanContextFromRequest
@@ -98,6 +100,31 @@ getResponseFields response =
     HM.fromList
       [ ("response.status_code", HC.toHoneyValue . statusCode $ responseStatus response)
       ]
+
+traceApplication ::
+  ( MonadUnliftIO m,
+    MonadReader env m,
+    HC.HasHoney env,
+    HC.HasSpanContext env
+  ) =>
+  HC.ServiceName ->
+  HC.SpanName ->
+  m Middleware
+traceApplication service sp =
+  traceApplication' service sp (const Nothing)
+
+traceApplication' ::
+  ( MonadUnliftIO m,
+    MonadReader env m,
+    HC.HasHoney env,
+    HC.HasSpanContext env
+  ) =>
+  HC.ServiceName ->
+  HC.SpanName ->
+  (Request -> Maybe HC.HoneyObject) ->
+  m Middleware
+traceApplication' service sp extraReqDetails =
+  runMiddlewareT $ traceApplicationT' service sp extraReqDetails
 
 traceApplicationT ::
   ( MonadUnliftIO m,
