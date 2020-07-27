@@ -19,6 +19,7 @@ module Honeycomb.Trace
     add,
 
     -- * Modifying child span behavior
+
     --
 
     -- $modifyingSpans

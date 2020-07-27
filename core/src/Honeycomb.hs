@@ -36,6 +36,7 @@ module Honeycomb
     send',
 
     -- ** Adding fields
+
     --
 
     -- $addingFields

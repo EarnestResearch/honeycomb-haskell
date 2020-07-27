@@ -19,20 +19,19 @@ import qualified Data.Aeson as JSON
 import Data.Dynamic (Dynamic)
 import Data.Time (UTCTime)
 import Honeycomb.Api.Types.HoneyObject
-import Lens.Micro (Lens', (^.), lens)
+import Lens.Micro (Lens', lens, (^.))
 import Numeric.Natural (Natural)
 
 -- | Honeycomb Event
 --
 -- Represents the data which is sent to Honeycomb services for
 -- each event (unless dropped or sampled).
-data Event
-  = Event
-      { eventMetadata :: !(Maybe Dynamic),
-        eventFields :: !HoneyObject,
-        eventTimestamp :: !(Maybe UTCTime),
-        eventSampleRate :: !(Maybe Natural)
-      }
+data Event = Event
+  { eventMetadata :: !(Maybe Dynamic),
+    eventFields :: !HoneyObject,
+    eventTimestamp :: !(Maybe UTCTime),
+    eventSampleRate :: !(Maybe Natural)
+  }
   deriving (Show)
 
 -- | Lens to access the metadata of the event.

@@ -103,9 +103,9 @@ traceServer ::
 traceServer service spanName proxy app f = do
   env <- ask
   runApplicationT
-    $ traceApplicationT service spanName proxy
-    $ liftApplication
-    $ serve (Proxy :: Proxy (Honeycomb :> api))
+    . traceApplicationT service spanName proxy
+    . liftApplication
+    . serve (Proxy :: Proxy (Honeycomb :> api))
     $ hoistHoneycombServer proxy (f env) app
 
 traceServerWithContext ::
@@ -127,9 +127,9 @@ traceServerWithContext ::
 traceServerWithContext context service spanName proxy app f = do
   env <- ask
   runApplicationT
-    $ traceApplicationT service spanName proxy
-    $ liftApplication
-    $ serveWithContext (Proxy :: Proxy (Honeycomb :> api)) context
+    . traceApplicationT service spanName proxy
+    . liftApplication
+    . serveWithContext (Proxy :: Proxy (Honeycomb :> api)) context
     $ hoistHoneycombServerWithContext proxy (Proxy :: Proxy ctx) (f env) app
 
 genericTraceServer ::

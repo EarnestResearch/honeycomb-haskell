@@ -30,8 +30,8 @@ cradle:
     - path: "servant-server-rio/src"
       component: "lib:honeycomb-servant-server-rio"
 
-    - path: "unliftio-wai/src"
-      component: "lib:unliftio-wai"
-
     - path: "wai/src"
       component: "lib:honeycomb-wai"
+
+    - path: "wai-unliftio/src"
+      component: "lib:wai-unliftio"
