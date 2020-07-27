@@ -33,8 +33,9 @@ fibonacciApi = Proxy
 
 runGetFibonacci :: Int -> RIO AppEnv Int
 runGetFibonacci index
-  | index <= 0 = throwIO $ err400 {errBody = "Fibonacci index must be greater than zero"}
+  | index <= 0 = throwIO $ err400 {errBody = "Fibonacci index must be greater than zero."}
   | index <= 2 = pure 1
+  | index > 12 = throwIO $ err400 {errBody = "I'm afraid I can't let you do that, Dave."}
   | otherwise =
     uncurry (+)
       <$> concurrently
