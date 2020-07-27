@@ -1,8 +1,8 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE NoImplicitPrelude #-}
 
 -- |
 -- Module      : Servant.Server.Honeycomb.RIO
@@ -38,7 +38,6 @@ import Servant.Server.Honeycomb
 -- it may be used to pass tracing information downstream to further
 -- services.
 traceServerRIO ::
-  forall env api.
   ( HC.HasHoney env,
     HC.HasSpanContext env,
     HasServer api '[],
@@ -56,7 +55,6 @@ traceServerRIO service spanName proxy app =
   traceServer service spanName proxy app runService
 
 traceServerRIOWithContext ::
-  forall env api context.
   ( HC.HasHoney env,
     HC.HasSpanContext env,
     HasServer api context,
@@ -92,8 +90,8 @@ genericTraceServerRIO ::
 genericTraceServerRIO service spanName api routes = do
   env <- ask
   runApplicationT
-    $ traceApplicationT service spanName api
-    $ liftApplication
+    . traceApplicationT service spanName api
+    . liftApplication
     $ genericServeT (runService env) routes
 
 genericTraceServerWithContextRIO ::
@@ -115,8 +113,8 @@ genericTraceServerWithContextRIO ::
 genericTraceServerWithContextRIO context service spanName api routes = do
   env <- ask
   runApplicationT
-    $ traceApplicationT service spanName api
-    $ liftApplication
+    . traceApplicationT service spanName api
+    . liftApplication
     $ genericServeTWithContext (runService env) routes context
 
 runService :: env -> RIO env a -> Handler a

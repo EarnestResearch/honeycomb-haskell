@@ -1,5 +1,4 @@
 {-# LANGUAGE DataKinds #-}
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -43,39 +42,37 @@ getFibonacci =
 
 --- generic
 
-newtype Routes route
-  = Routes
-      { _fibonacci :: route :- "fib" :> Capture "index" Int :> Get '[JSON] Int
-      }
-  deriving (Generic)
+-- newtype Routes route = Routes
+--   { _fibonacci :: route :- "fib" :> Capture "index" Int :> Get '[JSON] Int
+--   }
+--   deriving (Generic)
 
-api :: Proxy (ToServantApi Routes)
-api = genericApi (Proxy :: Proxy Routes)
+-- api :: Proxy (ToServantApi Routes)
+-- api = genericApi (Proxy :: Proxy Routes)
 
-serverImpl :: Routes (AsServerT (RIO AppEnv))
-serverImpl =
-  Routes
-    { _fibonacci = \index ->
-        if index <= 2
-          then pure index
-          else do
-            v1 <- _fibonacci clientRoutes (index - 1)
-            v2 <- _fibonacci clientRoutes (index - 2)
-            pure (v1 + v2)
-    }
+-- serverImpl :: Routes (AsServerT (RIO AppEnv))
+-- serverImpl =
+--   Routes
+--     { _fibonacci = \index ->
+--         if index <= 2
+--           then pure index
+--           else do
+--             v1 <- _fibonacci clientRoutes (index - 1)
+--             v2 <- _fibonacci clientRoutes (index - 2)
+--             pure (v1 + v2)
+--     }
 
-clientRoutes :: (HC.HasSpanContext env, HasClientEnv env) => Routes (AsClientT (RIO env))
-clientRoutes = genericClientHoist $ RIO . unTraceClientM
+-- clientRoutes :: (HC.HasSpanContext env, HasClientEnv env) => Routes (AsClientT (RIO env))
+-- clientRoutes = genericClientHoist $ RIO . unTraceClientM
 
 ---
 
-data AppEnv
-  = AppEnv
-      { aeSpanContext :: Maybe HC.SpanContext,
-        aeHoney :: HC.Honey,
-        aeClientEnv :: ClientEnv,
-        aePort :: Int
-      }
+data AppEnv = AppEnv
+  { aeSpanContext :: Maybe HC.SpanContext,
+    aeHoney :: HC.Honey,
+    aeClientEnv :: ClientEnv,
+    aePort :: Int
+  }
 
 instance HasClientEnv AppEnv where
   clientEnvL = lens aeClientEnv (\x y -> x {aeClientEnv = y})

@@ -42,6 +42,7 @@ library
     DataKinds
     FlexibleContexts
     RankNTypes
+    TypeFamilies
 
   hs-source-dirs:   src
   exposed-modules:  Servant.Server.Honeycomb.RIO

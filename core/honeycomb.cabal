@@ -38,12 +38,14 @@ common shared-properties
     ghc-options: -fwrite-ide-info
 
   other-extensions:
+    NoImplicitPrelude
     DeriveAnyClass
     DeriveGeneric
     FlexibleInstances
     GeneralizedNewtypeDeriving
     NamedFieldPuns
     OverloadedStrings
+    RankNTypes
     ScopedTypeVariables
     TupleSections
 
