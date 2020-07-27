@@ -21,6 +21,12 @@ cradle:
     - path: "servant-client/test"
       component: "honeycomb-servant-client:test:tests"
 
+    - path: "servant-client-rio/src"
+      component: "lib:honeycomb-servant-client-rio"
+
+    - path: "servant-client-rio/test"
+      component: "honeycomb-servant-client-rio:test:tests"
+
     - path: "servant-server/src"
       component: "lib:honeycomb-servant-server"
 

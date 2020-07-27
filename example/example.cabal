@@ -28,7 +28,7 @@ executable example
   build-depends:
       base                          >=4.13 && <4.14
     , honeycomb
-    , honeycomb-servant-client
+    , honeycomb-servant-client-rio
     , honeycomb-servant-server-rio
     , http-client
     , rio

@@ -25,7 +25,7 @@ import Control.Monad.Except (runExceptT)
 import Control.Monad.Reader (MonadReader, ReaderT, runReaderT)
 import Data.Coerce (coerce)
 import Data.Functor.Alt (Alt (..))
-import Data.Proxy (Proxy)
+import Data.Proxy (Proxy(..))
 import qualified Data.Text as T
 import qualified Honeycomb.Trace as HC
 import Lens.Micro (Lens', (^.))
@@ -57,9 +57,9 @@ instance (HasClientEnv env, HC.HasSpanContext env) => RunClient (TraceClientM en
     where
       nt :: ClientEnv -> ClientM response -> TraceClientM env response
       nt clientEnv (ClientM response) =
-        TraceClientM
-          $ liftIO
-          $ runExceptT (runReaderT response clientEnv) >>= either throwIO pure
+        TraceClientM .
+          liftIO $
+            runExceptT (runReaderT response clientEnv) >>= either throwIO pure
       traceValue :: Maybe HC.SpanContext -> Request -> Request
       traceValue Nothing = id
       traceValue (Just sc) =
@@ -69,8 +69,8 @@ instance (HasClientEnv env, HC.HasSpanContext env) => RunClient (TraceClientM en
 
   throwClientError = throwIO
 
-traceClient :: forall api env. HasClient (TraceClientM env) api => Proxy api -> Proxy (TraceClientM env) -> Client (TraceClientM env) api
-traceClient = clientIn
+traceClient :: forall api env. HasClient (TraceClientM env) api => Proxy api -> Proxy env -> Client (TraceClientM env) api
+traceClient api _ = api `clientIn` (Proxy :: Proxy (TraceClientM env))
 
 runTraceClientM :: TraceClientM env a -> env -> IO a
 runTraceClientM tcm env = flip runReaderT env $ unTraceClientM tcm

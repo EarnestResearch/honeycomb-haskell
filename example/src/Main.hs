@@ -16,26 +16,39 @@ import Network.Wai.Handler.Warp (run)
 import RIO hiding (Handler)
 import Servant
 import Servant.Client
-import Servant.Client.Honeycomb
+import Servant.Client.Honeycomb.RIO
 import Servant.Server.Honeycomb.RIO
 
-type FibonacciApi = "fib" :> Capture "index" Int :> Get '[JSON] Int
-
-fibonacciServer :: ServerT FibonacciApi (RIO AppEnv)
-fibonacciServer index
-  | index <= 0 = throwIO $ err400 {errBody = "Fibonacci index must be greater than zero"}
-  | index <= 2 = pure 1
-  | otherwise = do
-    f1 <- async . getFibonacci $ index - 1
-    f2 <- async . getFibonacci $ index - 2
-    uncurry (+) <$> waitBoth f1 f2
+type FibonacciApi =
+  "fib" :> Capture "index" Int :> Get '[JSON] Int
+    :<|> "healthcheck" :> Get '[PlainText] Text
 
 fibonacciApi :: Proxy FibonacciApi
 fibonacciApi = Proxy
 
-getFibonacci :: Int -> RIO AppEnv Int
-getFibonacci =
-  hoistClient fibonacciApi (RIO . unTraceClientM) $ traceClient fibonacciApi (Proxy :: Proxy (TraceClientM AppEnv))
+--- server implementations
+
+runGetFibonacci :: Int -> RIO AppEnv Int
+runGetFibonacci index
+  | index <= 0 = throwIO $ err400 {errBody = "Fibonacci index must be greater than zero"}
+  | index <= 2 = pure 1
+  | otherwise =
+    uncurry (+)
+      <$> concurrently
+        (getFibonacci $ index - 1)
+        (getFibonacci $ index - 2)
+
+runGetHealthcheck :: RIO AppEnv Text
+runGetHealthcheck = pure "ok"
+
+fibonacciServer =
+  runGetFibonacci
+    :<|> runGetHealthcheck
+
+-- client implementations
+
+getFibonacci :<|> getHealthcheck =
+  traceClientRIO Proxy fibonacciApi
 
 --- generic
 

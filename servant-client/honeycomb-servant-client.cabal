@@ -25,7 +25,26 @@ source-repository head
   type:     git
   location: git://github.com/EarnestResearch/honeycomb-haskell.git
 
-common shared-properties
+library
+  build-depends:
+    , base                 >=4.11 && <10
+    , containers
+    , exceptions
+    , honeycomb
+    , honeycomb-servant
+    , honeycomb-wai
+    , microlens
+    , microlens-mtl
+    , mtl
+    , semigroupoids
+    , servant
+    , servant-client
+    , servant-client-core
+    , text
+    , unliftio
+    , wai
+    , wai-unliftio
+
   default-language: Haskell2010
   ghc-options:
     -Wall -Wcompat -Widentities -Wincomplete-record-updates
@@ -37,6 +56,8 @@ common shared-properties
   if impl(ghc >=8.8.0)
     ghc-options: -fwrite-ide-info
 
+  hs-source-dirs:   src
+  exposed-modules:  Servant.Client.Honeycomb
   other-extensions:
     DeriveAnyClass
     DeriveGeneric
@@ -46,57 +67,3 @@ common shared-properties
     OverloadedStrings
     ScopedTypeVariables
     TupleSections
-
-  build-depends:
-    , aeson
-    , base                  >=4.11 && <10
-    , bytestring
-    , hashable
-    , http-client
-    , http-client-tls
-    , http-types
-    , microlens
-    , microlens-mtl
-    , mtl
-    , network-uri
-    , random
-    , scientific
-    , stm
-    , text
-    , time
-    , unliftio
-    , unordered-containers
-    , uuid
-    , vault
-
-library
-  import:          shared-properties
-  hs-source-dirs:  src
-  exposed-modules: Servant.Client.Honeycomb
-  build-depends:
-    , containers
-    , exceptions
-    , honeycomb
-    , honeycomb-servant
-    , honeycomb-wai
-    , semigroupoids
-    , servant
-    , servant-client
-    , servant-client-core
-    , wai
-    , wai-unliftio
-
-test-suite tests
-  import:         shared-properties
-  hs-source-dirs: test
-  type:           exitcode-stdio-1.0
-  main-is:        Spec.hs
-  build-depends:
-    , honeycomb-servant
-    , hspec
-    , rio                >=0.1.12.0
-    , servant
-    , servant-server
-    , wai
-
-  other-modules:  ServantSpec

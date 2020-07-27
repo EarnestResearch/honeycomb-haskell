@@ -2,8 +2,9 @@ packages:
   core/
   servant/
   servant-server/
-  servant-client/
   servant-server-rio/
+  servant-client/
+  servant-client-rio/
   wai/
   wai-unliftio/
   example/
