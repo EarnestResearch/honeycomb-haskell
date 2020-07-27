@@ -1,6 +1,5 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 
 module Network.Wai.Honeycomb
   ( spanContextKey,
@@ -57,7 +56,6 @@ getV1 t =
     else Nothing
 
 traceApplicationT ::
-  forall m env.
   ( MonadUnliftIO m,
     MonadReader env m,
     HC.HasHoney env,
@@ -110,7 +108,6 @@ getResponseFields response =
       ]
 
 traceApplicationT' ::
-  forall m env.
   ( MonadUnliftIO m,
     MonadReader env m,
     HC.HasHoney env,
