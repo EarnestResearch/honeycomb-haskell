@@ -1,5 +1,5 @@
 cabal-version:      3.0
-name:               honeycomb-servant-client-rio
+name:               honeycomb-servant
 version:            0.1.0.0
 synopsis:           Client library for the Honeycomb observability service
 description:
@@ -24,21 +24,24 @@ extra-source-files:
 source-repository head
   type:     git
   location: https://github.com/EarnestResearch/honeycomb-haskell.git
-  subdir:   servant-client-rio
+  subdir:   honeycomb-servant
 
 library
   build-depends:
-    , base                      >=4.11 && <10
+    , base                  >=4.11 && <10
+    , containers
     , honeycomb
-    , honeycomb-servant
-    , honeycomb-servant-client
-    , rio
+    , honeycomb-wai
     , servant
-    , servant-client
-    , servant-client-core
+    , servant-auth
+    , servant-server
+    , text
+    , unordered-containers
+    , wai
+    , wai-unliftio
 
   default-language: Haskell2010
-  exposed-modules:  Servant.Client.Honeycomb.RIO
+  exposed-modules:  Servant.Honeycomb
   ghc-options:
     -Wall -Wcompat -Widentities -Wincomplete-record-updates
     -Wincomplete-uni-patterns -Wpartial-fields -Wredundant-constraints

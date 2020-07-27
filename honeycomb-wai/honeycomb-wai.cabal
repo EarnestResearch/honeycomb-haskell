@@ -18,7 +18,7 @@ extra-source-files: CHANGELOG.md
 source-repository head
   type:     git
   location: https://github.com/EarnestResearch/honeycomb-haskell.git
-  subdir:   wai
+  subdir:   honeycomb-wai
 
 library
   exposed-modules:  Network.Wai.Honeycomb

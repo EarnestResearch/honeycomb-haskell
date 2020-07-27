@@ -1,5 +1,5 @@
 cabal-version:      3.0
-name:               honeycomb-servant
+name:               honeycomb-servant-client
 version:            0.1.0.0
 synopsis:           Client library for the Honeycomb observability service
 description:
@@ -24,24 +24,29 @@ extra-source-files:
 source-repository head
   type:     git
   location: https://github.com/EarnestResearch/honeycomb-haskell.git
-  subdir:   servant
+  subdir:   honeycomb-servant-client
 
 library
   build-depends:
-    , base                  >=4.11 && <10
+    , base                 >=4.11 && <10
     , containers
+    , exceptions
     , honeycomb
+    , honeycomb-servant
     , honeycomb-wai
+    , microlens
+    , microlens-mtl
+    , mtl
+    , semigroupoids
     , servant
-    , servant-auth
-    , servant-server
+    , servant-client
+    , servant-client-core
     , text
-    , unordered-containers
+    , unliftio
     , wai
     , wai-unliftio
 
   default-language: Haskell2010
-  exposed-modules:  Servant.Honeycomb
   ghc-options:
     -Wall -Wcompat -Widentities -Wincomplete-record-updates
     -Wincomplete-uni-patterns -Wpartial-fields -Wredundant-constraints
@@ -54,6 +59,7 @@ library
     ghc-options: -fwrite-ide-info
 
   hs-source-dirs:   src
+  exposed-modules:  Servant.Client.Honeycomb
   other-extensions:
     DeriveAnyClass
     DeriveGeneric

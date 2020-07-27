@@ -1,10 +1,10 @@
 packages:
-  core/
-  servant/
-  servant-server/
-  servant-server-rio/
-  servant-client/
-  servant-client-rio/
-  wai/
+  honeycomb/
+  honeycomb-servant/
+  honeycomb-servant-server/
+  honeycomb-servant-server-rio/
+  honeycomb-servant-client/
+  honeycomb-servant-client-rio/
+  honeycomb-wai/
+  honeycomb-example/
   wai-unliftio/
-  example/
