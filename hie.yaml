@@ -1,42 +1,42 @@
 cradle:
   cabal:
-    - path: "core/src"
+    - path: "honeycomb/src"
       component: "lib:honeycomb"
 
-    - path: "core/test"
+    - path: "honeycomb/test"
       component: "honeycomb:test:tests"
 
-    - path: "example/src"
+    - path: "honeycomb-example/src"
       component: "example:exe:example"
 
-    - path: "servant/src"
+    - path: "honeycomb-servant/src"
       component: "lib:honeycomb-servant"
 
-    - path: "servant/test"
+    - path: "honeycomb-servant/test"
       component: "honeycomb-servant:test:tests"
 
-    - path: "servant-client/src"
+    - path: "honeycomb-servant-client/src"
       component: "lib:honeycomb-servant-client"
 
-    - path: "servant-client/test"
+    - path: "honeycomb-servant-client/test"
       component: "honeycomb-servant-client:test:tests"
 
-    - path: "servant-client-rio/src"
+    - path: "honeycomb-servant-client-rio/src"
       component: "lib:honeycomb-servant-client-rio"
 
-    - path: "servant-client-rio/test"
+    - path: "honeycomb-servant-client-rio/test"
       component: "honeycomb-servant-client-rio:test:tests"
 
-    - path: "servant-server/src"
+    - path: "honeycomb-servant-server/src"
       component: "lib:honeycomb-servant-server"
 
-    - path: "servant-server/test"
+    - path: "honeycomb-servant-server/test"
       component: "honeycomb-servant-server:test:tests"
 
-    - path: "servant-server-rio/src"
+    - path: "honeycomb-servant-server-rio/src"
       component: "lib:honeycomb-servant-server-rio"
 
-    - path: "wai/src"
+    - path: "honeycomb-wai/src"
       component: "lib:honeycomb-wai"
 
     - path: "wai-unliftio/src"
