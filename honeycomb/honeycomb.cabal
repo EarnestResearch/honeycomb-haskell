@@ -53,6 +53,7 @@ common shared-properties
 
   build-depends:
     , aeson
+    , aeson-casing
     , base                  >=4.11 && <10
     , bytestring
     , hashable
@@ -71,6 +72,7 @@ common shared-properties
     , unliftio
     , unordered-containers
     , uuid
+    , vector
 
 library
   import:          shared-properties

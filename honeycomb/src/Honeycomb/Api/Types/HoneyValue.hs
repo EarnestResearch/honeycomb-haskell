@@ -4,6 +4,8 @@ module Honeycomb.Api.Types.HoneyValue
   ( HoneyValue (..),
     ToHoneyValue,
     toHoneyValue,
+    GToHoneyValue,
+    gToHoneyValue
   )
 where
 
@@ -18,6 +20,7 @@ import Data.Text.Encoding.Error (lenientDecode)
 import Data.Time.Clock (NominalDiffTime, UTCTime)
 import Data.Time.Format (defaultTimeLocale, formatTime)
 import Numeric.Natural (Natural)
+import GHC.Generics
 
 -- | Honeycomb Underlying Datatypes
 --
@@ -84,6 +87,12 @@ instance ToHoneyValue ByteString where
 instance ToHoneyValue a => ToHoneyValue (Maybe a) where
   toHoneyValue Nothing = HoneyNull
   toHoneyValue (Just a) = toHoneyValue a
+
+class GToHoneyValue f where
+  gToHoneyValue :: f a -> HoneyValue
+
+instance ToHoneyValue a => GToHoneyValue (K1 i a) where
+  gToHoneyValue (K1 x) = toHoneyValue x
 
 instance IsString HoneyValue where
   fromString = HoneyString . T.pack

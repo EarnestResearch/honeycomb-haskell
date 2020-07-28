@@ -31,11 +31,13 @@ fibonacciApi = Proxy
 
 --- server implementations
 
+-- Would it be more efficient to set up a lookup table?
+-- Shut up, Dave.
 runGetFibonacci :: Int -> RIO AppEnv Int
 runGetFibonacci index
   | index <= 0 = throwIO $ err400 {errBody = "Fibonacci index must be greater than zero."}
-  | index <= 2 = pure 1
   | index > 12 = throwIO $ err400 {errBody = "I'm afraid I can't let you do that, Dave."}
+  | index <= 2 = pure 1
   | otherwise =
     uncurry (+)
       <$> concurrently
