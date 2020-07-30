@@ -1,3 +1,4 @@
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 
@@ -7,16 +8,15 @@ module Network.Wai.Honeycomb
     traceApplication',
     traceApplicationT,
     traceApplicationT',
-    withSpanContextFromRequest
+    withSpanContextFromRequest,
   )
 where
 
-import Control.Monad.Reader (local, MonadReader, join)
-import Data.ByteString (ByteString)
+import Control.Monad.Reader (MonadReader, join, local)
 import qualified Data.HashMap.Strict as HM
 import Data.IP
 import qualified Data.List as List
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe, isJust)
 import qualified Data.Text as T
 import Data.Text.Encoding (decodeUtf8With)
 import Data.Text.Encoding.Error (lenientDecode)
@@ -29,31 +29,7 @@ import Network.Wai
 import Network.Wai.UnliftIO
 import System.IO.Unsafe
 import UnliftIO
-
-decodeUtf8Lenient :: ByteString -> T.Text
-decodeUtf8Lenient = decodeUtf8With lenientDecode
-
-readTraceHeader :: Request -> Maybe HC.SpanReference
-readTraceHeader req = do
-  let headers = requestHeaders req
-  (_, headerValue) <- List.find (\(name, _) -> name == "X-Honeycomb-Trace") headers
-  headerText <- getV1 $ decodeUtf8Lenient headerValue
-  let parts = T.split (== '=') <$> T.split (== ',') headerText
-  (_ : tid) <- List.find (getVal "trace_id") parts
-  (_ : sid) <- List.find (getVal "parent_id") parts
-  pure $ HC.SpanReference (HC.TraceId $ T.intercalate "=" tid) (HC.SpanId $ T.intercalate "=" sid)
-
-getVal :: T.Text -> [T.Text] -> Bool
-getVal header = \case
-  [] -> False
-  [_] -> False
-  h : _ -> h == header
-
-getV1 :: T.Text -> Maybe T.Text
-getV1 t =
-  if T.take 2 t == "1;"
-    then Just $ T.drop 2 t
-    else Nothing
+import Data.Bifunctor (Bifunctor(second))
 
 spanContextKey :: V.Key (Maybe HC.SpanContext)
 spanContextKey = unsafePerformIO V.newKey
@@ -75,13 +51,13 @@ getRequestFields req =
         ("request.http_version", HC.toHoneyValue . T.pack . show $ httpVersion req),
         ("request.method", HC.toHoneyValue $ requestMethod req),
         ("request.path", HC.toHoneyValue $ rawPathInfo req),
-        ("request.query", HC.toHoneyValue . (\t -> fromMaybe t $ T.stripPrefix "?" t) . decodeUtf8Lenient $ rawQueryString req),
+        ("request.query", HC.toHoneyValue . (\t -> fromMaybe t $ T.stripPrefix "?" t) . decodeUtf8With lenientDecode $ rawQueryString req),
         ("request.remote_addr", HC.toHoneyValue . reqAddr . fromSockAddr $ remoteHost req),
         ("request.scheme", HC.HoneyString $ if isSecure req then "https" else "http"),
         ("request.secure", HC.toHoneyValue $ isSecure req),
         ("type", "http_server")
       ]
-      <> fmap (\(name, value) -> ("http.query_param." <> decodeUtf8Lenient name, HC.toHoneyValue value)) (queryString req)
+      <> fmap (\(name, value) -> ("http.query_param." <> decodeUtf8With lenientDecode name, HC.toHoneyValue value)) (queryString req)
   where
     bodyLength = \case
       ChunkedBody -> Nothing
@@ -149,7 +125,7 @@ traceApplicationT' ::
   (Request -> Maybe HC.HoneyObject) ->
   MiddlewareT m
 traceApplicationT' service sp extraReqDetails app req inner =
-  HC.withNewRootSpan' service sp (readTraceHeader req) $ do
+  HC.withNewRootSpan' service sp (getFirstTraceHeader traceFormats req) $ do
     spanContext <- view HC.spanContextL
     HC.add (getRequestFields req)
     (\x y -> app x y `catchAny` reportErrorStatus)
@@ -159,3 +135,12 @@ traceApplicationT' service sp extraReqDetails app req inner =
           maybe (pure ()) HC.add (extraReqDetails req)
           inner response
       )
+  where
+    traceFormats = [HC.honeycombTraceHeaderFormat, HC.w3cTraceHeaderFormat]
+
+getFirstTraceHeader :: [HC.TraceHeaderFormat] -> Request -> Maybe HC.SpanReference
+getFirstTraceHeader traceFormats req =
+  join $ List.find isJust (parseWithFormat <$> traceFormats)
+  where
+    parseWithFormat :: HC.TraceHeaderFormat -> Maybe HC.SpanReference
+    parseWithFormat f = HC.parseTraceHeader f $ second (decodeUtf8With lenientDecode) <$> requestHeaders req

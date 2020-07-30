@@ -70,7 +70,6 @@ common shared-properties
     , time
     , unliftio
     , unordered-containers
-    , uuid
 
 library
   import:          shared-properties
@@ -102,6 +101,10 @@ library
     Honeycomb.Core.Types.HoneyOptions
     Honeycomb.Core.Types.HoneyResponse
     Honeycomb.Core.Types.HoneyServerOptions
+    Honeycomb.Trace.TraceHeaderFormat
+    Honeycomb.Trace.TraceHeaderFormat.HoneycombFormat
+    Honeycomb.Trace.TraceHeaderFormat.Types
+    Honeycomb.Trace.TraceHeaderFormat.W3CFormat
     Honeycomb.Trace.Types
     Honeycomb.Trace.Types.ServiceName
     Honeycomb.Trace.Types.SpanContext

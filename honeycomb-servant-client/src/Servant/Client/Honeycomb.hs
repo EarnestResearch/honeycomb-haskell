@@ -23,7 +23,6 @@ where
 import Control.Monad.Catch (MonadThrow)
 import Control.Monad.Except (runExceptT)
 import Control.Monad.Reader (MonadReader, ReaderT, runReaderT)
-import Data.Coerce (coerce)
 import Data.Functor.Alt (Alt (..))
 import Data.Proxy (Proxy(..))
 import qualified Data.Text as T
@@ -33,6 +32,8 @@ import Lens.Micro.Mtl (view)
 import Servant.Client.Core (Client, HasClient, Request, RunClient (..), addHeader, clientIn)
 import Servant.Client.Internal.HttpClient
 import UnliftIO
+import qualified Data.List as List
+import Network.HTTP.Types.Header (HeaderName)
 
 class HasClientEnv env where
   clientEnvL :: Lens' env ClientEnv
@@ -61,11 +62,11 @@ instance (HasClientEnv env, HC.HasSpanContext env) => RunClient (TraceClientM en
           liftIO $
             runExceptT (runReaderT response clientEnv) >>= either throwIO pure
       traceValue :: Maybe HC.SpanContext -> Request -> Request
-      traceValue Nothing = id
-      traceValue (Just sc) =
-        addHeader "X-Honeycomb-Trace" (spanReferenceToText $ sc ^. HC.spanReferenceL)
-      spanReferenceToText :: HC.SpanReference -> T.Text
-      spanReferenceToText sr = "1;trace_id=" <> coerce (HC.getTraceId sr) <> ",parent_id=" <> coerce (HC.getSpanId sr)
+      traceValue Nothing _ = req
+      traceValue (Just sc) r =
+        List.foldl (flip ($)) r (uncurry addHeader <$> getHeaders (sc ^. HC.spanReferenceL))
+      getHeaders :: HC.SpanReference -> [(HeaderName, T.Text)]
+      getHeaders = HC.writeTraceHeader HC.honeycombTraceHeaderFormat
 
   throwClientError = throwIO
 

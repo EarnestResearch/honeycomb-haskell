@@ -1,3 +1,4 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 module Honeycomb.Trace.Types.SpanId
   ( SpanId (..),
     HasSpanId,
@@ -11,14 +12,17 @@ where
 import Control.Monad.Reader (MonadIO, liftIO)
 import Data.Coerce (coerce)
 import qualified Data.Text as T
-import qualified Data.UUID as UUID
-import qualified Data.UUID.V4 as V4
+import Data.Word (Word64)
 import Honeycomb.Core.Types
+import Numeric (showHex)
+import System.Random (randomIO)
 
 newtype SpanId = SpanId T.Text deriving (Eq, Show)
 
 mkSpanId :: MonadIO m => m SpanId
-mkSpanId = toSpanId <$> liftIO V4.nextRandom
+mkSpanId = do
+  (bytes :: Word64) <- liftIO randomIO
+  pure . SpanId . T.pack $ showHex bytes ""
 
 class ToSpanId a where
   toSpanId :: a -> SpanId
@@ -26,8 +30,8 @@ class ToSpanId a where
 instance ToSpanId T.Text where
   toSpanId = SpanId
 
-instance ToSpanId UUID.UUID where
-  toSpanId = SpanId . UUID.toText
+instance ToSpanId Word64 where
+  toSpanId word = SpanId . T.pack $ showHex word ""
 
 class HasSpanId a where
   getSpanId :: a -> SpanId

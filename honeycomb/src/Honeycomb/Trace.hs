@@ -32,6 +32,9 @@ module Honeycomb.Trace
 
     -- ** Core types
     module Honeycomb.Core.Types,
+
+    -- ** Trace header types
+    module Honeycomb.Trace.TraceHeaderFormat
   )
 where
 
@@ -46,6 +49,7 @@ import Honeycomb (newEvent, send')
 import qualified Honeycomb as HC (add, addField)
 import Honeycomb.Core
 import Honeycomb.Core.Types
+import Honeycomb.Trace.TraceHeaderFormat
 import Honeycomb.Trace.Types
 import Lens.Micro (over, (&), (^.), _Just)
 import Lens.Micro.Mtl (preview, view)
