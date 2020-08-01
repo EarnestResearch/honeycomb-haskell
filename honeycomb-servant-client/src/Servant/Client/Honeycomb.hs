@@ -64,7 +64,7 @@ instance (HasClientEnv env, HC.HasSpanContext env) => RunClient (TraceClientM en
       traceValue :: Maybe HC.SpanContext -> Request -> Request
       traceValue Nothing _ = req
       traceValue (Just sc) r =
-        List.foldl (flip ($)) r (uncurry addHeader <$> getHeaders (sc ^. HC.spanReferenceL))
+        List.foldl' (flip ($)) r (uncurry addHeader <$> getHeaders (sc ^. HC.spanReferenceL))
       getHeaders :: HC.SpanReference -> [(HeaderName, T.Text)]
       getHeaders = HC.writeTraceHeader HC.honeycombTraceHeaderFormat
 

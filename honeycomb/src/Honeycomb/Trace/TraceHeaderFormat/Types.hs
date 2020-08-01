@@ -1,3 +1,4 @@
+{-# LANGUAGE StrictData #-}
 module Honeycomb.Trace.TraceHeaderFormat.Types (TraceHeaderFormat(..)) where
 
 import Honeycomb.Trace.Types.SpanReference

@@ -1,3 +1,4 @@
+{-# LANGUAGE StrictData #-}
 module Honeycomb.Core.Types.HoneyServerOptions
   ( HoneyServerOptions,
     blockOnResponseL,
@@ -19,12 +20,12 @@ import Numeric.Natural (Natural)
 import UnliftIO
 
 data HoneyServerOptions m = HoneyServerOptions
-  { blockOnResponse :: !Bool,
-    maxBatchSize :: !Natural,
+  { blockOnResponse :: Bool,
+    maxBatchSize :: Natural,
     -- | Frequency of batch sending in milliseconds
-    sendFrequency :: !Int,
-    maxConcurrentBatches :: !Natural,
-    pendingWorkCapacity :: !Natural,
+    sendFrequency :: Int,
+    maxConcurrentBatches :: Natural,
+    pendingWorkCapacity :: Natural,
     httpLbs :: Client.Request -> m (Client.Response LBS.ByteString)
   }
 

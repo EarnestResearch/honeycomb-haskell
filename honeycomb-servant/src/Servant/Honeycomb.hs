@@ -34,8 +34,8 @@ import Servant.Auth (Auth)
 
 data RequestInfo
   = RequestInfo
-      { pathSegments :: [T.Text],
-        pathParameters :: [(T.Text, T.Text)]
+      { pathSegments :: ![T.Text],
+        pathParameters :: ![(T.Text, T.Text)]
       }
   deriving (Eq, Show, Generic)
 
