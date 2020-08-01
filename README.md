@@ -2,3 +2,6 @@
 
 # honeycomb
 Honeycomb client library for Haskell
+
+# honeycomb-wai
+WAI support for Honeycomb/Haskell
