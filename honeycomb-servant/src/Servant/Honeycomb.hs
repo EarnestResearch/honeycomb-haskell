@@ -117,6 +117,7 @@ instance ReflectMethod method => HasRequestInfo (Verb method status cts a) where
   getRequestInfo _ req =
     case Wai.pathInfo req of
       [] | Wai.requestMethod req == method -> Just (RequestInfo {pathSegments = [], pathParameters = []})
+      [] | Wai.requestMethod req == "HEAD" && method == "GET" -> Just (RequestInfo {pathSegments = [], pathParameters = []})
       _ -> Nothing
     where
       method = reflectMethod (Proxy :: Proxy method)
@@ -126,6 +127,7 @@ instance ReflectMethod method => HasRequestInfo (NoContentVerb method) where
   getRequestInfo _ req =
     case Wai.pathInfo req of
       [] | Wai.requestMethod req == method -> Just (RequestInfo {pathSegments = [], pathParameters = []})
+      [] | Wai.requestMethod req == "HEAD" && method == "GET" -> Just (RequestInfo {pathSegments = [], pathParameters = []})
       _ -> Nothing
     where
       method = reflectMethod (Proxy :: Proxy method)
