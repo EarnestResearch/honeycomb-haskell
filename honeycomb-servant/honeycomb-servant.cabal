@@ -32,6 +32,7 @@ library
     , containers
     , honeycomb
     , honeycomb-wai
+    , http-types
     , servant
     , servant-auth
     , servant-server
