@@ -46,6 +46,8 @@ getRequestFields req =
   HC.HoneyObject
     . HM.fromList
     $ [ ("request.content_length", HC.toHoneyValue . bodyLength $ requestBodyLength req),
+        ("request.header.accept", HC.toHoneyValue $ snd <$> List.find (\(n, _) -> n == "Accept") (requestHeaders req)),
+        ("request.header.content_type", HC.toHoneyValue $ snd <$> List.find (\(n, _) -> n == "Content-Type") (requestHeaders req)),
         ("request.header.user_agent", HC.toHoneyValue $ requestHeaderUserAgent req),
         ("request.host", HC.toHoneyValue $ requestHeaderHost req),
         ("request.http_version", HC.toHoneyValue . T.pack . show $ httpVersion req),
