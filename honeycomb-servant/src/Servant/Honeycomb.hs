@@ -116,27 +116,33 @@ instance HasRequestInfo (sub :: Type) => HasRequestInfo (WithNamedContext x y su
 
 instance ReflectMethod method => HasRequestInfo (Verb method status cts a) where
   getRequestInfo _ req =
-    if Wai.requestMethod req == method || (Wai.requestMethod req == methodHead && method == methodGet)
-      then Just (RequestInfo {pathSegments = [], pathParameters = []})
-    else Nothing
+    case Wai.pathInfo req of
+      [] -> if Wai.requestMethod req == method || (Wai.requestMethod req == methodHead && method == methodGet)
+              then Just (RequestInfo {pathSegments = [], pathParameters = []})
+            else Nothing
+      _otherwise -> Nothing
     where
       method = reflectMethod (Proxy :: Proxy method)
 
 #if MIN_VERSION_servant(0,17,0)
 instance ReflectMethod method => HasRequestInfo (NoContentVerb method) where
   getRequestInfo _ req =
-    if Wai.requestMethod req == method || (Wai.requestMethod req == methodHead && method == methodGet)
-      then Just (RequestInfo {pathSegments = [], pathParameters = []})
-    else Nothing
+    case Wai.pathInfo req of
+      [] -> if Wai.requestMethod req == method || (Wai.requestMethod req == methodHead && method == methodGet)
+              then Just (RequestInfo {pathSegments = [], pathParameters = []})
+            else Nothing
+      _otherwise -> Nothing
     where
       method = reflectMethod (Proxy :: Proxy method)
 #endif
 
 instance ReflectMethod method => HasRequestInfo (Stream method status framing ct a) where
   getRequestInfo _ req =
-    if Wai.requestMethod req == method || (Wai.requestMethod req == methodHead && method == methodGet)
-      then Just (RequestInfo {pathSegments = [], pathParameters = []})
-    else Nothing
+    case Wai.pathInfo req of
+      [] -> if Wai.requestMethod req == method || (Wai.requestMethod req == methodHead && method == methodGet)
+              then Just (RequestInfo {pathSegments = [], pathParameters = []})
+            else Nothing
+      _otherwise -> Nothing
     where
       method = reflectMethod (Proxy :: Proxy method)
 
