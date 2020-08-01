@@ -16,3 +16,4 @@ jobs:
         name: earnestresearch-public
         signingKey: '${{ secrets.EARNESTRESEARCH_PUBLIC_CACHIX_SIGNING_KEY }}'
     - run: nix-build ci.nix
+    - run: nix-shell --run "exit 0"
