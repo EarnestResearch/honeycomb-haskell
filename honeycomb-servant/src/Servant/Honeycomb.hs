@@ -31,6 +31,7 @@ import qualified Honeycomb.Trace as HC
 import qualified Network.Wai as Wai
 import Servant
 import Servant.Auth (Auth)
+import Debug.Trace (trace)
 
 data RequestInfo
   = RequestInfo
@@ -120,7 +121,7 @@ instance ReflectMethod method => HasRequestInfo (Verb method status cts a) where
       [] -> if Wai.requestMethod req == method || (Wai.requestMethod req == methodHead && method == methodGet)
               then Just (RequestInfo {pathSegments = [], pathParameters = []})
             else Nothing
-      _otherwise -> Nothing
+      stuff -> trace (show stuff) Nothing
     where
       method = reflectMethod (Proxy :: Proxy method)
 
@@ -131,7 +132,7 @@ instance ReflectMethod method => HasRequestInfo (NoContentVerb method) where
       [] -> if Wai.requestMethod req == method || (Wai.requestMethod req == methodHead && method == methodGet)
               then Just (RequestInfo {pathSegments = [], pathParameters = []})
             else Nothing
-      _otherwise -> Nothing
+      stuff -> trace (show stuff) Nothing
     where
       method = reflectMethod (Proxy :: Proxy method)
 #endif
@@ -142,7 +143,7 @@ instance ReflectMethod method => HasRequestInfo (Stream method status framing ct
       [] -> if Wai.requestMethod req == method || (Wai.requestMethod req == methodHead && method == methodGet)
               then Just (RequestInfo {pathSegments = [], pathParameters = []})
             else Nothing
-      _otherwise -> Nothing
+      stuff -> trace (show stuff) Nothing
     where
       method = reflectMethod (Proxy :: Proxy method)
 
@@ -150,7 +151,7 @@ instance HasRequestInfo Raw where
   getRequestInfo _ _ = Just (RequestInfo{pathSegments = ["RAW"], pathParameters = []})
 
 instance HasRequestInfo (sub :: Type) => HasRequestInfo (CaptureAll (h :: Symbol) a :> sub) where
-  getRequestInfo _ = getRequestInfo (Proxy :: Proxy sub)
+  getRequestInfo _ req = getRequestInfo (Proxy :: Proxy sub) req{Wai.pathInfo = []}
 
 instance HasRequestInfo (sub :: Type) => HasRequestInfo (BasicAuth (realm :: Symbol) a :> sub) where
   getRequestInfo _ = getRequestInfo (Proxy :: Proxy sub)
