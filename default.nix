@@ -1,10 +1,10 @@
 { pkgs ? import ./nixpkgs {}
-, ghc ? "ghc883"
+, ghc ? "ghc884"
 }:
-pkgs.haskell-nix.cabalProject {
+pkgs.haskell-nix.project {
   src = pkgs.haskell-nix.haskellLib.cleanGit { name = "honeycomb-haskell"; src = ./.; };
   compiler-nix-name = ghc;
-  index-state = "2020-06-29T00:00:00Z";
+  index-state = "2020-07-28T00:00:00Z";
 } // {
   pre-commit-check = pkgs.pre-commit-hooks.run {
     src = ./.;

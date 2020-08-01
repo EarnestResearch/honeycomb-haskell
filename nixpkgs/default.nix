@@ -5,7 +5,7 @@ let
       url = "https://github.com/EarnestResearch/er-nix.git";
       ref = "refs/heads/master";
       # git ls-remote git@github.com:EarnestResearch/er-nix refs/heads/master | awk '{ print "rev = \""$1"\";" }'
-      rev = "01827209ae2e39c3eefd9573ceed76684d969335";
+      rev = "6b6accdf7dca73b2ecee8b7fe07a69adec937040";
     }
   );
 in
