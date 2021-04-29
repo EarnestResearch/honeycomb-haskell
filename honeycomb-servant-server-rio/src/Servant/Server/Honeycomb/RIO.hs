@@ -1,8 +1,10 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
 
 -- |
 -- Module      : Servant.Server.Honeycomb.RIO
@@ -30,6 +32,9 @@ import Servant
 import Servant.API.Generic (AsApi, GenericServant, ToServant, ToServantApi)
 import Servant.Server.Generic
 import Servant.Server.Honeycomb
+#if MIN_VERSION_servant_server(0,18,0)
+import Servant.Server.Internal.ErrorFormatter (DefaultErrorFormatters, ErrorFormatters)
+#endif
 import Servant.Honeycomb (HasRequestInfo)
 
 -- | Trace a RIO-based Servant service with Honeycomb.
@@ -58,10 +63,13 @@ traceServerRIO proxy service spanName app =
 traceServerRIOWithContext ::
   ( HC.HasHoney env,
     HC.HasSpanContext env,
-    HasServer api context,
+    HasServer api ctx,
+#if MIN_VERSION_servant_server(0,18,0)
+    HasContextEntry (ctx .++ DefaultErrorFormatters) ErrorFormatters,
+#endif
     HasRequestInfo api
   ) =>
-  Context context ->
+  Context ctx ->
   -- | Proxy representing Servant API
   Proxy api ->
   -- | Honeycomb service name
@@ -103,6 +111,9 @@ genericTraceServerWithContextRIO ::
     GenericServant routes (AsServerT (RIO env)),
     GenericServant routes AsApi,
     HasServer (ToServantApi routes) ctx,
+#if MIN_VERSION_servant_server(0,18,0)
+    HasContextEntry (ctx .++ DefaultErrorFormatters) ErrorFormatters,
+#endif
     ServerT (ToServantApi routes) (RIO env) ~ ToServant routes (AsServerT (RIO env))
   ) =>
   Context ctx ->
