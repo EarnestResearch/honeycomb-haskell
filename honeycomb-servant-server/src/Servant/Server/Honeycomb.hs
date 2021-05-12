@@ -1,4 +1,5 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -26,6 +27,9 @@ import Lens.Micro (over)
 import Network.Wai.Honeycomb.Servant
 import Servant
 import Servant.Server.Internal.Delayed (passToServer)
+#if MIN_VERSION_servant_server(0,18,0)
+import Servant.Server.Internal.ErrorFormatter (DefaultErrorFormatters, ErrorFormatters)
+#endif
 import UnliftIO hiding (Handler)
 import Servant.Honeycomb (HasRequestInfo)
 
@@ -100,6 +104,9 @@ traceServerWithContext ::
     HC.HasHoney env,
     HC.HasSpanContext env,
     HasServer api ctx,
+#if MIN_VERSION_servant_server(0,18,0)
+    HasContextEntry (ctx .++ DefaultErrorFormatters) ErrorFormatters,
+#endif
     HasRequestInfo api
   ) =>
   Context ctx ->
