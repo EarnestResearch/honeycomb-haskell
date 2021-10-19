@@ -13,7 +13,6 @@ author:             Gary Coady
 maintainer:         gcoady@earnestresearch.com
 copyright:          Copyright (c) 2019 Earnest Research
 category:           Monitoring
-extra-source-files: CHANGELOG.md
 
 source-repository head
   type:     git
