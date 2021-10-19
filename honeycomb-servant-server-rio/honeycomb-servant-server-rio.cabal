@@ -17,9 +17,6 @@ maintainer:         gcoady@earnestresearch.com
 copyright:          (c) 2019-2020 Earnest Research
 license:            Apache-2.0
 license-file:       LICENSE
-extra-source-files:
-  README.md
-  ChangeLog.md
 
 source-repository head
   type:     git
