@@ -13,7 +13,8 @@ module Honeycomb.Core
   )
 where
 
-import Control.Monad.Reader (MonadReader, local, void)
+import Control.Monad (void)
+import Control.Monad.Reader (MonadReader, local)
 import Data.Maybe (isJust)
 import qualified Data.Text as T
 import Honeycomb.Core.Internal.Types

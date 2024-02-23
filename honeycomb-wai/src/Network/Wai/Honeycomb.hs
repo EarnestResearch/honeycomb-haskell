@@ -12,7 +12,8 @@ module Network.Wai.Honeycomb
   )
 where
 
-import Control.Monad.Reader (MonadReader, join, local)
+import Control.Monad (join)
+import Control.Monad.Reader (MonadReader, local)
 import qualified Data.HashMap.Strict as HM
 import Data.IP
 import qualified Data.List as List

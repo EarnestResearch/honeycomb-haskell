@@ -49,12 +49,12 @@ instance Alt (TraceClientM env) where
   a <!> b = a `catchIO` const b
 
 instance (HasClientEnv env, HC.HasSpanContext env) => RunClient (TraceClientM env) where
-  runRequest req =
+  runRequestAcceptStatus ss req =
     do
       spanContext <- view HC.spanContextL
       clientEnv <- view clientEnvL
       let reqWithTraceHeader = traceValue spanContext req
-      nt clientEnv $ performRequest reqWithTraceHeader
+      nt clientEnv $ performRequest ss reqWithTraceHeader
     where
       nt :: ClientEnv -> ClientM response -> TraceClientM env response
       nt clientEnv (ClientM response) =
