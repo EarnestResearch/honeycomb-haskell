@@ -20,7 +20,6 @@ import Servant.Client
 import Servant.Client.Honeycomb.RIO
 import Servant.Server.Honeycomb.RIO
 import qualified RIO.HashMap as HM
-import qualified RIO.Text as T
 
 type FibonacciApi =
   "fib" :> Capture "index" Int :> Get '[JSON] Int
@@ -45,12 +44,14 @@ runGetFibonacci index
 runGetHealthcheck :: RIO AppEnv Text
 runGetHealthcheck = pure "ok"
 
+fibonacciServer :: (Int -> RIO AppEnv Int) :<|> RIO AppEnv Text
 fibonacciServer =
   runGetFibonacci
     :<|> runGetHealthcheck
 
 -- client implementations
 
+getFibonacci :: Int -> RIO AppEnv Int
 getFibonacci :<|> getHealthcheck =
   traceClientRIO Proxy fibonacciApi
 
